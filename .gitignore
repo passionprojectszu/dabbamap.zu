@@ -1,0 +1,17 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Dependencies / build (none needed for static site, but safe)
+node_modules/
+
+# Local screenshots / scratch
+screenshots/
+temporary screenshots/
+*.tmp

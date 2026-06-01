@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DabbaMap — Find ghar ka khana near you</title>
+  <meta name="description" content="Discover home cooks and dabba providers near you. Real people, real food, real community." />
+
+  <!-- Leaflet core -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- MarkerCluster animation only (no default blue icons) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/main.css" />
+
+  <style>
+    /* ── Map Hero ─────────────────────────────────── */
+    .map-hero {
+      position: relative;
+      height: calc(100vh - 72px);
+      min-height: 560px;
+      overflow: hidden;
+      background: #e8ddd0;
+    }
+    #home-map { width: 100%; height: 100%; }
+
+    .leaflet-control-attribution {
+      background: rgba(255,255,255,0.6) !important;
+      color: rgba(44,24,16,0.5) !important;
+      font-size: 10px !important;
+    }
+    .leaflet-control-attribution a { color: rgba(44,24,16,0.5) !important; }
+
+    /* spider legs (spiderfied markers) */
+    .leaflet-cluster-spider-leg { stroke: rgba(200,119,26,0.45); stroke-width: 1.5; }
+
+    /* ── Floating topbar ──────────────────────────── */
+    .map-topbar {
+      position: absolute; top: 16px; left: 16px; right: 16px;
+      z-index: 800; display: flex; align-items: center; gap: 10px;
+    }
+    .map-search {
+      flex: 1; display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.97); border-radius: 12px;
+      padding: 10px 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+      border: 1.5px solid rgba(255,255,255,0.6);
+      backdrop-filter: blur(8px); max-width: 520px;
+    }
+    .map-search .icon { font-size: 16px; color: var(--text-muted); flex-shrink: 0; }
+    .map-search input {
+      flex: 1; border: none; outline: none; font-size: 15px;
+      font-family: var(--font-body); color: var(--text); background: transparent;
+    }
+    .map-search input::placeholder { color: #aaa; }
+    .map-search-btn {
+      background: var(--primary); color: #fff; border: none; border-radius: 8px;
+      padding: 7px 16px; font-size: 13px; font-weight: 700;
+      font-family: var(--font-body); cursor: pointer;
+      transition: background 0.15s; white-space: nowrap;
+    }
+    .map-search-btn:hover { background: var(--primary-dark); }
+    .map-filter-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.97); color: var(--text);
+      border: 1.5px solid rgba(255,255,255,0.6); border-radius: 12px;
+      padding: 10px 16px; font-size: 14px; font-weight: 600;
+      font-family: var(--font-body); cursor: pointer;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px); white-space: nowrap; transition: all 0.15s;
+    }
+    .map-filter-btn:hover { background: var(--primary-pale); color: var(--primary); }
+
+    /* ── Stats pill ───────────────────────────────── */
+    .map-stats-row {
+      position: absolute; top: 74px; left: 16px;
+      z-index: 800; display: flex; align-items: center; gap: 8px;
+    }
+    .map-stats-pill {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.97); border-radius: 100px;
+      padding: 6px 14px; font-size: 13px; font-weight: 600; color: var(--text);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3); backdrop-filter: blur(8px);
+    }
+    .map-stats-pill .dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--success);
+      flex-shrink: 0; animation: pulse 2s infinite;
+    }
+    .live-pill {
+      background: var(--primary); color: #fff; border-radius: 100px;
+      padding: 5px 12px; font-size: 12px; font-weight: 700;
+      font-family: var(--font-body); cursor: pointer;
+      box-shadow: 0 2px 12px rgba(200,119,26,0.5); text-decoration: none;
+    }
+
+    /* ── Quick filters (bottom-left) ──────────────── */
+    .map-filters-row {
+      position: absolute; bottom: 20px; left: 16px;
+      z-index: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .map-qfilter {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.96); border-radius: 100px;
+      padding: 7px 14px; font-size: 13px; font-weight: 600; color: var(--text);
+      cursor: pointer; border: 1.5px solid transparent;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+      backdrop-filter: blur(8px); transition: all 0.15s;
+    }
+    .map-qfilter:hover { border-color: var(--primary); color: var(--primary); }
+    .map-qfilter.f-all    { background: rgba(255,255,255,0.96); color: var(--text); }
+    .map-qfilter.f-all.on { background: #2C1810; color: #fff; }
+    .map-qfilter.f-veg.on    { background: #166534; color: #fff; border-color: #166534; }
+    .map-qfilter.f-nonveg.on { background: #991b1b; color: #fff; border-color: #991b1b; }
+    .map-qfilter.f-jain.on   { background: #5b21b6; color: #fff; border-color: #5b21b6; }
+    .map-qfilter.f-diet.on   { background: #075985; color: #fff; border-color: #075985; }
+    .map-qfilter.f-trial.on  { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* ── Right mini-buttons ───────────────────────── */
+    .map-sidebar-right {
+      position: absolute; top: 74px; right: 16px;
+      z-index: 800; display: flex; flex-direction: column; gap: 8px;
+    }
+    .map-side-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.97); border-radius: 10px;
+      padding: 9px 14px; font-size: 13px; font-weight: 700;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3); backdrop-filter: blur(8px);
+      border: none; cursor: pointer; text-decoration: none; color: var(--text);
+      transition: background 0.15s;
+    }
+    .map-side-btn:hover { background: var(--primary-pale); color: var(--primary); }
+
+    /* ── Tagline card ─────────────────────────────── */
+    .map-tagline {
+      position: absolute; bottom: 20px; right: 16px; z-index: 800;
+      background: rgba(255,255,255,0.92); border-radius: 10px;
+      padding: 10px 14px; font-size: 13px; color: var(--text-muted);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      backdrop-filter: blur(8px); max-width: 200px;
+      border-left: 3px solid var(--primary);
+    }
+    .map-tagline strong { display: block; font-family: var(--font-display); font-size: 14px; color: var(--text); margin-bottom: 2px; }
+
+    /* ── Scroll hint ──────────────────────────────── */
+    .scroll-hint {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 40px; z-index: 700; pointer-events: none;
+      background: linear-gradient(to bottom, transparent, rgba(232,221,208,0.55));
+      display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;
+    }
+    .scroll-hint span { font-size: 11px; color: rgba(44,24,16,0.4); letter-spacing: 0.1em; text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
+
+    /* ── Custom cluster marker ────────────────────── */
+    .dm-cluster {
+      background: rgba(255,255,255,0.97);
+      border-radius: 100px;
+      padding: 6px 14px;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+      border: 1.5px solid rgba(255,255,255,0.7);
+      white-space: nowrap;
+      font-family: 'DM Sans', sans-serif;
+      transform: translate(-50%, -50%);
+      display: inline-block;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .dm-cluster:hover { transform: translate(-50%,-50%) scale(1.06); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+    .dm-cluster .c-count { font-size: 15px; font-weight: 800; color: #2C1810; }
+    .dm-cluster .c-label { font-size: 11px; font-weight: 600; color: #7C6B5A; margin-left: 3px; }
+
+    /* Larger cluster = more opaque amber ring */
+    .dm-cluster-lg { border-color: var(--primary-light); box-shadow: 0 3px 14px rgba(200,119,26,0.35); }
+
+    /* ── Custom individual price-pill marker ─────── */
+    .dm-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      border-radius: 100px; padding: 5px 11px;
+      font-size: 12px; font-weight: 700; font-family: 'DM Sans', sans-serif;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+      white-space: nowrap; cursor: pointer;
+      border: 1.5px solid rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+    }
+    .dm-pill-veg    { background: #15803d; color: #fff; }
+    .dm-pill-nonveg { background: #b91c1c; color: #fff; }
+    .dm-pill-jain   { background: #6d28d9; color: #fff; }
+    .dm-pill-diet   { background: #0369a1; color: #fff; }
+
+    /* Navbar translucent-warm over map */
+    .navbar-map {
+      background: rgba(253,248,240,0.92) !important;
+      backdrop-filter: blur(14px) !important;
+      border-bottom: 1px solid rgba(200,119,26,0.15) !important;
+      box-shadow: 0 2px 16px rgba(44,24,16,0.06) !important;
+    }
+
+    @media (max-width: 768px) {
+      .map-hero { height: 78vh; min-height: 440px; }
+      .map-search { max-width: 100%; }
+      .map-sidebar-right, .map-tagline { display: none; }
+      .map-filters-row { gap: 6px; }
+      .map-qfilter { padding: 6px 10px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar navbar-map" id="main-nav">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo">
+      <span class="logo-icon">🥘</span>
+      <span class="brand">Dabba<em>Map</em></span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="discover.html">Discover</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="about.html">About</a>
+    </div>
+    <div class="nav-cta">
+      <a href="list.html" class="btn btn-primary btn-sm">List My Dabba</a>
+      <div class="nav-profile" id="nav-profile-wrap" style="position:relative;display:inline-flex;align-items:center;margin-left:4px">
+        <button class="nav-profile-btn" id="nav-profile-btn" title="Account" style="width:38px;height:38px;border-radius:50%;border:2px solid #C8771A;background:#FEF3E2;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#C8771A;padding:0">
+          <svg viewBox="0 0 24 24" style="width:19px;height:19px;stroke:#C8771A;fill:none;stroke-width:1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </button>
+        <div class="nav-profile-drop" id="nav-profile-drop"></div>
+      </div>
+      <button class="nav-hamburger" aria-label="Menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+  <div class="nav-mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="discover.html">Discover Dabbas</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="list.html">List My Dabba</a>
+    <a href="about.html">About</a>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     MAP HERO
+════════════════════════════════════════════ -->
+<div class="map-hero">
+  <div id="home-map"></div>
+
+  <!-- Floating search -->
+  <div class="map-topbar">
+    <div class="map-search" style="position:relative">
+      <span class="icon">📍</span>
+      <input type="text" id="hero-search-input" placeholder="Search Andheri, Bandra, Borivali…"
+        onkeydown="if(event.key==='Enter')doHeroSearch()"
+        oninput="heroSearchSuggest(this.value)"
+        autocomplete="off" />
+      <button class="map-search-btn" onclick="doHeroSearch()">Find Dabbas</button>
+      <div id="hero-suggestions" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:900;overflow:hidden;max-height:260px;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- Live stats (count only, no button) -->
+  <div class="map-stats-row">
+    <div class="map-stats-pill">
+      <div class="dot"></div>
+      <span><strong id="stat-count">65</strong> dabbas on map</span>
+    </div>
+  </div>
+
+  <!-- Quick filters -->
+  <div class="map-filters-row">
+    <button class="map-qfilter f-all on"    data-f="all"   onclick="applyFilter(this,'all')">🥘 All</button>
+    <button class="map-qfilter f-veg"       data-f="veg"   onclick="applyFilter(this,'veg')">🌱 Veg</button>
+    <button class="map-qfilter f-nonveg"    data-f="nonveg" onclick="applyFilter(this,'nonveg')">🍗 Non-Veg</button>
+    <button class="map-qfilter f-jain"      data-f="jain"  onclick="applyFilter(this,'jain')">🙏 Jain</button>
+    <button class="map-qfilter f-diet"      data-f="diet"  onclick="applyFilter(this,'diet')">🥗 Diet</button>
+  </div>
+
+  <!-- Tagline -->
+  <div class="map-tagline">
+    <strong>Find ghar ka khana</strong>
+    Zoom in to see individual dabbas near you.
+  </div>
+
+  <div class="scroll-hint"><span>↓ scroll to explore</span></div>
+</div>
+
+
+<!-- ── PROVIDER CTA ── -->
+<section class="section" data-reveal>
+  <div class="container">
+    <div class="cta-section">
+      <div style="position:relative;z-index:1">
+        <h2 class="t-h2">Do you cook?<br>Get customers.</h2>
+        <p>List your dabba for free. No commissions, no platform fees — just connect with people who love home food in your area.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <a href="list.html" class="btn btn-primary btn-lg">List My Dabba</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TRUST BAR ── -->
+<section class="trust-bar">
+  <div class="container">
+    <div class="trust-items" data-stagger>
+      <div class="trust-item"><span class="trust-icon">🔒</span> Zero sign-up required</div>
+      <div class="trust-item"><span class="trust-icon">👤</span> Anonymous until you choose</div>
+      <div class="trust-item"><span class="trust-icon">💰</span> Free for everyone</div>
+      <div class="trust-item"><span class="trust-icon">🏠</span> Community verified</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo" style="margin-bottom:12px"><span class="logo-icon">🥘</span><span class="brand" style="color:#fff">Dabba<em style="color:var(--primary-light)">Map</em></span></a>
+        <div class="footer-tagline">Find ghar ka khana near you.</div>
+      </div>
+      <div class="footer-col"><h4>Discover</h4><ul><li><a href="discover.html">Browse Dabbas</a></li><li><a href="discover.html?meal=lunch">Lunch Dabbas</a></li><li><a href="discover.html?meal=dinner">Dinner Dabbas</a></li></ul></div>
+      <div class="footer-col"><h4>Providers</h4><ul><li><a href="list.html">List My Dabba</a></li><li><a href="dashboard.html">My Dashboard</a></li></ul></div>
+      <div class="footer-col"><h4>Info</h4><ul><li><a href="about.html">About DabbaMap</a></li><li><a href="about.html#how">How It Works</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">© 2025 DabbaMap · Not a food delivery app.</div>
+  </div>
+</footer>
+
+<!-- ── Scripts ── -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script src="js/animations.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   NAVBAR: dark over map → light after scroll
+══════════════════════════════════════════════════════════ */
+(function () {
+  const nav  = document.getElementById('main-nav');
+  const hero = document.querySelector('.map-hero');
+  function update() {
+    if (window.scrollY > hero.offsetHeight - 80) {
+      nav.classList.remove('navbar-map');
+    } else {
+      nav.classList.add('navbar-map');
+    }
+  }
+  window.addEventListener('scroll', update);
+  update();
+})();
+
+/* Use shared data from data.js — same as discover page */
+const ALL_DABBAS = window.DABBA_DATA || [
+  // ── Andheri West ──────────────────────────────────────
+  { lat:19.1408, lng:72.8248, price:'₹80',  type:'veg',    trial:true,  name:"Sunita's Kitchen",         area:'Andheri West',  cuisine:'Gujarati'      },
+  { lat:19.1372, lng:72.8272, price:'₹75',  type:'veg',    trial:true,  name:"Radha Home Meals",          area:'Andheri West',  cuisine:'Maharashtrian' },
+  { lat:19.1341, lng:72.8314, price:'₹85',  type:'jain',   trial:false, name:"Jain Bhoj Andheri",         area:'Andheri West',  cuisine:'Gujarati'      },
+  { lat:19.1390, lng:72.8345, price:'₹70',  type:'veg',    trial:true,  name:"Kavitha's Tiffin",          area:'Andheri West',  cuisine:'South Indian'  },
+  { lat:19.1325, lng:72.8280, price:'₹90',  type:'nonveg', trial:false, name:"Chicken Dabba Sahib",       area:'Andheri West',  cuisine:'Punjabi'       },
+  { lat:19.1356, lng:72.8252, price:'₹95',  type:'nonveg', trial:true,  name:"Mushtaq's Kitchen",         area:'Andheri West',  cuisine:'North Indian'  },
+  { lat:19.1419, lng:72.8296, price:'₹80',  type:'veg',    trial:true,  name:"Prachi's Meals",            area:'Andheri West',  cuisine:'Gujarati'      },
+  { lat:19.1310, lng:72.8265, price:'₹110', type:'diet',   trial:true,  name:"Fit & Fresh Tiffin",        area:'Andheri West',  cuisine:'Multi'         },
+  { lat:19.1380, lng:72.8322, price:'₹72',  type:'veg',    trial:false, name:"Nalini's Kitchen",          area:'Andheri West',  cuisine:'South Indian'  },
+
+  // ── Andheri East ──────────────────────────────────────
+  { lat:19.1215, lng:72.8493, price:'₹90',  type:'nonveg', trial:true,  name:"Ramesh Tiffins",            area:'Andheri East',  cuisine:'Punjabi'       },
+  { lat:19.1182, lng:72.8452, price:'₹80',  type:'veg',    trial:true,  name:"Shanti Tiffin Service",     area:'Andheri East',  cuisine:'Gujarati'      },
+  { lat:19.1237, lng:72.8513, price:'₹75',  type:'veg',    trial:false, name:"Meera's Home Food",         area:'Andheri East',  cuisine:'South Indian'  },
+  { lat:19.1162, lng:72.8435, price:'₹100', type:'jain',   trial:true,  name:"Oswal Jain Bhoj",           area:'Andheri East',  cuisine:'Rajasthani'    },
+  { lat:19.1243, lng:72.8462, price:'₹85',  type:'nonveg', trial:false, name:"Kabir's Kitchen",           area:'Andheri East',  cuisine:'Mughlai'       },
+  { lat:19.1198, lng:72.8478, price:'₹78',  type:'veg',    trial:true,  name:"Sanjana Tiffin",            area:'Andheri East',  cuisine:'Gujarati'      },
+
+  // ── Bandra West ───────────────────────────────────────
+  { lat:19.0622, lng:72.8312, price:'₹100', type:'veg',    trial:false, name:"Fernandes Tiffin",          area:'Bandra West',   cuisine:'Goan'          },
+  { lat:19.0582, lng:72.8278, price:'₹85',  type:'veg',    trial:true,  name:"Asha's Gujarati Thali",     area:'Bandra West',   cuisine:'Gujarati'      },
+  { lat:19.0612, lng:72.8248, price:'₹120', type:'diet',   trial:true,  name:"Clean Eats by Riya",        area:'Bandra West',   cuisine:'Multi'         },
+  { lat:19.0568, lng:72.8325, price:'₹90',  type:'nonveg', trial:false, name:"Joseph's Fish Curry",       area:'Bandra West',   cuisine:'Goan'          },
+  { lat:19.0641, lng:72.8302, price:'₹80',  type:'veg',    trial:true,  name:"Padma South Tiffin",        area:'Bandra West',   cuisine:'South Indian'  },
+  { lat:19.0598, lng:72.8295, price:'₹75',  type:'veg',    trial:false, name:"Bandra Bhoj",               area:'Bandra West',   cuisine:'North Indian'  },
+
+  // ── Goregaon ──────────────────────────────────────────
+  { lat:19.1682, lng:72.8552, price:'₹75',  type:'veg',    trial:true,  name:"Meena's South Indian",      area:'Goregaon',      cuisine:'South Indian'  },
+  { lat:19.1644, lng:72.8508, price:'₹80',  type:'veg',    trial:false, name:"Lata's Thali",              area:'Goregaon',      cuisine:'Maharashtrian' },
+  { lat:19.1702, lng:72.8530, price:'₹90',  type:'nonveg', trial:true,  name:"Ahmed's Dabba",             area:'Goregaon',      cuisine:'Mughlai'       },
+  { lat:19.1655, lng:72.8572, price:'₹95',  type:'nonveg', trial:false, name:"Punjabi Tadka Dabba",       area:'Goregaon',      cuisine:'Punjabi'       },
+  { lat:19.1622, lng:72.8488, price:'₹70',  type:'veg',    trial:true,  name:"Saraswati Kitchen",         area:'Goregaon',      cuisine:'Gujarati'      },
+  { lat:19.1712, lng:72.8558, price:'₹85',  type:'jain',   trial:true,  name:"Soni Jain Meals",           area:'Goregaon',      cuisine:'Jain'          },
+
+  // ── Dadar ─────────────────────────────────────────────
+  { lat:19.0202, lng:72.8492, price:'₹75',  type:'veg',    trial:true,  name:"Geeta Tiffins",             area:'Dadar',         cuisine:'Maharashtrian' },
+  { lat:19.0158, lng:72.8462, price:'₹80',  type:'veg',    trial:false, name:"Kamala Bhoj",               area:'Dadar',         cuisine:'Gujarati'      },
+  { lat:19.0214, lng:72.8502, price:'₹85',  type:'nonveg', trial:true,  name:"Sawant Lunch Home",         area:'Dadar',         cuisine:'Maharashtrian' },
+  { lat:19.0142, lng:72.8452, price:'₹70',  type:'veg',    trial:false, name:"Saraswati Lunch",           area:'Dadar',         cuisine:'South Indian'  },
+  { lat:19.0192, lng:72.8512, price:'₹90',  type:'nonveg', trial:false, name:"Shivaji Dabba",             area:'Dadar',         cuisine:'Maharashtrian' },
+  { lat:19.0172, lng:72.8432, price:'₹100', type:'jain',   trial:true,  name:"Jain Swad Dadar",           area:'Dadar',         cuisine:'Jain'          },
+
+  // ── Malad West ────────────────────────────────────────
+  { lat:19.1882, lng:72.8502, price:'₹100', type:'jain',   trial:false, name:"Priya's Jain Dabba",        area:'Malad West',    cuisine:'Rajasthani'    },
+  { lat:19.1842, lng:72.8462, price:'₹75',  type:'veg',    trial:true,  name:"Nirmala Kitchen",           area:'Malad West',    cuisine:'Gujarati'      },
+  { lat:19.1902, lng:72.8512, price:'₹80',  type:'veg',    trial:false, name:"Kavita's Meals",            area:'Malad West',    cuisine:'North Indian'  },
+  { lat:19.1822, lng:72.8492, price:'₹85',  type:'nonveg', trial:true,  name:"Malabar Dabba",             area:'Malad West',    cuisine:'Kerala'        },
+
+  // ── Borivali ──────────────────────────────────────────
+  { lat:19.2332, lng:72.8582, price:'₹65',  type:'veg',    trial:true,  name:"Anita Home Meals",          area:'Borivali',      cuisine:'Maharashtrian' },
+  { lat:19.2282, lng:72.8542, price:'₹80',  type:'veg',    trial:false, name:"Puja Tiffin Centre",        area:'Borivali',      cuisine:'Gujarati'      },
+  { lat:19.2352, lng:72.8602, price:'₹90',  type:'jain',   trial:true,  name:"Borivali Jain Bhoj",        area:'Borivali',      cuisine:'Jain'          },
+  { lat:19.2262, lng:72.8562, price:'₹70',  type:'veg',    trial:false, name:"Sarla's Kitchen",           area:'Borivali',      cuisine:'South Indian'  },
+
+  // ── Chembur ───────────────────────────────────────────
+  { lat:19.0542, lng:72.9012, price:'₹85',  type:'nonveg', trial:true,  name:"Kumar's Bengali",           area:'Chembur',       cuisine:'Bengali'       },
+  { lat:19.0502, lng:72.8982, price:'₹70',  type:'veg',    trial:false, name:"Sindhi Tiffin Chembur",     area:'Chembur',       cuisine:'Sindhi'        },
+  { lat:19.0562, lng:72.9022, price:'₹80',  type:'veg',    trial:true,  name:"Nandini's Kitchen",         area:'Chembur',       cuisine:'South Indian'  },
+
+  // ── Santacruz ─────────────────────────────────────────
+  { lat:19.0832, lng:72.8432, price:'₹80',  type:'veg',    trial:true,  name:"Radha's Kitchen",           area:'Santacruz',     cuisine:'Gujarati'      },
+  { lat:19.0792, lng:72.8392, price:'₹90',  type:'nonveg', trial:false, name:"Santacruz Punjabi Dabba",   area:'Santacruz',     cuisine:'Punjabi'       },
+  { lat:19.0852, lng:72.8422, price:'₹75',  type:'veg',    trial:true,  name:"Malhotra Lunch Box",        area:'Santacruz',     cuisine:'North Indian'  },
+
+  // ── Powai ─────────────────────────────────────────────
+  { lat:19.1562, lng:72.9022, price:'₹110', type:'diet',   trial:true,  name:"Fit Meals by Neha",         area:'Powai',         cuisine:'Multi'         },
+  { lat:19.1532, lng:72.8992, price:'₹95',  type:'veg',    trial:false, name:"Powai Home Kitchen",        area:'Powai',         cuisine:'South Indian'  },
+  { lat:19.1572, lng:72.9042, price:'₹100', type:'nonveg', trial:true,  name:"Powai Desi Dabba",          area:'Powai',         cuisine:'Punjabi'       },
+
+  // ── Ghatkopar ─────────────────────────────────────────
+  { lat:19.0782, lng:72.8802, price:'₹70',  type:'veg',    trial:true,  name:"Lakshmi Tiffin",            area:'Ghatkopar',     cuisine:'Gujarati'      },
+  { lat:19.0742, lng:72.8762, price:'₹80',  type:'veg',    trial:false, name:"Ghatkopar Rajasthani Thali",area:'Ghatkopar',     cuisine:'Rajasthani'    },
+  { lat:19.0802, lng:72.8792, price:'₹85',  type:'nonveg', trial:true,  name:"Marathi Tadka",             area:'Ghatkopar',     cuisine:'Maharashtrian' },
+
+  // ── Versova ───────────────────────────────────────────
+  { lat:19.1372, lng:72.8132, price:'₹90',  type:'veg',    trial:false, name:"Kavita Coastal",            area:'Versova',       cuisine:'Coastal'       },
+  { lat:19.1332, lng:72.8092, price:'₹85',  type:'nonveg', trial:true,  name:"Versova Fish Dabba",        area:'Versova',       cuisine:'Coastal'       },
+
+  // ── Kandivali ─────────────────────────────────────────
+  { lat:19.2062, lng:72.8542, price:'₹80',  type:'jain',   trial:true,  name:"Patel Jain Dabba",          area:'Kandivali',     cuisine:'Jain'          },
+  { lat:19.2022, lng:72.8502, price:'₹70',  type:'veg',    trial:false, name:"Kandivali Kitchen",         area:'Kandivali',     cuisine:'Gujarati'      },
+  { lat:19.2082, lng:72.8562, price:'₹85',  type:'veg',    trial:true,  name:"Rekha's Thali",             area:'Kandivali',     cuisine:'North Indian'  },
+
+  // ── Kurla ─────────────────────────────────────────────
+  { lat:19.0742, lng:72.8842, price:'₹65',  type:'veg',    trial:false, name:"Kurla Budget Dabba",        area:'Kurla',         cuisine:'Gujarati'      },
+  { lat:19.0712, lng:72.8812, price:'₹70',  type:'nonveg', trial:true,  name:"Aslam's Kitchen",           area:'Kurla',         cuisine:'Mughlai'       },
+
+  // ── Sion ──────────────────────────────────────────────
+  { lat:19.0352, lng:72.8722, price:'₹60',  type:'veg',    trial:true,  name:"Sheila's Kitchen",          area:'Sion',          cuisine:'Maharashtrian' },
+  { lat:19.0312, lng:72.8682, price:'₹75',  type:'nonveg', trial:false, name:"Sion Biryani Box",          area:'Sion',          cuisine:'Mughlai'       },
+
+  // ── Vikhroli ──────────────────────────────────────────
+  { lat:19.1092, lng:72.9312, price:'₹95',  type:'nonveg', trial:true,  name:"Ravi's Dabba",              area:'Vikhroli',      cuisine:'Andhra'        },
+
+  // ── Jogeshwari ────────────────────────────────────────
+  { lat:19.1012, lng:72.8672, price:'₹80',  type:'veg',    trial:false, name:"Jogeshwari Tiffin",         area:'Jogeshwari',    cuisine:'Gujarati'      },
+  { lat:19.0972, lng:72.8632, price:'₹85',  type:'nonveg', trial:true,  name:"Jogi's Dabba",              area:'Jogeshwari',    cuisine:'North Indian'  },
+
+  // ── Mahim ─────────────────────────────────────────────
+  { lat:19.0452, lng:72.8572, price:'₹75',  type:'veg',    trial:true,  name:"Mahim Tiffin Wala",         area:'Mahim',         cuisine:'Maharashtrian' },
+  { lat:19.0422, lng:72.8542, price:'₹80',  type:'nonveg', trial:false, name:"Koli Fish Dabba",           area:'Mahim',         cuisine:'Coastal'       },
+] /* fallback if data.js not loaded */;
+
+/* ══════════════════════════════════════════════════════════
+   LEAFLET MAP
+══════════════════════════════════════════════════════════ */
+const map = L.map('home-map', {
+  zoomControl: false,
+  scrollWheelZoom: true,
+  attributionControl: true,
+}).setView([19.095, 72.870], 12);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 19,
+}).addTo(map);
+
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+/* ── Colour helpers ── */
+const PILL_CLASS = { veg:'dm-pill-veg', nonveg:'dm-pill-nonveg', jain:'dm-pill-jain', diet:'dm-pill-diet' };
+const TYPE_EMOJI = { veg:'🌱', nonveg:'🍗', jain:'🙏', diet:'🥗' };
+
+/* ── Normalise a DABBA_DATA entry for map use ── */
+function normEntry(d) {
+  // Support both old format (price:'₹80', cuisine:'Gujarati') and new DABBA_DATA format
+  const price   = d.price || (d.lunchPrice ? '₹'+d.lunchPrice : d.dinnerPrice ? '₹'+d.dinnerPrice : '—');
+  const cuisine = d.cuisine || (Array.isArray(d.cuisines) ? d.cuisines[0] : '') || '';
+  return Object.assign({}, d, { price, cuisine });
+}
+
+/* ── Build popup HTML ── */
+function popup(raw) {
+  const d = normEntry(raw);
+  const typeLabel = (d.type||'veg').charAt(0).toUpperCase() + (d.type||'veg').slice(1);
+  const badgeStyle = {
+    veg:    'background:#dcfce7;color:#16a34a',
+    nonveg: 'background:#fee2e2;color:#dc2626',
+    jain:   'background:#ede9fe;color:#7c3aed',
+    diet:   'background:#e0f2fe;color:#0284c7',
+  }[d.type] || 'background:#f3f4f6;color:#374151';
+  return `
+    <div style="font-family:'DM Sans',sans-serif;padding:16px 18px;min-width:220px">
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:800;color:#2C1810;margin-bottom:4px">${d.name}</div>
+      <div style="font-size:12px;color:#7C6B5A;margin-bottom:10px">📍 ${d.area}${d.cuisine ? ' · ' + d.cuisine : ''}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#C8771A">${d.price}</span>
+        <span style="font-size:12px;color:#7C6B5A">/meal</span>
+        <span style="margin-left:auto;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;${badgeStyle}">${typeLabel}</span>
+      </div>
+      ${d.trial ? '<div style="font-size:12px;color:#92400e;background:#fef9c3;padding:4px 10px;border-radius:6px;margin-bottom:12px;display:inline-block">✓ Trial meal available</div>' : ''}
+      <a href="${d.id ? 'profile.html?id='+d.id : 'discover.html?q='+encodeURIComponent(d.name)}" style="display:block;text-align:center;padding:9px 0;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none">View Profile →</a>
+    </div>`;
+}
+
+/* ── Build a Leaflet marker for a dabba ── */
+function makeMarker(raw) {
+  const d    = normEntry(raw);
+  const cls   = PILL_CLASS[d.type] || 'dm-pill-veg';
+  const emoji = TYPE_EMOJI[d.type] || '🥘';
+  const icon  = L.divIcon({
+    html: `<div class="dm-pill ${cls}">${emoji} ${d.price}</div>`,
+    iconSize:   [0, 0],
+    iconAnchor: [0, 0],
+    className:  '',
+  });
+  return L.marker([d.lat, d.lng], { icon })
+    .bindPopup(popup(d), { maxWidth: 260, closeButton: false });
+}
+
+/* ── MarkerClusterGroup ── */
+const mcg = L.markerClusterGroup({
+  maxClusterRadius: 72,          // px — controls when nearby markers merge
+  disableClusteringAtZoom: 16,   // at z16+ every individual dabba shows
+  spiderfyOnMaxZoom: true,       // fan out overlapping pins at max zoom
+  showCoverageOnHover: false,
+  animate: true,
+  animateAddingMarkers: false,
+
+  iconCreateFunction: function (cluster) {
+    const n = cluster.getChildCount();
+    const lg = n >= 10 ? ' dm-cluster-lg' : '';
+    return L.divIcon({
+      html: `<div class="dm-cluster${lg}"><span class="c-count">${n}</span><span class="c-label">dabbas</span></div>`,
+      iconSize:   [0, 0],
+      iconAnchor: [0, 0],
+      className:  '',
+    });
+  },
+});
+
+/* ── Populate all markers ── */
+const markerObjects = ALL_DABBAS.map(d => ({ marker: makeMarker(d), type: d.type, trial: d.trial }));
+markerObjects.forEach(m => mcg.addLayer(m.marker));
+
+/* ── Add user-created listings to map ── */
+(function addUserMarkers() {
+  try {
+    var stored = window.DabbaStore ? DabbaStore.getListings() : JSON.parse(localStorage.getItem('dabbamapListings') || '[]');
+    stored.forEach(function(s) {
+      var lat = parseFloat(s.lat), lng = parseFloat(s.lng);
+      if (!lat || !lng) { lat = 19.076 + (Math.random()-0.5)*0.12; lng = 72.877 + (Math.random()-0.5)*0.12; }
+      var d = {
+        lat: lat, lng: lng,
+        price: '₹' + (s.lunchPrice || s.dinnerPrice || '?'),
+        type: s.type || 'veg', trial: false,
+        name: s.name || 'My Dabba', area: s.area || 'Mumbai',
+        cuisine: (s.cuisines && s.cuisines[0]) || 'Other',
+        id: s.id || null
+      };
+      var m = makeMarker(d);
+      markerObjects.push({ marker: m, type: d.type, trial: false });
+      mcg.addLayer(m);
+    });
+  } catch(e) {}
+})();
+
+map.addLayer(mcg);
+
+/* ── Update stat count ── */
+function getLiveCount() {
+  var extra = 0;
+  try { extra = (window.DabbaStore ? DabbaStore.getListings() : JSON.parse(localStorage.getItem('dabbamapListings') || '[]')).length; } catch(e) {}
+  return ALL_DABBAS.length + extra;
+}
+function updateStat(n) {
+  document.getElementById('stat-count').textContent = n;
+}
+updateStat(getLiveCount());
+window.addEventListener('storage', function(e) {
+  if (e.key === 'dabbamapListings') updateStat(getLiveCount());
+});
+
+/* ── Hero search ── */
+var heroSearchType = null; // set by autocomplete click: 'area' or 'name'
+
+window.heroSelectSuggestion = function(label, type) {
+  document.getElementById('hero-search-input').value = label;
+  heroSearchType = type;
+  doHeroSearch();
+};
+
+window.doHeroSearch = function () {
+  const q = document.getElementById('hero-search-input').value.trim();
+  document.getElementById('hero-suggestions').style.display = 'none';
+  var statRow = document.querySelector('.map-stats-row');
+  if (statRow) statRow.style.display = '';
+  if (!q) { window.location.href = 'discover.html'; return; }
+  var param = heroSearchType === 'name' ? '?name=' : '?q=';
+  heroSearchType = null;
+  window.location.href = 'discover.html' + param + encodeURIComponent(q);
+};
+
+/* ── Search suggestions dropdown ── */
+(function() {
+  // Build unique suggestion list: areas + provider names from ALL_DABBAS + localStorage listings
+  function getSuggestions() {
+    var seen = new Set(), items = [];
+    ALL_DABBAS.forEach(function(d) {
+      if (!seen.has(d.area))   { seen.add(d.area);   items.push({ label: d.area,   sub: 'Area' }); }
+      if (!seen.has(d.name))   { seen.add(d.name);   items.push({ label: d.name,   sub: 'Provider' }); }
+    });
+    try {
+      JSON.parse(localStorage.getItem('dabbamapListings') || '[]').forEach(function(s) {
+        if (s.area && !seen.has(s.area)) { seen.add(s.area); items.push({ label: s.area, sub: 'Area' }); }
+        if (s.name && !seen.has(s.name)) { seen.add(s.name); items.push({ label: s.name, sub: 'Provider' }); }
+      });
+    } catch(e) {}
+    return items;
+  }
+
+  window.heroSearchSuggest = function(q) {
+    // Hide stat pill while user is typing a search
+    var statRow = document.querySelector('.map-stats-row');
+    if (statRow) statRow.style.display = q ? 'none' : '';
+
+    var box = document.getElementById('hero-suggestions');
+    if (!q || q.length < 1) { box.style.display = 'none'; return; }
+    var matches = getSuggestions().filter(function(i) {
+      return i.label.toLowerCase().includes(q.toLowerCase());
+    }).slice(0, 8);
+    if (!matches.length) { box.style.display = 'none'; return; }
+    box.innerHTML = matches.map(function(m) {
+      var type = m.sub === 'Provider' ? 'name' : 'area';
+      var safeLabel = m.label.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return '<div style="padding:10px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f3ece4;font-family:\'DM Sans\',sans-serif" ' +
+        'onmousedown="heroSelectSuggestion(\'' + safeLabel + '\',\'' + type + '\')" ' +
+        'onmouseover="this.style.background=\'#fdf8f0\'" onmouseout="this.style.background=\'\'">' +
+        '<span style="font-size:14px;font-weight:600;color:#2C1810">' + m.label + '</span>' +
+        '<span style="font-size:11px;color:#C8771A;font-weight:600;background:#fef3e2;padding:2px 8px;border-radius:100px">' + m.sub + '</span>' +
+      '</div>';
+    }).join('');
+    box.style.display = 'block';
+  };
+
+  // Hide dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.map-search')) {
+      document.getElementById('hero-suggestions').style.display = 'none';
+    }
+  });
+})();
+
+/* ── Quick filter ── */
+window.applyFilter = function (btn, type) {
+  // toggle off all
+  document.querySelectorAll('.map-qfilter').forEach(b => {
+    const f = b.dataset.f;
+    b.classList.remove('on');
+  });
+  btn.classList.add('on');
+
+  mcg.clearLayers();
+
+  const filtered = markerObjects.filter(m => {
+    if (type === 'all')   return true;
+    if (type === 'trial') return m.trial;
+    return m.type === type;
+  });
+
+  filtered.forEach(m => mcg.addLayer(m.marker));
+  updateStat(filtered.length);
+};
+</script>
+</body>
+</html>

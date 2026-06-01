@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DabbaMap — Provider Profile</title>
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">🥘</span><span class="brand">Dabba<em>Map</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a><a href="discover.html" class="active">Discover</a><a href="dashboard.html">Dashboard</a><a href="about.html">About</a>
+    </div>
+    <div class="nav-cta">
+      <a href="list.html" class="btn btn-primary btn-sm">List My Dabba</a>
+      <div class="nav-profile" id="nav-profile-wrap" style="position:relative;display:inline-flex;align-items:center;margin-left:4px">
+        <button class="nav-profile-btn" id="nav-profile-btn" title="Account" style="width:38px;height:38px;border-radius:50%;border:2px solid #C8771A;background:#FEF3E2;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#C8771A;padding:0">
+          <svg viewBox="0 0 24 24" style="width:19px;height:19px;stroke:#C8771A;fill:none;stroke-width:1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </button>
+        <div class="nav-profile-drop" id="nav-profile-drop"></div>
+      </div>
+      <button class="nav-hamburger" aria-label="Menu">☰</button>
+    </div>
+  </div>
+  <div class="nav-mobile-menu">
+    <a href="index.html">Home</a><a href="discover.html">Discover Dabbas</a>
+    <a href="dashboard.html">Dashboard</a><a href="list.html">List My Dabba</a><a href="about.html">About</a>
+  </div>
+</nav>
+
+<!-- ── BREADCRUMB ── -->
+<div style="background:var(--bg);border-bottom:1px solid var(--border);padding:12px 0">
+  <div class="container">
+    <span class="t-caption t-muted"><a href="discover.html" style="color:var(--text-muted)">← Back to Discover</a></span>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<section class="section-sm">
+  <div class="container">
+    <div class="profile-layout">
+
+      <!-- ── LEFT MAIN ── -->
+      <div class="flex-col gap-6">
+
+        <!-- Profile Hero Card -->
+        <div class="card" id="profile-hero-card">
+          <!-- Community Pick badge — shown/hidden by JS -->
+          <div id="community-pick-banner" style="display:none;background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:10px 24px;display:none;align-items:center;gap:8px">
+            <span style="font-size:13px;font-weight:700;color:#fff">⭐ Community Pick — recommended by neighbours</span>
+          </div>
+
+          <div class="card-body">
+            <!-- Header -->
+            <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+              <div class="dabba-avatar dabba-avatar-lg" id="profile-avatar">S</div>
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+                  <h1 id="profile-name" style="font-family:var(--font-display);font-size:28px;font-weight:800">Loading…</h1>
+                </div>
+                <div id="profile-area" style="color:var(--text-muted);font-size:14px;margin-bottom:4px">📍 —</div>
+                <div id="profile-listed" style="color:var(--text-muted);font-size:12px">—</div>
+              </div>
+            </div>
+
+            <!-- Price Block -->
+            <div class="price-block mb-6" id="price-block">
+              <!-- injected by JS -->
+            </div>
+
+            <!-- Tags -->
+            <div class="tags-row mb-6" id="profile-tags">
+              <!-- injected by JS -->
+            </div>
+
+            <!-- Description -->
+            <p class="desc-accent" id="profile-desc">—</p>
+          </div>
+        </div>
+
+        <!-- Details Card -->
+        <div class="card card-body">
+          <h3 class="t-h3 mb-6">Details</h3>
+          <div class="details-grid-3">
+            <div class="detail-item">
+              <div class="icon">🍽️</div>
+              <div class="value" id="detail-capacity">—</div>
+              <div class="label">Capacity</div>
+            </div>
+            <div class="detail-item">
+              <div class="icon" id="detail-meals-icon">🌞🌙</div>
+              <div class="value" id="detail-meals">—</div>
+              <div class="label">Meals served</div>
+            </div>
+            <div class="detail-item">
+              <div class="icon">✅</div>
+              <div class="value">Today</div>
+              <div class="label">Last confirmed</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map -->
+        <div class="card card-body">
+          <h3 class="t-h3 mb-4">Approximate Location</h3>
+          <div id="profile-map" style="height:280px;border-radius:10px;overflow:hidden;border:1px solid var(--border)"></div>
+          <div class="map-note mt-2" id="map-note">📍 Exact address shared directly after you connect</div>
+        </div>
+
+      </div>
+
+      <!-- ── RIGHT SIDEBAR ── -->
+      <div class="sidebar-sticky">
+
+        <!-- Contact Card -->
+        <div class="sidebar-card">
+          <h3 class="t-h3 mb-2">Interested?</h3>
+          <p id="contact-subtext" style="font-size:14px;color:var(--text-muted);margin-bottom:16px">Send an anonymous message. Your number stays private and completely anonymous.</p>
+
+          <button class="btn btn-primary btn-lg" style="width:100%" id="anon-trigger" data-expand-message>💬 Send Anonymous Message</button>
+
+          <!-- Anon Form (hidden) -->
+          <div id="anon-form" style="display:none;margin-top:16px">
+            <div class="form-group mb-4">
+              <label class="form-label">Your Message</label>
+              <textarea id="anon-textarea" class="form-textarea" placeholder="Hi! I'm interested in a trial meal. I'm vegetarian and looking for lunch. Are you taking new customers?" rows="4" data-maxlength="300"></textarea>
+              <div class="flex justify-between mt-2">
+                <span class="char-count">0 / 300</span>
+                <span style="font-size:11px;color:var(--text-muted)">Sent anonymously</span>
+              </div>
+            </div>
+            <button class="btn btn-primary" style="width:100%" id="anon-send">Send Message →</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <h4 style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">How Anonymity Works</h4>
+          <ul class="anon-bullets">
+            <li>Your message is sent without revealing your identity</li>
+            <li>Provider replies are forwarded to you anonymously</li>
+            <li>You choose to share your number only when you're ready</li>
+            <li>No account or sign-up needed at any point</li>
+          </ul>
+        </div>
+
+        <!-- Share Card -->
+        <div class="sidebar-card">
+          <h3 class="t-h3 mb-2">Know someone who'd love this?</h3>
+          <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px">Share this listing with your building group or friends looking for home food.</p>
+          <button class="btn btn-secondary" style="width:100%" id="share-btn">🔗 Share this Listing</button>
+        </div>
+
+        <!-- Flag Card -->
+        <div class="sidebar-card" style="padding:16px">
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Something wrong with this listing?</p>
+          <button class="btn btn-ghost btn-sm" style="color:var(--error)">🚩 Report / Mark Inactive</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Messaging uses guest send or the shared email+password login in the navbar -->
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo" style="margin-bottom:12px"><span class="logo-icon">🥘</span><span class="brand" style="color:#fff">Dabba<em style="color:var(--primary-light)">Map</em></span></a>
+        <div class="footer-tagline">Find ghar ka khana near you.</div>
+      </div>
+      <div class="footer-col"><h4>Discover</h4><ul><li><a href="discover.html">Browse Dabbas</a></li><li><a href="discover.html?meal=lunch">Lunch Dabbas</a></li><li><a href="discover.html?meal=dinner">Dinner Dabbas</a></li></ul></div>
+      <div class="footer-col"><h4>Providers</h4><ul><li><a href="list.html">List My Dabba</a></li><li><a href="dashboard.html">My Dashboard</a></li></ul></div>
+      <div class="footer-col"><h4>Info</h4><ul><li><a href="about.html">About DabbaMap</a></li><li><a href="about.html#how">How It Works</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">© 2025 DabbaMap · Not a food delivery app.</div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script src="js/animations.js"></script>
+<script>
+/* ── Detailed descriptions for first-tier profiles (L001-L020) ── */
+const PROFILE_DETAILS = {
+  'L001': { capacity:10, description:"Fresh, homestyle Gujarati meals cooked with love. I use seasonal vegetables, homemade rotis with pure ghee, and never take shortcuts. Everything from dal to farsan is made from scratch every morning. My cooking follows my nani's recipes — nothing fancy, just real ghar ka khana." },
+  'L002': { capacity:15, description:'Authentic Punjabi home cooking. Dal makhani slow-cooked overnight, butter chicken without food colouring, and freshly made parathas every evening. More than a decade of feeding neighbours in Andheri East — now opening to more customers.' },
+  'L003': { capacity:8,  description:"100% Jain-friendly cooking — no root vegetables, no onion, no garlic. Strictly traditional Rajasthani preparation with panchkutas and seasonal greens. Festival specials for all Jain observances. Paryushana thali available on request." },
+  'L004': { capacity:12, description:'Fresh sambar, rasam, rice, and South Indian sides every day. Pure home cooking from Chennai. Idli and dosa available on weekends. Coconut chutney freshly ground each morning. Filter coffee on request.' },
+  'L005': { capacity:10, description:'Traditional Maharashtrian thali with bhakri, amti, and sabzi. Homemade masalas ground every week. The most affordable home food in Borivali without compromising on quality or hygiene.' },
+  'L006': { capacity:8,  description:'Authentic Bengali home cooking. Fish curry, shukto, dal, rice, and seasonal vegetables. Fresh hilsa when in season. Chingri malai curry on Sundays. Mishti doi always available.' },
+  'L007': { capacity:12, description:'Classic Maharashtrian dal-chawal with bhaji, papad, and achaar. Cooked fresh every morning. Pithla-bhakri on Fridays. Over 200 regular customers across Dadar trust us daily.' },
+  'L008': { capacity:10, description:'Strict Jain preparation. No onion, garlic, potato, or any root vegetables. Gujarati style with a rotating 15-item menu. Festival specials for all Jain observances. Parcel available.' },
+  'L009': { capacity:15, description:'Low-oil, high-protein, calorie-counted meals. Macros provided on request. Diabetic-friendly options available. Keto variants on Tuesdays and Thursdays. Custom meal plans for fitness goals.' },
+  'L010': { capacity:10, description:"Goan fish curry, pork vindaloo, sorpotel. Authentic recipes passed down through generations in Goa. Fresh fish sourced daily from Bandra market. Christmas specials and Easter feast on order." },
+  'L011': { capacity:12, description:'Full Gujarati thali — dal, kadhi, sabzi, rotli, rice, and mithai. Seasonal and fresh. Undhiyu in winter, aam ras in summer. Community pick for three years running in Bandra.' },
+  'L012': { capacity:10, description:"Simple, homely Gujarati meals. Nothing fancy — just the food your maa would make. Dal dhokli on Mondays, sev tameta on Wednesdays, undhiyu on Sundays in season." },
+  'L013': { capacity:10, description:'Rice plates, sambar, chutneys, and a rotating sabzi every day. South Indian comfort food for the Powai IT crowd. Rasam always available. Light, healthy, and office-friendly.' },
+  'L014': { capacity:12, description:'Goregaon-based Jain cook with 15 years of experience. Pure Jain recipes with no compromises. Paryushana specials. Caters for office lunches on weekdays.' },
+  'L015': { capacity:8,  description:'Kerala fish curry, appam, stew. Authentic Malabar coast cooking from a home in Malad. Karimeen pollichathu, prawn moilee, and Kerala sadhya on festivals.' },
+  'L016': { capacity:10, description:'Hearty Punjabi dinners — rajma, chole, paneer makhani, sarson da saag (winter). The only evening-only dabba in Santacruz. Paneer for veg guests always available.' },
+  'L017': { capacity:15, description:'Budget-friendly Maharashtrian lunch. Dal, bhaji, chawal, roti — reliable and filling every single day. No subscription required. Walk-in orders welcome in Sion.' },
+  'L018': { capacity:12, description:'Macro-balanced, low-sodium, portion-controlled meals. Ideal for weight-watchers and diabetics. Calorie sheet provided with every order. Meal plan customisation available on request.' },
+  'L019': { capacity:10, description:'Mughlai home food — biryani, qorma, haleem. Slow-cooked and spiced just right. Dum biryani on Fridays. Sheer khurma on Eid. All meat halal-certified from Andheri market.' },
+  'L020': { capacity:10, description:'Coastal veg fare — coconut curries, rice, solkadhi, and fried vegetables. Freshly made coconut chutneys. Ambat, usal, and pathrad on rotation. True Versova-style cooking.' },
+};
+
+/* Build MASTER_LISTINGS from shared data, merging detailed profile info */
+const MASTER_LISTINGS = (window.DABBA_DATA || []).map(l => {
+  const details = PROFILE_DETAILS[l.id] || {};
+  return Object.assign({}, l, details, { capacity: details.capacity || l.capacity || 10 });
+});
+
+/* Old array removed — data now comes from js/data.js */
+const _OLD_LISTINGS = [
+  { id:'L001', name:"Sunita's Kitchen",         initial:'S', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Andheri West',  pincode:'400058', type:'veg',    cuisines:['Gujarati'],       meals:['lunch','dinner'],
+    lunchPrice:80,  dinnerPrice:90,  monthlyPrice:1800, communityPick:true, capacity:10,
+    description:"Fresh, homestyle Gujarati meals cooked with love. I use seasonal vegetables, homemade rotis with pure ghee, and never take shortcuts. Everything from dal to farsan is made from scratch every morning. My cooking follows my nani's recipes — nothing fancy, just real ghar ka khana.", daysAgo:2,
+    lat:19.1274, lng:72.8271 },
+
+  { id:'L002', name:"Ramesh Tiffins",           initial:'R', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Andheri East',  pincode:'400069', type:'nonveg', cuisines:['Punjabi'],        meals:['lunch','dinner'],
+    lunchPrice:90,  dinnerPrice:100, monthlyPrice:2200, communityPick:true, capacity:15,
+    description:'Authentic Punjabi home cooking. Dal makhani, butter chicken, and freshly made parathas every evening. More than a decade of feeding neighbours, now opening to more customers.', daysAgo:5,
+    lat:19.1215, lng:72.8493 },
+
+  { id:'L003', name:"Priya's Jain Dabba",       initial:'P', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    area:'Malad West',    pincode:'400064', type:'jain',   cuisines:['Rajasthani'],     meals:['lunch','dinner'],
+    lunchPrice:100, dinnerPrice:110, monthlyPrice:2500, communityPick:false, capacity:8,
+    description:"100% Jain-friendly cooking — no root vegetables, no onion, no garlic. Strictly traditional Rajasthani preparation with panchkutas and seasonal greens. Paryushana specials available.", daysAgo:7,
+    lat:19.1882, lng:72.8502 },
+
+  { id:'L004', name:"Meena's South Indian",     initial:'M', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
+    area:'Goregaon',      pincode:'400063', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
+    lunchPrice:70,  dinnerPrice:null, monthlyPrice:1600, communityPick:false, capacity:12,
+    description:'Fresh sambar, rasam, rice, and South Indian sides every day. Pure home cooking from Chennai. Idli and dosa available on weekends. Coconut chutney freshly ground each morning.', daysAgo:3,
+    lat:19.1682, lng:72.8552 },
+
+  { id:'L005', name:"Anita Home Meals",         initial:'A', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Borivali West', pincode:'400092', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch','dinner'],
+    lunchPrice:65,  dinnerPrice:70,  monthlyPrice:1500, communityPick:false, capacity:10,
+    description:'Traditional Maharashtrian thali with bhakri, amti, and sabzi. Homemade masalas. The most affordable home food in Borivali without compromising on quality.', daysAgo:4,
+    lat:19.2332, lng:72.8582 },
+
+  { id:'L006', name:"Kumar's Bengali Dabba",    initial:'K', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Chembur',       pincode:'400071', type:'nonveg', cuisines:['Bengali'],        meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:95,  monthlyPrice:2000, communityPick:false, capacity:8,
+    description:'Authentic Bengali home cooking. Fish curry, shukto, dal, rice, and seasonal vegetables. Fresh hilsa when in season. Chingri malai curry on Sundays.', daysAgo:14,
+    lat:19.0542, lng:72.9012 },
+
+  { id:'L007', name:"Geeta Tiffins",            initial:'G', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Dadar',         pincode:'400014', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch'],
+    lunchPrice:75,  dinnerPrice:null, monthlyPrice:1700, communityPick:false, capacity:12,
+    description:'Classic Maharashtrian dal-chawal with bhaji, papad, and achaar. Cooked fresh every morning. Pithla-bhakri on Fridays. Over 200 regular customers in Dadar.', daysAgo:6,
+    lat:19.0202, lng:72.8492 },
+
+  { id:'L008', name:"Jain Bhoj Andheri",        initial:'J', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    area:'Andheri West',  pincode:'400058', type:'jain',   cuisines:['Gujarati'],       meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, communityPick:false, capacity:10,
+    description:'Strict Jain preparation. No onion, garlic, potato, or any root vegetables. Gujarati style. Rotating 15-item menu. Festival specials for all Jain observances.', daysAgo:8,
+    lat:19.1341, lng:72.8314 },
+
+  { id:'L009', name:"Fit & Fresh Tiffin",       initial:'F', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'Andheri West',  pincode:'400058', type:'diet',   cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:110, dinnerPrice:120, monthlyPrice:2800, communityPick:false, capacity:15,
+    description:'Low-oil, high-protein, calorie-counted meals. Macros on request. Diabetic-friendly options available. Keto variants on Tuesdays and Thursdays.', daysAgo:1,
+    lat:19.1310, lng:72.8265 },
+
+  { id:'L010', name:"Fernandes Tiffin",         initial:'F', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Bandra West',   pincode:'400050', type:'nonveg', cuisines:['Goan'],           meals:['lunch','dinner'],
+    lunchPrice:100, dinnerPrice:110, monthlyPrice:2400, communityPick:false, capacity:10,
+    description:"Goan fish curry, pork vindaloo, sorpotel. Authentic recipes passed down through generations. Fresh fish sourced daily from Bandra market.", daysAgo:10,
+    lat:19.0622, lng:72.8312 },
+
+  { id:'L011', name:"Asha's Gujarati Thali",    initial:'A', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Bandra West',   pincode:'400050', type:'veg',    cuisines:['Gujarati'],       meals:['lunch'],
+    lunchPrice:85,  dinnerPrice:null, monthlyPrice:1900, communityPick:true, capacity:12,
+    description:'Full Gujarati thali — dal, kadhi, sabzi, rotli, rice, and mithai. Seasonal and fresh. Undhiyu in winter, aam ras in summer. No compromise on quality.', daysAgo:2,
+    lat:19.0582, lng:72.8278 },
+
+  { id:'L012', name:"Lakshmi Tiffin Ghatkopar", initial:'L', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Ghatkopar',     pincode:'400077', type:'veg',    cuisines:['Gujarati'],       meals:['lunch','dinner'],
+    lunchPrice:70,  dinnerPrice:75,  monthlyPrice:1600, communityPick:false, capacity:10,
+    description:"Simple, homely Gujarati meals. Nothing fancy — just the food your maa would make. Dal dhokli on Mondays, sev tameta on Wednesdays.", daysAgo:5,
+    lat:19.0782, lng:72.8802 },
+
+  { id:'L013', name:"Powai Home Kitchen",       initial:'P', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
+    area:'Powai',         pincode:'400076', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
+    lunchPrice:95,  dinnerPrice:null, monthlyPrice:2100, communityPick:false, capacity:8,
+    description:'Rice plates, sambar, chutneys, and a rotating sabzi every day. South Indian comfort food. Freshly ground masalas, no packet masalas ever.', daysAgo:12,
+    lat:19.1562, lng:72.9022 },
+
+  { id:'L014', name:"Soni Jain Meals",          initial:'S', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    area:'Goregaon',      pincode:'400063', type:'jain',   cuisines:['Jain'],           meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, communityPick:false, capacity:8,
+    description:'Goregaon-based Jain cook. Pure Jain recipes with no compromises. Paryushana specials available. 15-year experience in Jain cooking.', daysAgo:9,
+    lat:19.1712, lng:72.8558 },
+
+  { id:'L015', name:"Malabar Dabba",            initial:'M', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Malad West',    pincode:'400064', type:'nonveg', cuisines:['Kerala'],         meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:95,  monthlyPrice:2000, communityPick:false, capacity:10,
+    description:'Kerala fish curry, appam, stew. Authentic Malabar coast cooking from a home in Malad. Fish pollichathu and prawn curry are customer favourites.', daysAgo:15,
+    lat:19.1842, lng:72.8462 },
+
+  { id:'L016', name:"Santacruz Punjabi Dabba",  initial:'S', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Santacruz',     pincode:'400054', type:'nonveg', cuisines:['Punjabi'],        meals:['dinner'],
+    lunchPrice:null,dinnerPrice:95,  monthlyPrice:2100, communityPick:false, capacity:10,
+    description:'Hearty Punjabi dinners — rajma, chole, paneer makhani for veg guests on request. Dal tadka, jeera rice, freshly made naan on Fridays.', daysAgo:11,
+    lat:19.0832, lng:72.8432 },
+
+  { id:'L017', name:"Sheila's Kitchen Sion",    initial:'S', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Sion',          pincode:'400022', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch'],
+    lunchPrice:60,  dinnerPrice:null, monthlyPrice:1350, communityPick:false, capacity:15,
+    description:'Budget-friendly Maharashtrian lunch. Dal, bhaji, chawal, roti — reliable and filling. The most affordable home food near Sion station.', daysAgo:20,
+    lat:19.0352, lng:72.8722 },
+
+  { id:'L018', name:"Clean Eats by Riya",       initial:'C', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'Bandra West',   pincode:'400050', type:'diet',   cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:120, dinnerPrice:130, monthlyPrice:3000, communityPick:false, capacity:12,
+    description:'Macro-balanced, low-sodium, portion-controlled meals. Ideal for weight-watchers and diabetics. Nutritionist-approved recipes. Calorie count on every meal.', daysAgo:3,
+    lat:19.0612, lng:72.8248 },
+
+  { id:'L019', name:"Kabir's Kitchen",          initial:'K', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Andheri East',  pincode:'400069', type:'nonveg', cuisines:['Mughlai'],        meals:['lunch','dinner'],
+    lunchPrice:95,  dinnerPrice:105, monthlyPrice:2300, communityPick:false, capacity:12,
+    description:'Mughlai home food — biryani, qorma, haleem. Slow-cooked and spiced just right. Dum biryani available for pre-order. Lucknowi nawabi style.', daysAgo:6,
+    lat:19.1243, lng:72.8462 },
+
+  { id:'_placeholder' }
+]; /* old array unused — data comes from DABBA_DATA via js/data.js */
+
+/* ══════════════════════════════════════════════════════════
+   LOAD LISTING FROM URL PARAM
+══════════════════════════════════════════════════════════ */
+const params  = new URLSearchParams(window.location.search);
+const lid     = params.get('id') || 'L001';
+
+function getAllListings() {
+  let all = [...MASTER_LISTINGS];
+  try {
+    const stored = window.DabbaStore ? DabbaStore.getListings() : JSON.parse(localStorage.getItem('dabbamapListings') || '[]');
+    stored.forEach((s, i) => {
+      const uid = s.id || s.secretId || ('U' + i);
+      if (!all.find(l => l.id === uid)) {
+        all.push({
+          id: uid, name: s.name || 'Unnamed Cook', initial: (s.name||'?')[0].toUpperCase(),
+          avatarBg: 'linear-gradient(135deg,#C8771A,#F5A623)',
+          area: s.area || '', pincode: s.pincode || '', type: s.type || 'veg',
+          cuisines: s.cuisines||[], meals: s.meals||[],
+          lunchPrice: parseInt(s.lunchPrice)||null, dinnerPrice: parseInt(s.dinnerPrice)||null,
+          monthlyPrice: parseInt(s.monthlyPrice)||null,
+          communityPick: false, capacity: s.capacity ? parseInt(s.capacity) : 10,
+          description: s.description||'', daysAgo: 0,
+          lat: parseFloat(s.lat) || (19.095 + (Math.random()-0.5)*0.1),
+          lng: parseFloat(s.lng) || (72.870 + (Math.random()-0.5)*0.1),
+        });
+      }
+    });
+  } catch(e) {}
+  return all;
+}
+
+const listing = getAllListings().find(l => l.id === lid) || MASTER_LISTINGS[0];
+
+/* ══════════════════════════════════════════════════════════
+   POPULATE PAGE WITH LISTING DATA
+══════════════════════════════════════════════════════════ */
+document.title = listing.name + ' — DabbaMap';
+
+// Avatar
+const avatarEl = document.getElementById('profile-avatar');
+avatarEl.textContent   = listing.initial;
+avatarEl.style.background = listing.avatarBg;
+
+// Community pick
+if (listing.communityPick) {
+  const banner = document.getElementById('community-pick-banner');
+  banner.style.display = 'flex';
+}
+
+// Name, area, listed
+document.getElementById('profile-name').textContent  = listing.name;
+document.getElementById('profile-area').textContent  = '📍 ' + listing.area + ', Mumbai — ' + listing.pincode;
+document.getElementById('profile-listed').textContent = (listing.daysAgo === 0 ? 'Just listed' : listing.daysAgo === 1 ? 'Listed yesterday' : `Listed ${listing.daysAgo} days ago`) + ' · Last confirmed active today';
+
+// Price block
+const TYPE_BADGE_MAP = {
+  veg:    '<span class="badge badge-veg badge-dot">Veg</span>',
+  nonveg: '<span class="badge badge-nonveg">Non-Veg</span>',
+  jain:   '<span class="badge badge-jain">Jain</span>',
+  diet:   '<span class="badge badge-diet">Diet</span>',
+};
+
+let priceHtml = '';
+if (listing.lunchPrice)  priceHtml += `<div class="price-item"><div class="amount">₹${listing.lunchPrice}</div><div class="label">Lunch / meal</div></div>`;
+if (listing.lunchPrice && listing.dinnerPrice) priceHtml += '<div class="price-divider"></div>';
+if (listing.dinnerPrice) priceHtml += `<div class="price-item"><div class="amount">₹${listing.dinnerPrice}</div><div class="label">Dinner / meal</div></div>`;
+if (listing.monthlyPrice) {
+  if (listing.lunchPrice || listing.dinnerPrice) priceHtml += '<div class="price-divider"></div>';
+  priceHtml += `<div class="price-item"><span class="badge badge-trial" style="font-size:13px">₹${listing.monthlyPrice.toLocaleString('en-IN')} / month</span><div class="label" style="margin-top:4px">Monthly plan</div></div>`;
+}
+document.getElementById('price-block').innerHTML = priceHtml;
+
+// Tags
+const cuisineBadges = (listing.cuisines||[]).map(c => `<span class="badge badge-cuisine">${c}</span>`).join('');
+const mealBadges    = (listing.meals||[]).map(m => `<span class="badge badge-meal">${m==='lunch'?'Lunch':'Dinner'}</span>`).join('');
+const pickBadge     = listing.communityPick ? '<span class="badge badge-pick">⭐ Community Pick</span>' : '';
+document.getElementById('profile-tags').innerHTML = (TYPE_BADGE_MAP[listing.type]||'') + cuisineBadges + mealBadges + pickBadge;
+
+// Description
+document.getElementById('profile-desc').textContent = listing.description || '';
+
+// Details
+document.getElementById('detail-capacity').textContent = listing.capacity ? `${listing.capacity} meals/day` : '—';
+const mealsServed = listing.meals||[];
+if (mealsServed.includes('lunch') && mealsServed.includes('dinner')) {
+  document.getElementById('detail-meals-icon').textContent = '🌞🌙';
+  document.getElementById('detail-meals').textContent = 'Lunch & Dinner';
+} else if (mealsServed.includes('lunch')) {
+  document.getElementById('detail-meals-icon').textContent = '🌞';
+  document.getElementById('detail-meals').textContent = 'Lunch only';
+} else if (mealsServed.includes('dinner')) {
+  document.getElementById('detail-meals-icon').textContent = '🌙';
+  document.getElementById('detail-meals').textContent = 'Dinner only';
+}
+
+// Map note
+document.getElementById('map-note').textContent = `📍 Exact address shared directly after you connect · ${listing.area}, ${listing.pincode}`;
+
+// Contact subtext
+document.getElementById('contact-subtext').textContent = `Send an anonymous message to ${listing.name}. Your number stays private and completely anonymous.`;
+
+// Share button
+document.getElementById('share-btn').addEventListener('click', function() {
+  const url = window.location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => showToast('Link copied!'));
+  } else {
+    showToast('Link: ' + url);
+  }
+});
+
+/* ══════════════════════════════════════════════════════════
+   LEAFLET MAP
+══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+  var profileMap = L.map('profile-map', { zoomControl: true, scrollWheelZoom: false }).setView([listing.lat, listing.lng], 14);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap contributors © CARTO', subdomains: 'abcd'
+  }).addTo(profileMap);
+  var icon = L.divIcon({
+    html: '<div style="width:36px;height:44px;background:var(--primary);border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);border:2px solid rgba(255,255,255,0.4)"><span style="transform:rotate(45deg);font-size:16px">🍱</span></div>',
+    iconSize: [36, 44], iconAnchor: [18, 44], className: ''
+  });
+  L.marker([listing.lat, listing.lng], { icon }).addTo(profileMap)
+    .bindPopup('<strong>' + listing.name + '</strong><br>' + listing.area + ', ' + listing.pincode).openPopup();
+
+  /* ── Anonymous message expand ── */
+  var anonTrigger = document.getElementById('anon-trigger');
+  var anonForm    = document.getElementById('anon-form');
+  anonTrigger.addEventListener('click', function() {
+    var isOpen = anonForm.style.display !== 'none';
+    anonForm.style.display = isOpen ? 'none' : 'block';
+    anonTrigger.textContent = isOpen ? '💬 Send Anonymous Message' : '✕ Close';
+  });
+
+  /* ── Char counter ── */
+  var ta = document.getElementById('anon-textarea');
+  var counter = document.querySelector('.char-count');
+  ta.addEventListener('input', function() {
+    counter.textContent = ta.value.length + ' / 300';
+    if (ta.value.length > 300) ta.value = ta.value.slice(0, 300);
+  });
+
+  /* ══════════════════════════════════════════════════════════
+     MESSAGING (guest send or email+password login)
+  ══════════════════════════════════════════════════════════ */
+  var pendingMessage = '';
+
+  function getCurrentUser() {
+    try { return JSON.parse(localStorage.getItem('dabbamapUser') || 'null'); } catch(e) { return null; }
+  }
+
+  function saveConversation(userName, userPhone) {
+    try {
+      var convId = 'CONV-' + Date.now();
+      var conversations = window.DabbaStore ? DabbaStore.getConversations()
+        : JSON.parse(localStorage.getItem('dabbamapConsumerConversations') || '[]');
+      conversations.unshift({
+        id:           convId,
+        providerId:   listing.id,
+        providerName: listing.name,
+        providerArea: listing.area,
+        providerType: listing.type,
+        lunchPrice:   listing.lunchPrice,
+        dinnerPrice:  listing.dinnerPrice,
+        userName:     userName || 'Anonymous',
+        userPhone:    userPhone || '',
+        messages: [
+          { from:'consumer', text: pendingMessage, timestamp: new Date().toISOString() }
+        ],
+        timestamp: new Date().toISOString(),
+        status: 'sent',
+        unread: false,
+        consumerUnread: 0,
+        providerUnread: 1,
+      });
+      if (window.DabbaStore) DabbaStore.setConversations(conversations);
+      else localStorage.setItem('dabbamapConsumerConversations', JSON.stringify(conversations));
+    } catch(e) {}
+  }
+
+  function showSuccess() {
+    anonForm.innerHTML = `
+      <div class="privacy-box mt-4">
+        <p>✅ <strong>Message sent!</strong> The provider has received your message and they will reply soon.</p>
+        <p style="margin-top:8px;font-size:13px;color:var(--text-muted)"><a href="dashboard.html" style="color:var(--primary);font-weight:600">View in Dashboard →</a></p>
+      </div>`;
+    anonTrigger.style.display = 'none';
+    if (window.showToast) showToast('Message sent anonymously!');
+  }
+
+  // Send message button
+  document.getElementById('anon-send').addEventListener('click', function() {
+    if (!ta.value.trim()) { if (window.showToast) showToast('Please write a message first.'); return; }
+    pendingMessage = ta.value.trim();
+
+    var currentUser = getCurrentUser();
+    if (currentUser && currentUser.loggedIn) {
+      // Logged in → save to their account
+      saveConversation(currentUser.name, currentUser.phone || '');
+      showSuccess();
+    } else {
+      // Guest → save to this session only (lost on browser exit)
+      saveConversation('Guest', '');
+      showSuccess();
+      if (window.showToast) showToast('Sent as guest — log in to save it to your account.');
+    }
+  });
+
+  /* Track this view in localStorage */
+  try {
+    var viewed = JSON.parse(localStorage.getItem('dabbamapConsumerViewed') || '[]');
+    if (!viewed.some(function(v) { return v.id === listing.id; })) {
+      viewed.unshift({ id: listing.id, name: listing.name, area: listing.area, pincode: listing.pincode, type: listing.type, lunchPrice: listing.lunchPrice, dinnerPrice: listing.dinnerPrice, timestamp: new Date().toISOString() });
+      localStorage.setItem('dabbamapConsumerViewed', JSON.stringify(viewed.slice(0, 50)));
+    }
+  } catch(e) {}
+});
+</script>
+</body>
+</html>

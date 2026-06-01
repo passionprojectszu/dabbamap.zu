@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My History — DabbaMap</title>
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    .consumer-header {
+      background: var(--primary-pale);
+      border-bottom: 1px solid var(--border);
+      padding: var(--sp-10) 0 0;
+    }
+    .consumer-stat-bar {
+      display: flex; gap: var(--sp-4); flex-wrap: wrap; margin-top: var(--sp-6);
+      padding-bottom: var(--sp-6); border-bottom: 1px solid var(--border);
+    }
+    .c-stat {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius-card);
+      padding: var(--sp-4) var(--sp-6); display: flex; align-items: center; gap: 10px;
+      box-shadow: var(--shadow-card);
+    }
+    .c-stat-num { font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--primary); }
+    .c-stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .tab-row {
+      display: flex; gap: 0; border-bottom: 2px solid var(--border); margin: var(--sp-6) 0 var(--sp-6);
+    }
+    .c-tab {
+      padding: 12px 20px; font-size: 14px; font-weight: 700; font-family: var(--font-body);
+      border: none; background: none; cursor: pointer; color: var(--text-muted);
+      border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+    }
+    .c-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .c-tab-panel { display: none; }
+    .c-tab-panel.active { display: block; }
+
+    /* Conversation card */
+    .conv-card {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius-card);
+      padding: var(--sp-5) var(--sp-6); margin-bottom: var(--sp-4);
+      box-shadow: var(--shadow-card); transition: box-shadow 0.15s;
+    }
+    .conv-card:hover { box-shadow: 0 4px 24px rgba(44,24,16,0.10); }
+    .conv-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+    .conv-avatar {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #fff;
+    }
+    .conv-name { font-weight: 700; font-size: 15px; color: var(--text); }
+    .conv-area { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .conv-time { font-size: 11px; color: var(--text-muted); margin-left: auto; flex-shrink: 0; }
+    .conv-message {
+      background: var(--primary-pale); border-radius: 10px; padding: 10px 14px;
+      font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 10px;
+      border-left: 3px solid var(--primary);
+    }
+    .conv-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .conv-status { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 100px; }
+    .conv-status.sent { background: #dcfce7; color: #16a34a; }
+    .conv-status.pending { background: #fef9c3; color: #92400e; }
+
+    /* Viewed card */
+    .viewed-card {
+      background: #fff; border: 1px solid var(--border); border-radius: var(--radius-card);
+      padding: var(--sp-4) var(--sp-5); margin-bottom: var(--sp-3);
+      box-shadow: var(--shadow-card); display: flex; align-items: center; gap: 14px;
+      transition: box-shadow 0.15s;
+    }
+    .viewed-card:hover { box-shadow: 0 4px 24px rgba(44,24,16,0.10); }
+    .viewed-avatar {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-size: 16px; font-weight: 800; color: #fff;
+    }
+    .viewed-name { font-weight: 700; font-size: 14px; color: var(--text); }
+    .viewed-area { font-size: 12px; color: var(--text-muted); }
+    .viewed-price { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--primary); margin-left: auto; }
+    .viewed-time { font-size: 11px; color: var(--text-muted); text-align: right; }
+
+    .empty-consumer {
+      text-align: center; padding: var(--sp-16) var(--sp-8);
+      background: #fff; border-radius: var(--radius-card);
+      border: 1px dashed var(--border);
+    }
+    .empty-consumer .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-consumer h3 { font-family: var(--font-display); font-size: 20px; margin-bottom: 8px; }
+    .empty-consumer p { color: var(--text-muted); font-size: 14px; max-width: 320px; margin: 0 auto 20px; }
+
+    .privacy-notice {
+      background: var(--secondary-pale); border: 1px solid rgba(74,124,89,0.2);
+      border-radius: var(--radius-card); padding: var(--sp-4) var(--sp-5);
+      font-size: 13px; color: var(--text-muted); margin-bottom: var(--sp-6);
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">🥘</span><span class="brand">Dabba<em>Map</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="discover.html">Discover</a>
+      <a href="about.html">About</a>
+    </div>
+    <div class="nav-cta">
+      <a href="consumer.html" class="btn btn-ghost btn-sm active">My History</a>
+      <a href="list.html" class="btn btn-primary btn-sm">List My Dabba</a>
+      <button class="nav-hamburger" aria-label="Menu">☰</button>
+    </div>
+  </div>
+  <div class="nav-mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="discover.html">Discover Dabbas</a>
+    <a href="list.html">List My Dabba</a>
+    <a href="consumer.html">My History</a>
+    <a href="about.html">About</a>
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ── -->
+<div class="consumer-header">
+  <div class="container">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h1 class="t-h1" style="font-size:34px">My Dabba History</h1>
+        <p style="color:var(--text-muted);font-size:15px;margin-top:4px">Your conversations and viewed dabbas — saved only on this device</p>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="clear-all-btn" style="color:var(--error)">🗑 Clear All History</button>
+    </div>
+    <!-- Stats bar -->
+    <div class="consumer-stat-bar" id="stat-bar">
+      <div class="c-stat">
+        <div>
+          <div class="c-stat-num" id="stat-conversations">0</div>
+          <div class="c-stat-label">Messages Sent</div>
+        </div>
+      </div>
+      <div class="c-stat">
+        <div>
+          <div class="c-stat-num" id="stat-viewed">0</div>
+          <div class="c-stat-label">Profiles Viewed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<section class="section-sm">
+  <div class="container" style="max-width:820px">
+
+    <div class="privacy-notice">
+      <span style="font-size:18px;flex-shrink:0">🔒</span>
+      <span>Everything here is stored only on this browser. Nothing is sent to any server. Clear your browser data to remove all history.</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-row">
+      <button class="c-tab active" data-ctab="conversations">💬 Conversations</button>
+      <button class="c-tab" data-ctab="viewed">👁 Viewed Dabbas</button>
+    </div>
+
+    <!-- ── CONVERSATIONS PANEL ── -->
+    <div class="c-tab-panel active" id="panel-conversations">
+      <div id="conversations-list"></div>
+    </div>
+
+    <!-- ── VIEWED PANEL ── -->
+    <div class="c-tab-panel" id="panel-viewed">
+      <div id="viewed-list"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo" style="margin-bottom:12px">
+          <span class="logo-icon">🥘</span>
+          <span class="brand" style="color:#fff">Dabba<em style="color:var(--primary-light)">Map</em></span>
+        </a>
+        <div class="footer-tagline">Find ghar ka khana near you.</div>
+      </div>
+      <div class="footer-col"><h4>Discover</h4><ul><li><a href="discover.html">Browse Dabbas</a></li><li><a href="list.html">List My Dabba</a></li></ul></div>
+      <div class="footer-col"><h4>My Account</h4><ul><li><a href="consumer.html">My History</a></li><li><a href="dashboard.html">Provider Dashboard</a></li></ul></div>
+      <div class="footer-col"><h4>Info</h4><ul><li><a href="about.html">About</a></li><li><a href="about.html#privacy">Anonymity</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">© 2025 DabbaMap · Not a food delivery app.</div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+/* ── Seed data for demo (shown when localStorage is empty) ── */
+const SEED_CONVERSATIONS = [
+  {
+    providerName: "Sunita's Kitchen", providerArea: 'Andheri West', providerType: 'veg', lunchPrice: 80,
+    message: "Hi! I'm interested in a trial meal. I'm vegetarian and looking for lunch deliveries near Lokhandwala. Are you taking new customers?",
+    consumerName: 'Riya', consumerPhone: '9876543210',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), status: 'sent'
+  },
+  {
+    providerName: "Meena's South Indian", providerArea: 'Goregaon', providerType: 'veg', lunchPrice: 70,
+    message: "Do you deliver to Goregaon West? Would love to try a South Indian thali — what days are you available?",
+    consumerName: 'Riya', consumerPhone: '9876543210',
+    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), status: 'sent'
+  },
+];
+
+const SEED_VIEWED = [
+  { id:'sunita-kitchen-andheri',    name:"Sunita's Kitchen",      area:'Andheri West', pincode:'400058', type:'veg',    lunchPrice:80,  dinnerPrice:90,  timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString() },
+  { id:'meena-south-indian',        name:"Meena's South Indian",  area:'Goregaon',     pincode:'400063', type:'veg',    lunchPrice:70,  dinnerPrice:null, timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+  { id:'ramesh-tiffins',            name:'Ramesh Tiffins',         area:'Andheri East', pincode:'400069', type:'nonveg', lunchPrice:90,  dinnerPrice:100, timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+  { id:'fit-fresh',                 name:'Fit & Fresh Tiffin',     area:'Andheri West', pincode:'400058', type:'diet',   lunchPrice:110, dinnerPrice:120, timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+];
+
+/* ── Load data ── */
+function getConversations() {
+  try {
+    var stored = JSON.parse(localStorage.getItem('dabbamapConsumerConversations') || 'null');
+    return stored !== null ? stored : SEED_CONVERSATIONS;
+  } catch(e) { return SEED_CONVERSATIONS; }
+}
+function getViewed() {
+  try {
+    var stored = JSON.parse(localStorage.getItem('dabbamapConsumerViewed') || 'null');
+    return stored !== null ? stored : SEED_VIEWED;
+  } catch(e) { return SEED_VIEWED; }
+}
+
+/* ── Format timestamp ── */
+function fmtTime(iso) {
+  var d = new Date(iso);
+  var now = new Date();
+  var diff = (now - d) / 1000;
+  if (diff < 60)  return 'Just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  var days = Math.floor(diff/86400);
+  if (days === 1) return 'Yesterday';
+  if (days < 7)  return days + ' days ago';
+  return d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+
+/* ── Avatar background by type ── */
+var TYPE_BG = { veg:'linear-gradient(135deg,#15803d,#4ade80)', nonveg:'linear-gradient(135deg,#b91c1c,#f87171)', jain:'linear-gradient(135deg,#6d28d9,#a78bfa)', diet:'linear-gradient(135deg,#0369a1,#38bdf8)' };
+var TYPE_BADGE = { veg:'badge-veg', nonveg:'badge-nonveg', jain:'badge-jain', diet:'badge-diet' };
+var TYPE_LABEL = { veg:'Veg', nonveg:'Non-Veg', jain:'Jain', diet:'Diet' };
+
+/* ── Render conversations ── */
+function renderConversations() {
+  var list = getConversations();
+  var el = document.getElementById('conversations-list');
+  document.getElementById('stat-conversations').textContent = list.length;
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-consumer"><div class="icon">💬</div><h3>No conversations yet</h3><p>When you send a message to a dabba provider, it will appear here so you can keep track.</p><a href="discover.html" class="btn btn-primary">Browse Dabbas</a></div>';
+    return;
+  }
+  el.innerHTML = list.map(function(c) {
+    var initial = (c.providerName || '?')[0].toUpperCase();
+    var bg = TYPE_BG[c.providerType] || TYPE_BG.veg;
+    var badge = TYPE_BADGE[c.providerType] || '';
+    var label = TYPE_LABEL[c.providerType] || '';
+    var identity = c.consumerName ? ('Sent as ' + c.consumerName + (c.consumerPhone ? ' · ' + c.consumerPhone : '')) : 'Sent anonymously';
+    return '<div class="conv-card">'
+      + '<div class="conv-header">'
+      + '<div class="conv-avatar" style="background:' + bg + '">' + initial + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+      + '<div class="conv-name">' + c.providerName + '</div>'
+      + '<span class="badge ' + badge + '">' + label + '</span>'
+      + '</div>'
+      + '<div class="conv-area">📍 ' + c.providerArea + ' · ₹' + (c.lunchPrice || '?') + '/meal</div>'
+      + '</div>'
+      + '<div class="conv-time">' + fmtTime(c.timestamp) + '</div>'
+      + '</div>'
+      + '<div class="conv-message">' + c.message + '</div>'
+      + '<div class="conv-meta">'
+      + '<span class="conv-status sent">✓ Sent</span>'
+      + '<span style="font-size:12px;color:var(--text-muted)">' + identity + '</span>'
+      + '<a href="profile.html" class="btn btn-ghost btn-sm" style="margin-left:auto">View Listing →</a>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+/* ── Render viewed ── */
+function renderViewed() {
+  var list = getViewed();
+  var el = document.getElementById('viewed-list');
+  document.getElementById('stat-viewed').textContent = list.length;
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-consumer"><div class="icon">👁</div><h3>No viewed dabbas yet</h3><p>Dabbas you visit will appear here so you can find them again easily.</p><a href="discover.html" class="btn btn-primary">Browse Dabbas</a></div>';
+    return;
+  }
+  el.innerHTML = list.map(function(v) {
+    var initial = (v.name || '?')[0].toUpperCase();
+    var bg = TYPE_BG[v.type] || TYPE_BG.veg;
+    var badge = TYPE_BADGE[v.type] || '';
+    var label = TYPE_LABEL[v.type] || '';
+    var price = v.lunchPrice ? '₹' + v.lunchPrice : (v.dinnerPrice ? '₹' + v.dinnerPrice : '—');
+    return '<div class="viewed-card">'
+      + '<div class="viewed-avatar" style="background:' + bg + '">' + initial + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">'
+      + '<div class="viewed-name">' + v.name + '</div>'
+      + '<span class="badge ' + badge + ' badge-dot" style="font-size:11px">' + label + '</span>'
+      + '</div>'
+      + '<div class="viewed-area">📍 ' + v.area + (v.pincode ? ' · ' + v.pincode : '') + '</div>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+      + '<div class="viewed-price">' + price + '<span style="font-size:11px;font-weight:400;color:var(--text-muted)">/meal</span></div>'
+      + '<div class="viewed-time">' + fmtTime(v.timestamp) + '</div>'
+      + '</div>'
+      + '<a href="profile.html" class="btn btn-primary btn-sm" style="flex-shrink:0">View →</a>'
+      + '</div>';
+  }).join('');
+}
+
+/* ── Tab switching ── */
+document.querySelectorAll('.c-tab').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.c-tab').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.c-tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.ctab).classList.add('active');
+  });
+});
+
+/* ── Clear history ── */
+document.getElementById('clear-all-btn').addEventListener('click', function() {
+  if (!confirm('Clear all your history from this device? This cannot be undone.')) return;
+  localStorage.removeItem('dabbamapConsumerConversations');
+  localStorage.removeItem('dabbamapConsumerViewed');
+  renderConversations();
+  renderViewed();
+  if (window.showToast) showToast('History cleared.');
+});
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', function() {
+  renderConversations();
+  renderViewed();
+});
+</script>
+</body>
+</html>

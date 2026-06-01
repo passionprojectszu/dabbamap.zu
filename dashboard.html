@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Dashboard — DabbaMap</title>
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    /* ── Role Selector ── */
+    .role-selector { max-width: 580px; margin: 0 auto; padding: 52px 16px; }
+    .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+    @media(max-width:500px){ .role-cards { grid-template-columns: 1fr; } }
+    .role-card {
+      border: 2px solid var(--border); border-radius: var(--radius-card); padding: 28px 20px;
+      text-align: center; cursor: pointer; transition: all 0.18s; background: #fff;
+    }
+    .role-card:hover { border-color: var(--primary); box-shadow: 0 4px 24px rgba(200,119,26,0.15); transform: translateY(-2px); }
+    .role-card .role-icon { font-size: 42px; margin-bottom: 12px; }
+    .role-card h3 { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+    .role-card p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+    .role-badge { display: inline-block; background: var(--primary-pale); color: var(--primary-dark); font-size: 11px; font-weight: 700; border-radius: 100px; padding: 3px 10px; margin-top: 10px; }
+
+    /* ── Dash shell ── */
+    .dash-header { background: var(--primary-pale); border-bottom: 1px solid var(--border); padding: var(--sp-6) 0; }
+    .dash-header-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .dash-role-switch {
+      display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.85);
+      border: 1.5px solid var(--border); border-radius: 100px; padding: 6px 16px;
+      font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-muted); transition: all 0.15s;
+    }
+    .dash-role-switch:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── Live badge ── */
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 5px; background: #ecfdf5;
+      border: 1px solid #bbf7d0; color: #065f46; border-radius: 100px;
+      padding: 4px 10px; font-size: 11px; font-weight: 700;
+    }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; animation: pulse 1.5s infinite; }
+
+    /* ── Chat layout ── */
+    .chat-layout { display: grid; grid-template-columns: 300px 1fr; border: 1px solid var(--border); border-radius: var(--radius-card); overflow: hidden; background: #fff; min-height: 520px; }
+    @media(max-width:680px){ .chat-layout { grid-template-columns: 1fr; } }
+
+    .chat-sidebar { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .chat-sidebar-hdr { padding: 14px 16px; border-bottom: 1px solid var(--border); background: #fafafa; display: flex; align-items: center; justify-content: space-between; }
+    .chat-sidebar-hdr h3 { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+    .chat-conv-list { flex: 1; overflow-y: auto; max-height: 520px; }
+
+    .conv-item { padding: 13px 15px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; align-items: flex-start; gap: 11px; transition: background 0.1s; }
+    .conv-item:hover { background: #fdf8f0; }
+    .conv-item.active { background: var(--primary-pale); border-right: 3px solid var(--primary); }
+    .c-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .c-info { flex: 1; min-width: 0; }
+    .c-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .c-preview { font-size: 12px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .c-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+    .c-time { font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+    .c-badge { background: var(--primary); color: #fff; font-size: 10px; font-weight: 700; border-radius: 100px; padding: 2px 6px; min-width: 18px; text-align: center; }
+
+    /* ── Chat main ── */
+    .chat-main { display: flex; flex-direction: column; min-height: 520px; }
+    .chat-main-hdr { padding: 13px 16px; border-bottom: 1px solid var(--border); background: #fafafa; display: flex; align-items: center; gap: 10px; }
+    .chat-main-hdr .ctitle { font-family: var(--font-display); font-size: 16px; font-weight: 800; }
+    .chat-main-hdr .csub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+    .chat-msgs { flex: 1; overflow-y: auto; padding: 18px 14px; display: flex; flex-direction: column; gap: 10px; min-height: 300px; max-height: 360px; background: #fdf8f0; }
+    .bw { display: flex; flex-direction: column; }
+    .bw.me { align-items: flex-end; }
+    .bw.them { align-items: flex-start; }
+    .bubble { max-width: 72%; padding: 9px 13px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+    .bubble.me { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+    .bubble.them { background: #fff; color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .btime { font-size: 10px; color: var(--text-muted); margin-top: 3px; padding: 0 2px; }
+
+    .chat-input-row { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-end; background: #fff; }
+    .chat-input-row textarea { flex: 1; border: 1.5px solid var(--border); border-radius: 20px; padding: 9px 14px; font-size: 14px; font-family: var(--font-body); resize: none; outline: none; min-height: 38px; max-height: 100px; overflow-y: auto; }
+    .chat-input-row textarea:focus { border-color: var(--primary); }
+    .send-btn { background: var(--primary); color: #fff; border: none; border-radius: 50%; width: 38px; height: 38px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.15s; }
+    .send-btn:hover { background: var(--primary-dark); }
+
+    .chat-placeholder { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); padding: 40px; text-align: center; }
+    .chat-placeholder .big-icon { font-size: 44px; }
+
+    /* ── Provider listing selector ── */
+    .listing-tile {
+      border: 1.5px solid var(--border); border-radius: 12px; padding: 13px 14px;
+      margin-bottom: 10px; cursor: pointer; display: flex; align-items: center; gap: 11px;
+      transition: all 0.15s; background: #fff; position: relative;
+    }
+    .listing-tile:hover { border-color: var(--primary); background: var(--primary-pale); }
+    .listing-tile.active { border-color: var(--primary); background: var(--primary-pale); }
+    .listing-tile-badge { position: absolute; top: 9px; right: 10px; background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; border-radius: 100px; padding: 2px 7px; }
+
+    /* ── Stats grid ── */
+    .stat-mini-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+    @media(max-width:480px){ .stat-mini-grid { grid-template-columns: 1fr 1fr; } }
+    .stat-mini { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: #fff; text-align: center; }
+    .stat-mini .num { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--text); }
+    .stat-mini .lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    /* ── Confirm active ── */
+    .confirm-banner { background: #ecfdf5; border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+
+    /* ── Empty states ── */
+    .empty-dash { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-dash .icon { font-size: 48px; margin-bottom: 14px; }
+
+    /* ── Provider layout ── */
+    .provider-grid { display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: start; }
+    @media(max-width:680px){ .provider-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">🥘</span><span class="brand">Dabba<em>Map</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a><a href="discover.html">Discover</a><a href="dashboard.html" class="active">Dashboard</a><a href="about.html">About</a>
+    </div>
+    <div class="nav-cta">
+      <a href="list.html" class="btn btn-primary btn-sm">List My Dabba</a>
+      <div class="nav-profile" id="nav-profile-wrap" style="position:relative;display:inline-flex;align-items:center;margin-left:4px">
+        <button class="nav-profile-btn" id="nav-profile-btn" title="Account" style="width:38px;height:38px;border-radius:50%;border:2px solid #C8771A;background:#FEF3E2;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#C8771A;padding:0">
+          <svg viewBox="0 0 24 24" style="width:19px;height:19px;stroke:#C8771A;fill:none;stroke-width:1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </button>
+        <div class="nav-profile-drop" id="nav-profile-drop"></div>
+      </div>
+      <button class="nav-hamburger" aria-label="Menu">☰</button>
+    </div>
+  </div>
+  <div class="nav-mobile-menu">
+    <a href="index.html">Home</a><a href="discover.html">Discover Dabbas</a>
+    <a href="dashboard.html">Dashboard</a><a href="list.html">List My Dabba</a><a href="about.html">About</a>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════
+     ANONYMOUS / GUEST SESSION BANNER
+════════════════════════════════════════════════════════ -->
+<div id="anon-banner" style="display:none;background:linear-gradient(135deg,#FEF3E2,#fde8c0);border-bottom:1px solid rgba(200,119,26,.25)">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px 0">
+    <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--primary-dark)">
+      <span style="font-size:18px">👤</span>
+      <span><strong>Guest session</strong> — your messages &amp; listings here are temporary and will be lost when you close the browser. <strong>Log in</strong> to save them to your account.</span>
+    </div>
+    <button class="btn btn-primary btn-sm" id="anon-banner-login" style="white-space:nowrap">Log in / Sign up</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     ROLE SELECTOR
+════════════════════════════════════════════════════════ -->
+<div id="view-role-selector" style="display:none">
+  <div class="role-selector">
+    <div style="text-align:center">
+      <h1 style="font-family:var(--font-display);font-size:36px;font-weight:800">My Dashboard</h1>
+      <p style="color:var(--text-muted);margin-top:8px;font-size:15px">How would you like to use DabbaMap today?</p>
+    </div>
+    <div class="role-cards">
+      <div class="role-card" id="choose-consumer">
+        <div class="role-icon">🍽️</div>
+        <h3>I'm Looking for Food</h3>
+        <p>View your enquiries and conversations with dabba providers</p>
+        <span class="role-badge">Consumer</span>
+      </div>
+      <div class="role-card" id="choose-provider">
+        <div class="role-icon">👨‍🍳</div>
+        <h3>I'm a Dabba Provider</h3>
+        <p>Manage your listings and respond to customer enquiries</p>
+        <span class="role-badge">Provider</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     CONSUMER VIEW
+════════════════════════════════════════════════════════ -->
+<div id="view-consumer" style="display:none">
+  <div class="dash-header">
+    <div class="container">
+      <div class="dash-header-inner">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <h1 style="font-family:var(--font-display);font-size:26px;font-weight:800">My Enquiries</h1>
+            <span class="live-badge"><span class="live-dot"></span>Live</span>
+          </div>
+          <p id="consumer-welcome" style="color:var(--text-muted);margin-top:4px;font-size:14px">Your conversations with dabba providers</p>
+        </div>
+        <button class="dash-role-switch" id="consumer-switch-btn">⇄ Provider View</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="section-sm">
+    <div class="container">
+      <div id="consumer-empty" class="empty-dash" style="display:none">
+        <div class="icon">💬</div>
+        <h3 style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text);margin-bottom:8px">No conversations yet</h3>
+        <p style="margin-bottom:20px">Browse dabbas and send a message to a provider to get started.</p>
+        <a href="discover.html" class="btn btn-primary">Browse Dabbas →</a>
+      </div>
+      <div id="consumer-chat-wrap" style="display:none">
+        <div class="chat-layout">
+          <div class="chat-sidebar">
+            <div class="chat-sidebar-hdr">
+              <h3>Conversations</h3>
+              <span id="consumer-total-unread" style="display:none" class="c-badge">0</span>
+            </div>
+            <div class="chat-conv-list" id="consumer-conv-list"></div>
+          </div>
+          <div class="chat-main" id="consumer-chat-main">
+            <div class="chat-placeholder">
+              <div class="big-icon">💬</div>
+              <p style="font-size:15px;font-weight:600;color:var(--text)">Select a conversation</p>
+              <p>Click on a conversation to view messages</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     PROVIDER VIEW
+════════════════════════════════════════════════════════ -->
+<div id="view-provider" style="display:none">
+  <div class="dash-header">
+    <div class="container">
+      <div class="dash-header-inner">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <h1 style="font-family:var(--font-display);font-size:26px;font-weight:800">Provider Dashboard</h1>
+            <span class="live-badge"><span class="live-dot"></span>Live</span>
+          </div>
+          <p style="color:var(--text-muted);margin-top:4px;font-size:14px">Manage your listings and customer enquiries</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button class="dash-role-switch" id="provider-switch-btn">⇄ Consumer View</button>
+          <a href="list.html" class="btn btn-primary btn-sm">+ New Listing</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section-sm">
+    <div class="container">
+      <div id="provider-empty" class="empty-dash" style="display:none">
+        <div class="icon">🍱</div>
+        <h3 style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text);margin-bottom:8px">No listings yet</h3>
+        <p style="margin-bottom:20px">You haven't created any listings. List your dabba to start receiving enquiries.</p>
+        <a href="list.html" class="btn btn-primary">List My Dabba →</a>
+      </div>
+
+      <div id="provider-content" style="display:none">
+        <!-- Confirm Active -->
+        <div class="confirm-banner" id="confirm-active-bar">
+          <p style="margin:0;font-size:14px">🟢 Let customers know you're still active — confirm every 2 weeks.</p>
+          <button class="btn btn-secondary btn-sm" id="confirm-active-btn">Confirm I'm Active</button>
+        </div>
+
+        <div class="provider-grid">
+          <!-- Left: listing picker -->
+          <div>
+            <h3 class="t-h3" style="margin-bottom:12px">My Listings</h3>
+            <div id="provider-listing-list"></div>
+          </div>
+          <!-- Right: listing detail + chat -->
+          <div id="provider-detail">
+            <div class="chat-placeholder" style="border:1px solid var(--border);border-radius:var(--radius-card);min-height:400px">
+              <div class="big-icon">📋</div>
+              <p style="font-size:15px;font-weight:600;color:var(--text)">Select a listing</p>
+              <p>Choose a listing to see its enquiries</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo" style="margin-bottom:12px"><span class="logo-icon">🥘</span><span class="brand" style="color:#fff">Dabba<em style="color:var(--primary-light)">Map</em></span></a>
+        <div class="footer-tagline">Find ghar ka khana near you.</div>
+      </div>
+      <div class="footer-col"><h4>Discover</h4><ul><li><a href="discover.html">Browse Dabbas</a></li><li><a href="discover.html?meal=lunch">Lunch Dabbas</a></li><li><a href="discover.html?meal=dinner">Dinner Dabbas</a></li></ul></div>
+      <div class="footer-col"><h4>Providers</h4><ul><li><a href="list.html">List My Dabba</a></li><li><a href="dashboard.html">My Dashboard</a></li></ul></div>
+      <div class="footer-col"><h4>Info</h4><ul><li><a href="about.html">About DabbaMap</a></li><li><a href="about.html#how">How It Works</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">© 2025 DabbaMap · Not a food delivery app.</div>
+  </div>
+</footer>
+
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script src="js/animations.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════
+   SHARED DATA LAYER — scoped per user via DabbaStore
+════════════════════════════════════════════════════════ */
+var CONVERSATIONS_KEY = 'dabbamapConsumerConversations';
+var USER_KEY          = 'dabbamapUser';
+var LISTINGS_KEY      = 'dabbamapListings';
+
+function getConversations()   { return window.DabbaStore ? DabbaStore.getConversations() : []; }
+function saveConversations(c) { if (window.DabbaStore) DabbaStore.setConversations(c); }
+function getCurrentUser()     { try { return JSON.parse(localStorage.getItem(USER_KEY)||'null'); } catch(e){ return null; } }
+function getStoredListings()  { return window.DabbaStore ? DabbaStore.getListings() : []; }
+
+/* ════════════════════════════════════════════════════════
+   MASTER LISTINGS (for display metadata when showing provider view)
+════════════════════════════════════════════════════════ */
+var MASTER = {
+  L001:{ name:"Sunita's Kitchen",        initial:'S', bg:'linear-gradient(135deg,#C8771A,#F5A623)', type:'veg',    area:'Andheri West',  pincode:'400058', lunchPrice:80,  dinnerPrice:90  },
+  L002:{ name:"Ramesh Tiffins",          initial:'R', bg:'linear-gradient(135deg,#4A7C59,#6DAF82)', type:'nonveg', area:'Andheri East',  pincode:'400069', lunchPrice:90,  dinnerPrice:100 },
+  L003:{ name:"Priya's Jain Dabba",      initial:'P', bg:'linear-gradient(135deg,#7c3aed,#a78bfa)', type:'jain',   area:'Malad West',    pincode:'400064', lunchPrice:100, dinnerPrice:110 },
+  L004:{ name:"Meena's South Indian",    initial:'M', bg:'linear-gradient(135deg,#0284c7,#38bdf8)', type:'veg',    area:'Goregaon',      pincode:'400063', lunchPrice:70,  dinnerPrice:null},
+  L005:{ name:"Anita Home Meals",        initial:'A', bg:'linear-gradient(135deg,#C8771A,#F5A623)', type:'veg',    area:'Borivali West', pincode:'400092', lunchPrice:65,  dinnerPrice:70  },
+  L009:{ name:"Fit & Fresh Tiffin",      initial:'F', bg:'linear-gradient(135deg,#0369a1,#38bdf8)', type:'diet',   area:'Andheri West',  pincode:'400058', lunchPrice:110, dinnerPrice:120 },
+  L011:{ name:"Asha's Gujarati Thali",   initial:'A', bg:'linear-gradient(135deg,#C8771A,#F5A623)', type:'veg',    area:'Bandra West',   pincode:'400050', lunchPrice:85,  dinnerPrice:null},
+};
+var TYPE_COLORS = { veg:'#15803d', nonveg:'#b91c1c', jain:'#6d28d9', diet:'#0369a1' };
+
+/* ════════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════════ */
+function timeAgo(iso) {
+  if (!iso) return '';
+  var diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60)    return 'Just now';
+  if (diff < 3600)  return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+function fmtTime(iso) {
+  if (!iso) return '';
+  var d = new Date(iso), h = d.getHours(), m = d.getMinutes();
+  return (h%12||12) + ':' + (m<10?'0'+m:m) + ' ' + (h<12?'AM':'PM');
+}
+function esc(t) { return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function scrollBot(id) { var el = document.getElementById(id); if(el) el.scrollTop = el.scrollHeight; }
+function showView(id) {
+  ['view-role-selector','view-consumer','view-provider'].forEach(function(v){
+    document.getElementById(v).style.display = (v===id) ? '' : 'none';
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   RENDER MESSAGES (shared by consumer + provider)
+════════════════════════════════════════════════════════ */
+function renderMsgs(messages, viewAs) {
+  if (!messages || !messages.length) return '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:13px">No messages yet</div>';
+  return messages.map(function(m) {
+    var isMe = m.from === viewAs;
+    return '<div class="bw ' + (isMe?'me':'them') + '">' +
+      '<div class="bubble ' + (isMe?'me':'them') + '">' + esc(m.text) + '</div>' +
+      '<div class="btime">' + fmtTime(m.timestamp) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ════════════════════════════════════════════════════════
+   ── CONSUMER DASHBOARD ──
+════════════════════════════════════════════════════════ */
+var activeConsumerConvId = null;
+
+function renderConsumerDashboard() {
+  showView('view-consumer');
+  var user = getCurrentUser();
+  if (user && user.name) document.getElementById('consumer-welcome').textContent = 'Welcome back, ' + user.name + ' 👋';
+
+  var convs = getConversations();
+  if (!convs.length) {
+    document.getElementById('consumer-empty').style.display = '';
+    document.getElementById('consumer-chat-wrap').style.display = 'none';
+    return;
+  }
+  document.getElementById('consumer-empty').style.display = 'none';
+  document.getElementById('consumer-chat-wrap').style.display = '';
+
+  buildConsumerConvList(convs);
+
+  // Auto-open first or keep previously open
+  var target = activeConsumerConvId ? convs.find(function(c){ return c.id === activeConsumerConvId; }) : convs[0];
+  if (target) openConsumerConv(target.id);
+}
+
+function buildConsumerConvList(convs) {
+  var totalUnread = 0;
+  var html = convs.map(function(c) {
+    var meta   = MASTER[c.providerId] || {};
+    var color  = TYPE_COLORS[c.providerType || meta.type] || '#C8771A';
+    var msgs   = c.messages || [];
+    var last   = msgs.length ? msgs[msgs.length-1] : null;
+    var unread = c.consumerUnread || 0;
+    totalUnread += unread;
+    var preview = last ? (last.from === 'consumer' ? 'You: ' : '') + last.text.slice(0,38) + (last.text.length>38?'…':'') : 'No messages';
+    return '<div class="conv-item' + (c.id === activeConsumerConvId ? ' active' : '') + '" data-cid="' + c.id + '">' +
+      '<div class="c-avatar" style="background:' + color + '">' + (c.providerName||'?')[0] + '</div>' +
+      '<div class="c-info">' +
+        '<div class="c-name">' + esc(c.providerName||'Provider') + '</div>' +
+        '<div class="c-preview">' + esc(preview) + '</div>' +
+      '</div>' +
+      '<div class="c-meta">' +
+        (last ? '<span class="c-time">' + timeAgo(last.timestamp) + '</span>' : '') +
+        (unread > 0 ? '<span class="c-badge">' + unread + '</span>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('consumer-conv-list').innerHTML = html;
+  var badge = document.getElementById('consumer-total-unread');
+  if (totalUnread > 0) { badge.textContent = totalUnread; badge.style.display = ''; }
+  else { badge.style.display = 'none'; }
+
+  document.querySelectorAll('#consumer-conv-list .conv-item').forEach(function(el) {
+    el.addEventListener('click', function() { openConsumerConv(el.dataset.cid); });
+  });
+}
+
+function openConsumerConv(convId) {
+  activeConsumerConvId = convId;
+  var convs = getConversations();
+  var c = convs.find(function(x){ return x.id === convId; });
+  if (!c) return;
+
+  // Clear consumer unread
+  if (c.consumerUnread) {
+    c.consumerUnread = 0;
+    saveConversations(convs);
+  }
+
+  var color = TYPE_COLORS[c.providerType] || '#C8771A';
+  var msgsId = 'c-msgs-' + convId;
+
+  document.getElementById('consumer-chat-main').innerHTML =
+    '<div class="chat-main-hdr">' +
+      '<div class="c-avatar" style="background:' + color + ';width:36px;height:36px;font-size:14px">' + (c.providerName||'?')[0] + '</div>' +
+      '<div style="flex:1">' +
+        '<div class="ctitle">' + esc(c.providerName||'Provider') + '</div>' +
+        '<div class="csub">📍 ' + esc(c.providerArea||'Mumbai') + ' · <span style="color:#10b981;font-weight:700">● Active</span></div>' +
+      '</div>' +
+      '<a href="profile.html?id=' + esc(c.providerId||'') + '" class="btn btn-ghost btn-sm" target="_blank">View Profile</a>' +
+    '</div>' +
+    '<div class="chat-msgs" id="' + msgsId + '">' + renderMsgs(c.messages||[], 'consumer') + '</div>' +
+    '<div class="chat-input-row">' +
+      '<textarea id="c-txt-' + convId + '" placeholder="Type a message…" rows="1"></textarea>' +
+      '<button class="send-btn" id="c-snd-' + convId + '">➤</button>' +
+    '</div>';
+
+  scrollBot(msgsId);
+
+  function doSend() {
+    var txt = document.getElementById('c-txt-' + convId);
+    var text = txt.value.trim();
+    if (!text) return;
+    txt.value = '';
+    var convs2 = getConversations();
+    var c2 = convs2.find(function(x){ return x.id === convId; });
+    if (!c2) return;
+    c2.messages = c2.messages || [];
+    c2.messages.push({ from:'consumer', text:text, timestamp:new Date().toISOString() });
+    c2.providerUnread = (c2.providerUnread || 0) + 1;
+    saveConversations(convs2);
+    refreshConsumerChat(convId);
+    buildConsumerConvList(getConversations());
+  }
+
+  document.getElementById('c-snd-' + convId).addEventListener('click', doSend);
+  document.getElementById('c-txt-' + convId).addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
+  });
+
+  buildConsumerConvList(convs);
+}
+
+function refreshConsumerChat(convId) {
+  var c = getConversations().find(function(x){ return x.id === convId; });
+  if (!c) return;
+  var msgsId = 'c-msgs-' + convId;
+  var el = document.getElementById(msgsId);
+  if (el) { el.innerHTML = renderMsgs(c.messages||[], 'consumer'); scrollBot(msgsId); }
+}
+
+/* ════════════════════════════════════════════════════════
+   ── PROVIDER DASHBOARD ──
+════════════════════════════════════════════════════════ */
+var DEMO_STARTER_CONVS = {
+  L001: [
+    { id:'DEMO-L001-1', providerId:'L001', providerName:"Sunita's Kitchen", providerArea:'Andheri West', providerType:'veg',
+      userName:'Anonymous Customer', userPhone:'', userEmail:'',
+      messages:[{ from:'consumer', text:"Hi! I'm interested in your lunch dabba. I'm pure vegetarian — do you offer trial meals? I live in Lokhandwala.", timestamp: new Date(Date.now()-7200000).toISOString() }],
+      timestamp: new Date(Date.now()-7200000).toISOString(), providerUnread:1, consumerUnread:0 },
+    { id:'DEMO-L001-2', providerId:'L001', providerName:"Sunita's Kitchen", providerArea:'Andheri West', providerType:'veg',
+      userName:'Anonymous Customer', userPhone:'', userEmail:'',
+      messages:[
+        { from:'consumer', text:"Is your dabba available from Monday to Saturday?", timestamp: new Date(Date.now()-86400000).toISOString() },
+        { from:'provider', text:"Yes! Monday to Saturday. Delivery within 2km. Monthly plan = 25 meals.", timestamp: new Date(Date.now()-82800000).toISOString() },
+        { from:'consumer', text:"That works. Can I start with a trial?", timestamp: new Date(Date.now()-79200000).toISOString() },
+      ],
+      timestamp: new Date(Date.now()-79200000).toISOString(), providerUnread:1, consumerUnread:0 },
+  ]
+};
+
+var selectedListingId   = null;
+var activeProviderConvId = null;
+
+function renderProviderDashboard() {
+  showView('view-provider');
+  var listings = buildProviderListings();
+
+  if (!listings.length) {
+    document.getElementById('provider-empty').style.display = '';
+    document.getElementById('provider-content').style.display = 'none';
+    return;
+  }
+  document.getElementById('provider-empty').style.display = 'none';
+  document.getElementById('provider-content').style.display = '';
+
+  buildProviderListingList(listings);
+  openProviderListing(listings[0].id, listings);
+}
+
+function buildProviderListings() {
+  var stored = getStoredListings();
+  var result = [];
+
+  // Only the current user's / session's own listings — no demo fallback
+  stored.forEach(function(s, i) {
+    var id = s.id || s.secretId || ('U' + i);
+    result.push({
+      id: id,
+      name: s.name || 'My Listing',
+      initial: (s.name||'?')[0].toUpperCase(),
+      bg: 'linear-gradient(135deg,#C8771A,#F5A623)',
+      type: s.type || 'veg',
+      area: s.area || '',
+      pincode: s.pincode || '',
+      lunchPrice: parseInt(s.lunchPrice) || null,
+      dinnerPrice: parseInt(s.dinnerPrice) || null,
+    });
+  });
+  return result;
+}
+
+function getConvsForListing(listingId) {
+  // Real conversations sent by consumers
+  var real = getConversations().filter(function(c){ return c.providerId === listingId; });
+  // Demo starters (only if no real convs for this listing and it's a demo listing)
+  var demos = (DEMO_STARTER_CONVS[listingId] || []).filter(function(d){
+    return !real.find(function(r){ return r.id === d.id; });
+  });
+  return real.concat(demos);
+}
+
+function getTotalUnreadForListing(listingId) {
+  return getConvsForListing(listingId).reduce(function(sum, c){ return sum + (c.providerUnread||0); }, 0);
+}
+
+function buildProviderListingList(listings) {
+  var html = listings.map(function(l, i) {
+    var color = TYPE_COLORS[l.type] || '#C8771A';
+    var unread = getTotalUnreadForListing(l.id);
+    return '<div class="listing-tile' + (l.id === selectedListingId ? ' active' : '') + '" data-lid="' + l.id + '">' +
+      (unread > 0 ? '<span class="listing-tile-badge">' + unread + ' new</span>' : '') +
+      '<div class="c-avatar" style="background:' + color + ';width:38px;height:38px;font-size:15px">' + l.initial + '</div>' +
+      '<div>' +
+        '<div style="font-size:14px;font-weight:700;color:var(--text)">' + esc(l.name) + '</div>' +
+        '<div style="font-size:12px;color:var(--text-muted)">📍 ' + esc(l.area) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('provider-listing-list').innerHTML = html;
+  document.querySelectorAll('.listing-tile').forEach(function(el) {
+    el.addEventListener('click', function() {
+      document.querySelectorAll('.listing-tile').forEach(function(e){ e.classList.remove('active'); });
+      el.classList.add('active');
+      openProviderListing(el.dataset.lid, listings);
+    });
+  });
+}
+
+function openProviderListing(listingId, listings) {
+  selectedListingId = listingId;
+  var listing = listings.find(function(l){ return l.id === listingId; }) || listings[0];
+  var convs = getConvsForListing(listingId);
+  var color = TYPE_COLORS[listing.type] || '#C8771A';
+  var totalEnqs = convs.length;
+  var totalUnread = getTotalUnreadForListing(listingId);
+
+  var detail = document.getElementById('provider-detail');
+  detail.innerHTML =
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">' +
+      '<div class="c-avatar" style="background:' + color + ';width:42px;height:42px;font-size:17px">' + listing.initial + '</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-family:var(--font-display);font-size:20px;font-weight:800">' + esc(listing.name) + '</div>' +
+        '<div style="font-size:13px;color:var(--text-muted)">📍 ' + esc(listing.area) + ' · ' + esc(listing.pincode||'') + '</div>' +
+      '</div>' +
+      '<a href="profile.html?id=' + esc(listingId) + '" class="btn btn-ghost btn-sm" target="_blank">View Public Profile →</a>' +
+    '</div>' +
+
+    '<div class="stat-mini-grid">' +
+      '<div class="stat-mini"><div class="num">' + totalEnqs + '</div><div class="lbl">Enquiries</div></div>' +
+      '<div class="stat-mini" style="border-top:3px solid #dc2626"><div class="num" style="color:#dc2626">' + totalUnread + '</div><div class="lbl">Unread</div></div>' +
+      '<div class="stat-mini"><div class="num">₹' + (listing.lunchPrice || listing.dinnerPrice || '—') + '</div><div class="lbl">Price/meal</div></div>' +
+    '</div>' +
+
+    '<div class="chat-layout" style="min-height:400px">' +
+      '<div class="chat-sidebar">' +
+        '<div class="chat-sidebar-hdr"><h3>Enquiries (' + convs.length + ')</h3></div>' +
+        '<div class="chat-conv-list" id="provider-conv-list">' + buildProviderConvListHTML(convs) + '</div>' +
+      '</div>' +
+      '<div class="chat-main" id="provider-chat-main">' +
+        '<div class="chat-placeholder"><div class="big-icon">📭</div>' +
+          (convs.length === 0
+            ? '<p style="font-size:15px;font-weight:600;color:var(--text)">No enquiries yet</p><p>Share your listing to start receiving messages</p>'
+            : '<p style="font-size:15px;font-weight:600;color:var(--text)">Select an enquiry</p><p>Click a conversation on the left</p>') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  // Bind provider conv clicks
+  document.querySelectorAll('#provider-conv-list .conv-item').forEach(function(el) {
+    el.addEventListener('click', function() {
+      document.querySelectorAll('#provider-conv-list .conv-item').forEach(function(e){ e.classList.remove('active'); });
+      el.classList.add('active');
+      openProviderConv(el.dataset.cid, listingId, listings);
+    });
+  });
+
+  // Auto-open first conv
+  if (convs.length > 0) {
+    var firstEl = document.querySelector('#provider-conv-list .conv-item');
+    if (firstEl) { firstEl.classList.add('active'); openProviderConv(convs[0].id, listingId, listings); }
+  }
+}
+
+function buildProviderConvListHTML(convs) {
+  if (!convs.length) return '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">No enquiries yet</div>';
+  return convs.map(function(c) {
+    var msgs   = c.messages || [];
+    var last   = msgs.length ? msgs[msgs.length-1] : null;
+    var unread = c.providerUnread || 0;
+    var preview = last ? last.text.slice(0,35) + (last.text.length>35?'…':'') : 'No messages';
+    return '<div class="conv-item' + (c.id === activeProviderConvId ? ' active' : '') + '" data-cid="' + c.id + '">' +
+      '<div class="c-avatar" style="background:#6b7280;width:38px;height:38px;font-size:14px">👤</div>' +
+      '<div class="c-info">' +
+        '<div class="c-name">' + esc(c.userName || 'Anonymous Customer') + '</div>' +
+        '<div class="c-preview">' + esc(preview) + '</div>' +
+      '</div>' +
+      '<div class="c-meta">' +
+        (last ? '<span class="c-time">' + timeAgo(last.timestamp) + '</span>' : '') +
+        (unread > 0 ? '<span class="c-badge">' + unread + '</span>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openProviderConv(convId, listingId, listings) {
+  activeProviderConvId = convId;
+
+  // Find conversation — first in real convs, then in demo starters
+  var allConvs = getConvs_withDemos(listingId);
+  var c = allConvs.find(function(x){ return x.id === convId; });
+  if (!c) return;
+
+  // Mark provider unread as 0 — save if it's a real conv, persist to localStorage if demo
+  if (c.providerUnread) {
+    var realConvs = getConversations();
+    var rc = realConvs.find(function(x){ return x.id === convId; });
+    if (rc) { rc.providerUnread = 0; saveConversations(realConvs); }
+    else {
+      // Demo conv — persist read state so it survives polling
+      var readConvs = DabbaStore.getReadConvs();
+      readConvs[convId] = true;
+      DabbaStore.setReadConvs(readConvs);
+      c.providerUnread = 0;
+    }
+    // Refresh listing tile badges
+    buildProviderListingList(listings);
+  }
+
+  var msgsId = 'p-msgs-' + convId;
+  document.getElementById('provider-chat-main').innerHTML =
+    '<div class="chat-main-hdr">' +
+      '<div class="c-avatar" style="background:#6b7280;width:36px;height:36px;font-size:14px">👤</div>' +
+      '<div style="flex:1">' +
+        '<div class="ctitle">' + esc(c.userName || 'Anonymous Customer') + '</div>' +
+        '<div class="csub">Message sent anonymously · your reply is forwarded to them</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="chat-msgs" id="' + msgsId + '">' + renderMsgs(c.messages||[], 'provider') + '</div>' +
+    '<div class="chat-input-row">' +
+      '<textarea id="p-txt-' + convId + '" placeholder="Type your reply…" rows="1"></textarea>' +
+      '<button class="send-btn" id="p-snd-' + convId + '">➤</button>' +
+    '</div>';
+
+  scrollBot(msgsId);
+
+  function doProviderSend() {
+    var txt  = document.getElementById('p-txt-' + convId);
+    var text = txt.value.trim();
+    if (!text) return;
+    txt.value = '';
+
+    var realConvs = getConversations();
+    var rc = realConvs.find(function(x){ return x.id === convId; });
+    if (rc) {
+      // Real conversation — save reply so consumer sees it
+      rc.messages = rc.messages || [];
+      rc.messages.push({ from:'provider', text:text, timestamp:new Date().toISOString() });
+      rc.consumerUnread = (rc.consumerUnread || 0) + 1;
+      saveConversations(realConvs);
+      // Refresh the chat
+      var el = document.getElementById(msgsId);
+      if (el) { el.innerHTML = renderMsgs(rc.messages, 'provider'); scrollBot(msgsId); }
+    } else {
+      // Demo conversation — just show locally
+      c.messages = c.messages || [];
+      c.messages.push({ from:'provider', text:text, timestamp:new Date().toISOString() });
+      var el = document.getElementById(msgsId);
+      if (el) { el.innerHTML = renderMsgs(c.messages, 'provider'); scrollBot(msgsId); }
+    }
+    if (window.showToast) showToast('Reply sent.');
+    buildProviderListingList(listings);
+  }
+
+  document.getElementById('p-snd-' + convId).addEventListener('click', doProviderSend);
+  document.getElementById('p-txt-' + convId).addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doProviderSend(); }
+  });
+}
+
+function getConvs_withDemos(listingId) {
+  var real  = getConversations().filter(function(c){ return c.providerId === listingId; });
+  var readConvs = DabbaStore.getReadConvs();
+  var demos = (DEMO_STARTER_CONVS[listingId] || [])
+    .filter(function(d){ return !real.find(function(r){ return r.id === d.id; }); })
+    .map(function(d){ return readConvs[d.id] ? Object.assign({}, d, { providerUnread: 0 }) : d; });
+  return real.concat(demos);
+}
+
+/* ════════════════════════════════════════════════════════
+   REAL-TIME SYNC
+   Polls localStorage every 2 s + listens for cross-tab
+   storage events so both views stay live.
+════════════════════════════════════════════════════════ */
+var currentView = null;
+var pollTimer   = null;
+
+function refreshCurrentView() {
+  if (currentView === 'consumer') {
+    buildConsumerConvList(getConversations());
+    if (activeConsumerConvId) refreshConsumerChat(activeConsumerConvId);
+  } else if (currentView === 'provider') {
+    var listings = buildProviderListings();
+    buildProviderListingList(listings);
+    if (selectedListingId) {
+      // Refresh stats + conv list without rebuilding the whole detail panel
+      var convs = getConvs_withDemos(selectedListingId);
+      var pList = document.getElementById('provider-conv-list');
+      if (pList) pList.innerHTML = buildProviderConvListHTML(convs);
+      document.querySelectorAll('#provider-conv-list .conv-item').forEach(function(el) {
+        el.addEventListener('click', function() {
+          document.querySelectorAll('#provider-conv-list .conv-item').forEach(function(e){ e.classList.remove('active'); });
+          el.classList.add('active');
+          openProviderConv(el.dataset.cid, selectedListingId, listings);
+        });
+      });
+      if (activeProviderConvId) {
+        var c = getConvs_withDemos(selectedListingId).find(function(x){ return x.id === activeProviderConvId; });
+        var msgsEl = document.getElementById('p-msgs-' + activeProviderConvId);
+        if (c && msgsEl) { msgsEl.innerHTML = renderMsgs(c.messages||[], 'provider'); scrollBot('p-msgs-' + activeProviderConvId); }
+      }
+    }
+  }
+}
+
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(refreshCurrentView, 2000);
+}
+
+// Cross-tab: another window (e.g., the profile page) changed localStorage
+window.addEventListener('storage', function(e) {
+  if (e.key === CONVERSATIONS_KEY) refreshCurrentView();
+});
+
+/* ════════════════════════════════════════════════════════
+   CONFIRM ACTIVE
+════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+  initNavbar();
+  initStickyNav();
+
+  var confirmBtn = document.getElementById('confirm-active-btn');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', function() {
+      var bar = document.getElementById('confirm-active-bar');
+      if (bar) bar.innerHTML = '<p style="margin:0;font-size:14px;color:var(--success)">✅ Confirmed as active! Your listing will stay visible for 2 more weeks.</p>';
+      if (window.showToast) showToast('Listing confirmed active!');
+    });
+  }
+
+  /* ── Role switches ── */
+  document.getElementById('consumer-switch-btn').addEventListener('click', function() {
+    currentView = 'provider'; renderProviderDashboard();
+  });
+  document.getElementById('provider-switch-btn').addEventListener('click', function() {
+    currentView = 'consumer'; renderConsumerDashboard();
+  });
+
+  /* ── Role selector ── */
+  document.getElementById('choose-consumer').addEventListener('click', function() {
+    currentView = 'consumer'; renderConsumerDashboard(); startPolling();
+  });
+  document.getElementById('choose-provider').addEventListener('click', function() {
+    currentView = 'provider'; renderProviderDashboard(); startPolling();
+  });
+
+  /* ── Guest banner (shown when not logged in) ── */
+  var anonBanner = document.getElementById('anon-banner');
+  if (anonBanner && window.DabbaStore && DabbaStore.isAnon()) {
+    anonBanner.style.display = '';
+    var abLogin = document.getElementById('anon-banner-login');
+    if (abLogin) abLogin.addEventListener('click', function() {
+      if (window.openNavLoginModal) openNavLoginModal();
+    });
+  }
+
+  /* ── Auto-routing on load ── */
+  var user    = getCurrentUser();
+  var convs   = getConversations();
+  var stored  = getStoredListings();
+  var urlRole = new URLSearchParams(window.location.search).get('role');
+
+  if (urlRole === 'provider') {
+    currentView = 'provider'; renderProviderDashboard();
+  } else if (urlRole === 'consumer') {
+    currentView = 'consumer'; renderConsumerDashboard();
+  } else if (convs.length > 0 && stored.length === 0) {
+    currentView = 'consumer'; renderConsumerDashboard();
+  } else if (stored.length > 0 && convs.length === 0) {
+    currentView = 'provider'; renderProviderDashboard();
+  } else if (stored.length > 0 && convs.length > 0) {
+    showView('view-role-selector');
+  } else {
+    // No real data — show role selector; demo data available in provider view
+    showView('view-role-selector');
+  }
+
+  startPolling();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Discover Dabbas — DabbaMap</title>
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">🥘</span><span class="brand">Dabba<em>Map</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="discover.html" class="active">Discover</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="about.html">About</a>
+    </div>
+    <div class="nav-cta">
+      <a href="list.html" class="btn btn-primary btn-sm">List My Dabba</a>
+      <div class="nav-profile" id="nav-profile-wrap" style="position:relative;display:inline-flex;align-items:center;margin-left:4px">
+        <button class="nav-profile-btn" id="nav-profile-btn" title="Account" style="width:38px;height:38px;border-radius:50%;border:2px solid #C8771A;background:#FEF3E2;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#C8771A;padding:0">
+          <svg viewBox="0 0 24 24" style="width:19px;height:19px;stroke:#C8771A;fill:none;stroke-width:1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </button>
+        <div class="nav-profile-drop" id="nav-profile-drop"></div>
+      </div>
+      <button class="nav-hamburger" aria-label="Menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+  <div class="nav-mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="discover.html">Discover Dabbas</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="list.html">List My Dabba</a>
+    <a href="about.html">About</a>
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ── -->
+<div class="page-header" style="background:var(--primary-pale);border-bottom:1px solid var(--border)">
+  <div class="container">
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div>
+        <h1 class="t-h1" style="font-size:38px">Find a Dabba</h1>
+        <p class="t-body" style="color:var(--text-muted);margin-top:4px">
+          <span id="result-count">0</span> home cooks found near <strong>Mumbai</strong>
+        </p>
+      </div>
+      <div class="view-toggle">
+        <button class="view-toggle-btn active" id="view-list">📋 List</button>
+        <button class="view-toggle-btn" id="view-map">🗺 Map</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<section class="section-sm">
+  <div class="container">
+    <div class="discover-layout">
+
+      <!-- ── FILTER PANEL ── -->
+      <aside data-reveal="left">
+        <div class="filter-panel">
+          <div class="filter-panel-header">
+            <span style="font-family:var(--font-display);font-size:18px;font-weight:700">Filters</span>
+            <button type="button" class="btn btn-ghost btn-sm" id="clear-filters">Clear all</button>
+          </div>
+
+          <div class="filter-section">
+            <label>📍 Your Pincode (for distance sort)</label>
+            <div class="search-bar" style="border-radius:var(--radius-btn)">
+              <span class="search-icon">🏠</span>
+              <input type="text" id="user-pincode" placeholder="e.g. 400058" maxlength="6" />
+            </div>
+            <div id="user-location-status" style="font-size:11px;color:var(--text-muted);margin-top:4px;display:none"></div>
+          </div>
+
+          <div class="filter-section">
+            <label>Area / Pincode</label>
+            <div class="search-bar" style="border-radius:var(--radius-btn)">
+              <span class="search-icon">📍</span>
+              <input type="text" id="filter-area" placeholder="e.g. Andheri or 400058" />
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <label>Provider Name</label>
+            <div class="search-bar" style="border-radius:var(--radius-btn)">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="filter-name" placeholder="e.g. Sunita's Kitchen" />
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <label>Food Type</label>
+            <div class="checkbox-pills-row" id="ft-pills">
+              <div class="checkbox-pill" data-value="veg">🌱 Veg</div>
+              <div class="checkbox-pill" data-value="nonveg">🍗 Non-Veg</div>
+              <div class="checkbox-pill" data-value="jain">🙏 Jain</div>
+              <div class="checkbox-pill" data-value="diet">🥗 Diet</div>
+            </div>
+          </div>
+
+          <div class="filter-section">
+            <label>Cuisine</label>
+            <select class="form-select" id="filter-cuisine">
+              <option value="">Any cuisine</option>
+              <option>Gujarati</option>
+              <option>Punjabi</option>
+              <option>South Indian</option>
+              <option>Rajasthani</option>
+              <option>Maharashtrian</option>
+              <option>Bengali</option>
+              <option>North Indian</option>
+              <option>Goan</option>
+              <option>Kerala</option>
+              <option>Jain</option>
+              <option>Multi</option>
+            </select>
+          </div>
+
+          <div class="filter-section">
+            <label>Meal</label>
+            <div class="checkbox-pills-row" id="meal-pills">
+              <div class="checkbox-pill" data-value="lunch">🌞 Lunch</div>
+              <div class="checkbox-pill" data-value="dinner">🌙 Dinner</div>
+            </div>
+          </div>
+
+          <div class="filter-section" style="margin-bottom:0">
+            <label>Max Price per Meal</label>
+            <div class="form-input-prefix">
+              <span class="prefix">₹</span>
+              <input type="number" class="form-input" id="filter-price" placeholder="e.g. 120" min="0" step="10" style="padding-left:28px" />
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary mt-6" style="width:100%" id="apply-btn">Apply Filters</button>
+        </div>
+      </aside>
+
+      <!-- ── RESULTS ── -->
+      <div>
+        <!-- Map View -->
+        <div id="map-view" style="display:none;margin-bottom:24px">
+          <div id="leaflet-map"></div>
+          <div class="map-note">📍 Showing approximate locations · Click a pin for details</div>
+        </div>
+
+        <!-- List View -->
+        <div id="list-view">
+          <div class="results-header">
+            <span class="t-body-sm t-muted" id="results-label">Showing 0 results</span>
+            <select class="form-select" id="sort-select" style="width:auto;font-size:13px">
+              <option value="newest">Sort: Newest first</option>
+              <option value="price-asc">Sort: Price low–high</option>
+              <option value="price-desc">Sort: Price high–low</option>
+              <option value="near">Sort: Near me first</option>
+            </select>
+          </div>
+
+          <div class="results-grid" id="results-grid">
+            <!-- cards injected by JS -->
+          </div>
+          <div id="pagination-bar" style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo" style="margin-bottom:12px"><span class="logo-icon">🥘</span><span class="brand" style="color:#fff">Dabba<em style="color:var(--primary-light)">Map</em></span></a>
+        <div class="footer-tagline">Find ghar ka khana near you.</div>
+      </div>
+      <div class="footer-col"><h4>Discover</h4><ul><li><a href="discover.html">Browse Dabbas</a></li><li><a href="discover.html?meal=lunch">Lunch Dabbas</a></li><li><a href="discover.html?meal=dinner">Dinner Dabbas</a></li></ul></div>
+      <div class="footer-col"><h4>Providers</h4><ul><li><a href="list.html">List My Dabba</a></li><li><a href="dashboard.html">My Dashboard</a></li></ul></div>
+      <div class="footer-col"><h4>Info</h4><ul><li><a href="about.html">About DabbaMap</a></li><li><a href="about.html#how">How It Works</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">© 2025 DabbaMap · Not a food delivery app.</div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script src="js/animations.js"></script>
+<script>
+/* Use shared data — same 70 listings as home page map */
+const MASTER_LISTINGS = window.DABBA_DATA || [];
+
+/* Data loaded from js/data.js — legacy array below is unused */
+const _LEGACY_PLACEHOLDER = [
+  { id:'_placeholder' },
+
+  { id:'L002', name:"Ramesh Tiffins",           initial:'R', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Andheri East',  pincode:'400069', type:'nonveg', cuisines:['Punjabi'],        meals:['lunch','dinner'],
+    lunchPrice:90,  dinnerPrice:100, monthlyPrice:2200, trial:false, communityPick:true,
+    description:'Authentic Punjabi home cooking. Dal makhani, butter chicken, and freshly made parathas every evening.', daysAgo:5, lat:19.1215, lng:72.8493 },
+
+  { id:'L003', name:"Priya's Jain Dabba",       initial:'P', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    area:'Malad West',    pincode:'400064', type:'jain',   cuisines:['Rajasthani'],     meals:['lunch','dinner'],
+    lunchPrice:100, dinnerPrice:110, monthlyPrice:2500, trial:false, communityPick:false,
+    description:'100% Jain-friendly cooking — no root vegetables, no onion, no garlic. Strictly traditional preparation.', daysAgo:7, lat:19.1882, lng:72.8502 },
+
+  { id:'L004', name:"Meena's South Indian",     initial:'M', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
+    area:'Goregaon',      pincode:'400063', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
+    lunchPrice:70,  dinnerPrice:null, monthlyPrice:1600, trial:true,  communityPick:false,
+    description:'Fresh sambar, rasam, rice, and South Indian sides every day. Pure home cooking from Chennai.', daysAgo:3, lat:19.1682, lng:72.8552 },
+
+  { id:'L005', name:"Anita Home Meals",         initial:'A', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Borivali West', pincode:'400092', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch','dinner'],
+    lunchPrice:65,  dinnerPrice:70,  monthlyPrice:1500, trial:true,  communityPick:false,
+    description:'Traditional Maharashtrian thali with bhakri, amti, and sabzi. Homemade masalas.', daysAgo:4, lat:19.2332, lng:72.8582 },
+
+  { id:'L006', name:"Kumar's Bengali Dabba",    initial:'K', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Chembur',       pincode:'400071', type:'nonveg', cuisines:['Bengali'],        meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:95,  monthlyPrice:2000, trial:false, communityPick:false,
+    description:'Authentic Bengali home cooking. Fish curry, dal, rice, and seasonal vegetables.', daysAgo:14, lat:19.0542, lng:72.9012 },
+
+  { id:'L007', name:"Geeta Tiffins",            initial:'G', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Dadar',         pincode:'400014', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch'],
+    lunchPrice:75,  dinnerPrice:null, monthlyPrice:1700, trial:true,  communityPick:false,
+    description:'Classic Maharashtrian dal-chawal with bhaji, papad, and achaar. Cooked fresh every morning.', daysAgo:6, lat:19.0202, lng:72.8492 },
+
+  { id:'L008', name:"Jain Bhoj Andheri",        initial:'J', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    area:'Andheri West',  pincode:'400058', type:'jain',   cuisines:['Gujarati'],       meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, trial:true,  communityPick:false,
+    description:'Strict Jain preparation. No onion, garlic, potato, or any root vegetables. Gujarati style.', daysAgo:8, lat:19.1341, lng:72.8314 },
+
+  { id:'L009', name:"Fit & Fresh Tiffin",       initial:'F', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'Andheri West',  pincode:'400058', type:'diet',   cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:110, dinnerPrice:120, monthlyPrice:2800, trial:true,  communityPick:false,
+    description:'Low-oil, high-protein, calorie-counted meals. Macros on request. Diabetic-friendly options.', daysAgo:1, lat:19.1310, lng:72.8265 },
+
+  { id:'L010', name:"Fernandes Tiffin",         initial:'F', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Bandra West',   pincode:'400050', type:'nonveg', cuisines:['Goan'],           meals:['lunch','dinner'],
+    lunchPrice:100, dinnerPrice:110, monthlyPrice:2400, trial:false, communityPick:false,
+    description:"Goan fish curry, pork vindaloo, sorpotel. Authentic recipes passed down through generations.", daysAgo:10, lat:19.0622, lng:72.8312 },
+
+  { id:'L011', name:"Asha's Gujarati Thali",    initial:'A', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Bandra West',   pincode:'400050', type:'veg',    cuisines:['Gujarati'],       meals:['lunch'],
+    lunchPrice:85,  dinnerPrice:null, monthlyPrice:1900, trial:true,  communityPick:true,
+    description:'Full Gujarati thali — dal, kadhi, sabzi, rotli, rice, and mithai. Seasonal and fresh.', daysAgo:2, lat:19.0582, lng:72.8278 },
+
+  { id:'L012', name:"Lakshmi Tiffin Ghatkopar", initial:'L', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Ghatkopar',     pincode:'400077', type:'veg',    cuisines:['Gujarati'],       meals:['lunch','dinner'],
+    lunchPrice:70,  dinnerPrice:75,  monthlyPrice:1600, trial:true,  communityPick:false,
+    description:"Simple, homely Gujarati meals. Nothing fancy — just the food your maa would make.", daysAgo:5, lat:19.0782, lng:72.8802 },
+
+  { id:'L013', name:"Powai Home Kitchen",       initial:'P', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
+    area:'Powai',         pincode:'400076', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
+    lunchPrice:95,  dinnerPrice:null, monthlyPrice:2100, trial:false, communityPick:false,
+    description:'Rice plates, sambar, chutneys, and a rotating sabzi every day. South Indian comfort food.', daysAgo:12, lat:19.1562, lng:72.9022 },
+
+  { id:'L014', name:"Soni Jain Meals",          initial:'S', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    area:'Goregaon',      pincode:'400063', type:'jain',   cuisines:['Jain'],           meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, trial:true,  communityPick:false,
+    description:'Goregaon-based Jain cook. Pure Jain recipes with no compromises. Paryushana specials available.', daysAgo:9, lat:19.1712, lng:72.8558 },
+
+  { id:'L015', name:"Malabar Dabba",            initial:'M', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Malad West',    pincode:'400064', type:'nonveg', cuisines:['Kerala'],         meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:95,  monthlyPrice:2000, trial:true,  communityPick:false,
+    description:'Kerala fish curry, appam, stew. Authentic Malabar coast cooking from a home in Malad.', daysAgo:15, lat:19.1842, lng:72.8462 },
+
+  { id:'L016', name:"Santacruz Punjabi Dabba",  initial:'S', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Santacruz',     pincode:'400054', type:'nonveg', cuisines:['Punjabi'],        meals:['dinner'],
+    lunchPrice:null,dinnerPrice:95,  monthlyPrice:2100, trial:false, communityPick:false,
+    description:'Hearty Punjabi dinners — rajma, chole, paneer makhani for veg guests on request.', daysAgo:11, lat:19.0832, lng:72.8432 },
+
+  { id:'L017', name:"Sheila's Kitchen Sion",    initial:'S', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Sion',          pincode:'400022', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch'],
+    lunchPrice:60,  dinnerPrice:null, monthlyPrice:1350, trial:true,  communityPick:false,
+    description:'Budget-friendly Maharashtrian lunch. Dal, bhaji, chawal, roti — reliable and filling.', daysAgo:20, lat:19.0352, lng:72.8722 },
+
+  { id:'L018', name:"Clean Eats by Riya",       initial:'C', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'Bandra West',   pincode:'400050', type:'diet',   cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:120, dinnerPrice:130, monthlyPrice:3000, trial:true,  communityPick:false,
+    description:'Macro-balanced, low-sodium, portion-controlled meals. Ideal for weight-watchers and diabetics.', daysAgo:3, lat:19.0612, lng:72.8248 },
+
+  { id:'L019', name:"Kabir's Kitchen",          initial:'K', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Andheri East',  pincode:'400069', type:'nonveg', cuisines:['Mughlai'],        meals:['lunch','dinner'],
+    lunchPrice:95,  dinnerPrice:105, monthlyPrice:2300, trial:true,  communityPick:false,
+    description:'Mughlai home food — biryani, qorma, haleem. Slow-cooked and spiced just right.', daysAgo:6, lat:19.1243, lng:72.8462 },
+
+  { id:'L020', name:"Kavita Coastal Versova",   initial:'K', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Versova',       pincode:'400061', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
+    lunchPrice:90,  dinnerPrice:null, monthlyPrice:2000, trial:false, communityPick:true,
+    description:'Coastal veg fare — coconut curries, rice, solkadhi, and fried vegetables.', daysAgo:13, lat:19.1372, lng:72.8132 },
+
+  { id:'L021', name:"Rekha's Rajasthani Dabba", initial:'R', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Kandivali West', pincode:'400067', type:'veg',   cuisines:['Rajasthani'],     meals:['lunch','dinner'],
+    lunchPrice:75,  dinnerPrice:80,  monthlyPrice:1700, trial:true,  communityPick:false,
+    description:'Dal baati churma, ker sangri, gatte ki sabzi. Authentic Marwari home cooking in Kandivali.', daysAgo:4, lat:19.2082, lng:72.8312 },
+
+  { id:'L022', name:"Tara's Tiffin Juhu",       initial:'T', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
+    area:'Juhu',           pincode:'400049', type:'veg',   cuisines:['North Indian'],   meals:['lunch'],
+    lunchPrice:90,  dinnerPrice:null, monthlyPrice:2000, trial:true,  communityPick:false,
+    description:'North Indian home meals — dal tadka, sabzi, roti, and rice. Cooked with mustard oil and real spices.', daysAgo:3, lat:19.1082, lng:72.8262 },
+
+  { id:'L023', name:"Vile Parle Veg Kitchen",   initial:'V', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Vile Parle East',pincode:'400057', type:'veg',   cuisines:['Gujarati'],       meals:['lunch','dinner'],
+    lunchPrice:70,  dinnerPrice:75,  monthlyPrice:1600, trial:true,  communityPick:false,
+    description:'Simple Gujarati home meals. Seasonal sabzi, dal, rotli, and rice. Fresh every day.', daysAgo:6, lat:19.0992, lng:72.8442 },
+
+  { id:'L024', name:"Mulund Maharashtrian Mess", initial:'M', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Mulund West',    pincode:'400080', type:'veg',   cuisines:['Maharashtrian'],  meals:['lunch','dinner'],
+    lunchPrice:65,  dinnerPrice:70,  monthlyPrice:1450, trial:true,  communityPick:false,
+    description:'Traditional Maharashtrian thali with pitla, bhakri, pithla, and sol kadhi. Budget-friendly.', daysAgo:8, lat:19.1732, lng:72.9562 },
+
+  { id:'L025', name:"Thane Home Kitchen",        initial:'T', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    area:'Thane',          pincode:'400601', type:'nonveg',cuisines:['Mughlai'],        meals:['lunch','dinner'],
+    lunchPrice:95,  dinnerPrice:100, monthlyPrice:2200, trial:false, communityPick:false,
+    description:'Mughlai home food from Thane. Biryani, korma, and slow-cooked gravies made fresh daily.', daysAgo:5, lat:19.2183, lng:72.9781 },
+
+  { id:'L026', name:"Wadala Sindhi Dabba",       initial:'W', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Wadala',         pincode:'400031', type:'veg',   cuisines:['North Indian'],   meals:['lunch'],
+    lunchPrice:80,  dinnerPrice:null, monthlyPrice:1800, trial:true,  communityPick:false,
+    description:'Sindhi dal, sai bhaji, kadhi chawal. Comforting home food from a Sindhi household.', daysAgo:9, lat:19.0202, lng:72.8672 },
+
+  { id:'L027', name:"Kurla Non-Veg Tiffin",      initial:'K', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Kurla East',     pincode:'400024', type:'nonveg',cuisines:['Mughlai'],        meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, trial:true,  communityPick:false,
+    description:'Chicken curry, keema, and egg dishes. Hearty Muslim home cooking from Kurla.', daysAgo:2, lat:19.0702, lng:72.8842 },
+
+  { id:'L028', name:"Lower Parel Diet Meals",    initial:'L', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'Lower Parel',    pincode:'400013', type:'diet',  cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:130, dinnerPrice:140, monthlyPrice:3200, trial:true,  communityPick:true,
+    description:'Corporate-area diet meals. Calorie-counted, macro-tracked, and customisable for fitness goals.', daysAgo:1, lat:19.0022, lng:72.8322 },
+
+  { id:'L029', name:"Worli Punjabi Home",        initial:'W', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Worli',          pincode:'400018', type:'veg',   cuisines:['Punjabi'],        meals:['dinner'],
+    lunchPrice:null,dinnerPrice:100, monthlyPrice:2200, trial:false, communityPick:false,
+    description:'Evening Punjabi dinners — chole bhature, paneer tikka masala, and warm rotis.', daysAgo:7, lat:19.0132, lng:72.8182 },
+
+  { id:'L030', name:"Matunga South Indian",      initial:'M', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Matunga',        pincode:'400019', type:'veg',   cuisines:['South Indian'],   meals:['lunch'],
+    lunchPrice:65,  dinnerPrice:null, monthlyPrice:1450, trial:true,  communityPick:true,
+    description:'Matunga is Mumbai\'s South Indian heart. Fresh sambar, filter coffee on order, and real home cooking.', daysAgo:3, lat:19.0232, lng:72.8582 },
+
+  { id:'L031', name:"Jogeshwari Jain Tiffin",    initial:'J', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    area:'Jogeshwari West',pincode:'400102', type:'jain',  cuisines:['Gujarati'],       meals:['lunch','dinner'],
+    lunchPrice:90,  dinnerPrice:95,  monthlyPrice:2100, trial:true,  communityPick:false,
+    description:'Jain-certified kitchen. No root vegetables, no onion-garlic. Pure and traditional.', daysAgo:11, lat:19.1432, lng:72.8432 },
+
+  { id:'L032', name:"Malad East Home Meals",     initial:'M', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
+    area:'Malad East',     pincode:'400097', type:'nonveg',cuisines:['Punjabi'],        meals:['lunch','dinner'],
+    lunchPrice:80,  dinnerPrice:85,  monthlyPrice:1900, trial:true,  communityPick:false,
+    description:'Chicken, mutton, and egg curries with proper Punjabi tadka. Home delivery in Malad East.', daysAgo:4, lat:19.1882, lng:72.8682 },
+
+  { id:'L033', name:"Oshiwara Veg Tiffin",       initial:'O', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Oshiwara',       pincode:'400102', type:'veg',   cuisines:['North Indian'],   meals:['lunch'],
+    lunchPrice:85,  dinnerPrice:null, monthlyPrice:1900, trial:true,  communityPick:false,
+    description:'North Indian veg meals made fresh. Dal, paneer, roti, and rice. Ideal for film industry workers.', daysAgo:6, lat:19.1382, lng:72.8352 },
+
+  { id:'L034', name:"Dahisar Gujarati Kitchen",  initial:'D', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Dahisar',        pincode:'400068', type:'veg',   cuisines:['Gujarati'],       meals:['lunch','dinner'],
+    lunchPrice:65,  dinnerPrice:70,  monthlyPrice:1450, trial:true,  communityPick:false,
+    description:'Authentic Gujarati meals from a Dahisar household. Undhiyu on weekends. No compromise on taste.', daysAgo:10, lat:19.2482, lng:72.8582 },
+
+  { id:'L035', name:"Borivali East Dabba",       initial:'B', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Borivali East',  pincode:'400066', type:'nonveg',cuisines:['Maharashtrian'],  meals:['lunch','dinner'],
+    lunchPrice:75,  dinnerPrice:80,  monthlyPrice:1700, trial:true,  communityPick:false,
+    description:'Non-veg Maharashtrian home food. Kombdi vade, mutton sukka, and sol kadhi. Hearty and filling.', daysAgo:14, lat:19.2322, lng:72.8692 },
+
+  { id:'L036', name:"Santacruz West Meals",      initial:'S', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Santacruz West', pincode:'400054', type:'veg',   cuisines:['North Indian'],   meals:['lunch'],
+    lunchPrice:80,  dinnerPrice:null, monthlyPrice:1800, trial:true,  communityPick:false,
+    description:'Simple North Indian veg lunch. Dal, roti, sabzi, and rice — the kind of food that feels like home.', daysAgo:5, lat:19.0862, lng:72.8392 },
+
+  { id:'L037', name:"Parel Bengali Kitchen",     initial:'P', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
+    area:'Parel',          pincode:'400012', type:'nonveg',cuisines:['Bengali'],        meals:['lunch','dinner'],
+    lunchPrice:90,  dinnerPrice:100, monthlyPrice:2100, trial:false, communityPick:false,
+    description:'Authentic Bengali cooking — ilish maach, chingri malai curry, and mishti doi. Comfort food.', daysAgo:8, lat:19.0042, lng:72.8432 },
+
+  { id:'L038', name:"Andheri West Diet Co.",     initial:'A', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'Andheri West',   pincode:'400058', type:'diet',  cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:115, dinnerPrice:125, monthlyPrice:2900, trial:true,  communityPick:false,
+    description:'Fitness-focused meal prep. Low-carb, high-protein, gluten-free options. Macros provided on request.', daysAgo:2, lat:19.1312, lng:72.8202 },
+
+  { id:'L039', name:"Colaba Parsi Dabba",        initial:'C', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Colaba',         pincode:'400005', type:'nonveg',cuisines:['Multi'],          meals:['lunch'],
+    lunchPrice:120, dinnerPrice:null, monthlyPrice:2700, trial:false, communityPick:true,
+    description:'Rare Parsi home cooking — dhansak, patra ni macchi, sali boti. A taste you won\'t find in restaurants.', daysAgo:6, lat:18.9222, lng:72.8322 },
+
+];
+
+/* ══════════════════════════════════════════════════════════
+   FILTER STATE
+══════════════════════════════════════════════════════════ */
+const filterState = {
+  area:      '',
+  name:      '',
+  foodTypes: new Set(),
+  cuisine:   '',
+  meals:     new Set(),
+  maxPrice:  null,
+  sortBy:    'newest',
+};
+
+const PAGE_SIZE = 10;
+let currentPage = 1;
+let userLat = null, userLng = null;
+
+/* Haversine distance in km */
+function distanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371, dL = (lat2-lat1)*Math.PI/180, dN = (lng2-lng1)*Math.PI/180;
+  const a = Math.sin(dL/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dN/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* ══════════════════════════════════════════════════════════
+   GET ALL LISTINGS (master + localStorage)
+══════════════════════════════════════════════════════════ */
+function getAllListings() {
+  let all = [...MASTER_LISTINGS];
+  try {
+    const stored = window.DabbaStore ? DabbaStore.getListings() : JSON.parse(localStorage.getItem('dabbamapListings') || '[]');
+    const normalised = stored.map((s, i) => ({
+      id:          s.id || s.secretId || ('U' + i),
+      name:        s.name      || 'Unnamed Cook',
+      initial:     (s.name||'?')[0].toUpperCase(),
+      avatarBg:    'linear-gradient(135deg,#C8771A,#F5A623)',
+      area:        s.area      || '',
+      pincode:     s.pincode   || '',
+      type:        s.type || 'veg',
+      cuisines:    s.cuisines  || [],
+      meals:       s.meals     || [],
+      lunchPrice:  parseInt(s.lunchPrice)  || null,
+      dinnerPrice: parseInt(s.dinnerPrice) || null,
+      monthlyPrice:parseInt(s.monthlyPrice)|| null,
+      trial:       !!s.trial,
+      communityPick: false,
+      description: s.description || '',
+      daysAgo:     0,
+      lat:         parseFloat(s.lat) || null,
+      lng:         parseFloat(s.lng) || null,
+    }));
+    all = [...normalised, ...all];
+  } catch(e) {}
+  return all;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CARD RENDERER
+══════════════════════════════════════════════════════════ */
+const TYPE_BADGE = {
+  veg:    '<span class="badge badge-veg badge-dot">Veg</span>',
+  nonveg: '<span class="badge badge-nonveg">Non-Veg</span>',
+  jain:   '<span class="badge badge-jain">Jain</span>',
+  diet:   '<span class="badge badge-diet">Diet</span>',
+};
+
+function renderCard(l) {
+  const priceParts = [];
+  if (l.lunchPrice)  priceParts.push(`₹${l.lunchPrice}`);
+  if (l.dinnerPrice) priceParts.push(`₹${l.dinnerPrice}`);
+  const priceDisplay = priceParts[0] || '—';
+
+  const cuisineBadges = (l.cuisines||[]).map(c => `<span class="badge badge-cuisine">${c}</span>`).join('');
+  const mealBadges    = (l.meals||[]).map(m => `<span class="badge badge-meal">${m==='lunch'?'Lunch':'Dinner'}</span>`).join('');
+  const pickBadge     = l.communityPick ? '<span class="badge badge-pick">⭐ Community Pick</span>' : '';
+  const typeBadge     = TYPE_BADGE[l.type] || '';
+  const dateStr       = l.daysAgo === 0 ? 'Just listed' : l.daysAgo === 1 ? '1 day ago' : `${l.daysAgo} days ago`;
+
+  return `
+    <div class="card card-hover card-anim">
+      <div class="card-body dabba-card">
+        <div class="dabba-card-header">
+          <div class="dabba-avatar" style="background:${l.avatarBg}">${l.initial}</div>
+          <div>
+            <div class="dabba-name">${l.name}</div>
+            <div class="dabba-area">📍 ${l.area}${l.pincode ? ' · ' + l.pincode : ''}</div>
+          </div>
+        </div>
+        <div class="tags-row">${typeBadge}${cuisineBadges}${mealBadges}${pickBadge}</div>
+        <div class="dabba-price">${priceDisplay}<span style="font-size:13px;color:var(--text-muted);font-weight:400">/meal</span></div>
+        ${l.description ? `<div class="dabba-desc">${l.description}</div>` : ''}
+        ${l._dist != null ? `<div style="font-size:12px;color:var(--primary);font-weight:700;margin-bottom:6px">📍 ${l._dist < 1 ? Math.round(l._dist*1000)+'m away' : l._dist.toFixed(1)+'km away'}</div>` : ''}
+        <div class="dabba-footer">
+          <span class="dabba-date">${dateStr}</span>
+          <a href="profile.html?id=${l.id}" class="btn btn-primary btn-sm">View →</a>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   APPLY FILTERS & RENDER
+══════════════════════════════════════════════════════════ */
+function applyFilters() {
+  let results = getAllListings();
+
+  // Area / pincode
+  if (filterState.area.trim()) {
+    const q = filterState.area.trim().toLowerCase();
+    results = results.filter(l =>
+      l.area.toLowerCase().includes(q) ||
+      (l.pincode || '').includes(q)
+    );
+  }
+
+  // Provider name
+  if (filterState.name.trim()) {
+    const q = filterState.name.trim().toLowerCase();
+    results = results.filter(l => l.name.toLowerCase().includes(q));
+  }
+
+  // Food types (OR — show if listing type matches ANY selected)
+  if (filterState.foodTypes.size > 0) {
+    results = results.filter(l => filterState.foodTypes.has(l.type));
+  }
+
+  // Cuisine
+  if (filterState.cuisine) {
+    results = results.filter(l => (l.cuisines||[]).includes(filterState.cuisine));
+  }
+
+  // Meals (show if listing serves ANY selected meal)
+  if (filterState.meals.size > 0) {
+    results = results.filter(l =>
+      [...filterState.meals].some(m => (l.meals||[]).includes(m))
+    );
+  }
+
+  // Max price
+  if (filterState.maxPrice) {
+    const max = parseInt(filterState.maxPrice);
+    results = results.filter(l => {
+      const price = l.lunchPrice || l.dinnerPrice || 9999;
+      return price <= max;
+    });
+  }
+
+  // Sort
+  if (filterState.sortBy === 'price-asc') {
+    results.sort((a,b) => (a.lunchPrice||999) - (b.lunchPrice||999));
+  } else if (filterState.sortBy === 'price-desc') {
+    results.sort((a,b) => (b.lunchPrice||0) - (a.lunchPrice||0));
+  } else if (filterState.sortBy === 'near' && userLat !== null) {
+    results.forEach(l => { l._dist = distanceKm(userLat, userLng, l.lat||19.076, l.lng||72.877); });
+    results.sort((a,b) => (a._dist||999) - (b._dist||999));
+  } else {
+    results.sort((a,b) => a.daysAgo - b.daysAgo);
+  }
+
+  const total = results.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = 1;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageResults = results.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('result-count').textContent = total;
+  document.getElementById('results-label').textContent =
+    `Showing ${start+1}–${Math.min(start+PAGE_SIZE, total)} of ${total} result${total !== 1 ? 's' : ''}`;
+
+  const grid = document.getElementById('results-grid');
+  if (total === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="emoji">🔍</div>
+        <h3 class="t-h3">No dabbas found</h3>
+        <p>Try adjusting your filters or searching a different area.</p>
+        <button class="btn btn-secondary" onclick="clearAllFilters()">Clear all filters</button>
+      </div>`;
+  } else {
+    grid.innerHTML = pageResults.map(l => renderCard(l)).join('');
+    setTimeout(() => {
+      grid.querySelectorAll('.card-anim').forEach((c, i) => {
+        setTimeout(() => c.classList.add('visible'), i * 60);
+      });
+    }, 10);
+  }
+
+  // Pagination
+  renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+  const bar = document.getElementById('pagination-bar');
+  if (!bar) return;
+  if (totalPages <= 1) { bar.innerHTML = ''; return; }
+
+  let html = `<div class="pg-wrap">`;
+
+  // Prev arrow
+  html += `<button class="pg-btn pg-arrow" ${currentPage===1?'disabled':''} onclick="goToPage(${currentPage-1})">‹</button>`;
+
+  // Smart page numbers
+  const pages = new Set([1, totalPages]);
+  for (let p = Math.max(1, currentPage-2); p <= Math.min(totalPages, currentPage+2); p++) pages.add(p);
+  const sorted = [...pages].sort((a,b)=>a-b);
+  let prev = 0;
+  sorted.forEach(p => {
+    if (p - prev > 1) html += `<span class="pg-ellipsis">…</span>`;
+    html += `<button class="pg-btn ${p===currentPage?'pg-active':''}" onclick="goToPage(${p})">${p}</button>`;
+    prev = p;
+  });
+
+  // Next arrow
+  html += `<button class="pg-btn pg-arrow" ${currentPage===totalPages?'disabled':''} onclick="goToPage(${currentPage+1})">›</button>`;
+  html += `</div>`;
+  bar.innerHTML = html;
+}
+
+window.goToPage = function(p) {
+  currentPage = p;
+  applyFilters();
+  window.scrollTo({ top: document.querySelector('.discover-layout')?.offsetTop - 80 || 0, behavior: 'smooth' });
+};
+
+/* ══════════════════════════════════════════════════════════
+   PILL TOGGLE HELPERS
+══════════════════════════════════════════════════════════ */
+function bindPillGroup(containerId, stateSet, onChange) {
+  // Capture phase on container — fires before main.js reaches the pill.
+  // stopPropagation prevents main.js from double-toggling the class.
+  document.getElementById(containerId).addEventListener('click', function(e) {
+    const pill = e.target.closest('.checkbox-pill');
+    if (!pill) return;
+    e.stopPropagation(); // stop event reaching pill so main.js doesn't also toggle
+    const val = pill.dataset.value;
+    if (pill.classList.contains('active')) {
+      pill.classList.remove('active');
+      stateSet.delete(val);
+    } else {
+      pill.classList.add('active');
+      stateSet.add(val);
+    }
+    onChange();
+  }, true);
+}
+
+/* ══════════════════════════════════════════════════════════
+   CLEAR ALL
+══════════════════════════════════════════════════════════ */
+function clearAllFilters() {
+  filterState.area      = '';
+  filterState.name      = '';
+  filterState.foodTypes = new Set();
+  filterState.cuisine   = '';
+  filterState.meals     = new Set();
+  filterState.maxPrice  = null;
+  currentPage = 1;
+
+  document.getElementById('filter-area').value    = '';
+  document.getElementById('filter-name').value    = '';
+  document.getElementById('filter-cuisine').value = '';
+  document.getElementById('filter-price').value   = '';
+  document.getElementById('user-pincode').value   = '';
+  var st = document.getElementById('user-location-status'); if (st) st.style.display='none';
+
+  document.querySelectorAll('#ft-pills .checkbox-pill,#meal-pills .checkbox-pill').forEach(p => p.classList.remove('active'));
+
+  applyFilters();
+}
+
+/* ══════════════════════════════════════════════════════════
+   LEAFLET MAP (loaded on demand)
+══════════════════════════════════════════════════════════ */
+let discoverMapInst = null;
+function initDiscoverMap() {
+  if (discoverMapInst || !window.L) return;
+  const el = document.getElementById('leaflet-map');
+  if (!el) return;
+  el.style.height = '460px';
+
+  discoverMapInst = L.map('leaflet-map', { zoomControl: true }).setView([19.095, 72.870], 12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap contributors © CARTO', subdomains: 'abcd', maxZoom: 19
+  }).addTo(discoverMapInst);
+
+  const PILL_CLASS = { veg:'dm-pill-veg', nonveg:'dm-pill-nonveg', jain:'dm-pill-jain', diet:'dm-pill-diet' };
+  const TYPE_EMOJI = { veg:'🌱', nonveg:'🍗', jain:'🙏', diet:'🥗' };
+
+  // rough coords per area for map pins
+  const AREA_COORDS = {
+    'Andheri West':  [19.136, 72.828], 'Andheri East': [19.119, 72.848],
+    'Bandra West':   [19.059, 72.829], 'Goregaon':     [19.166, 72.853],
+    'Malad West':    [19.186, 72.848], 'Borivali West':[19.232, 72.857],
+    'Chembur':       [19.052, 72.899], 'Dadar':        [19.018, 72.848],
+    'Santacruz':     [19.081, 72.841], 'Powai':        [19.154, 72.902],
+    'Ghatkopar':     [19.076, 72.877], 'Versova':      [19.135, 72.811],
+    'Sion':          [19.033, 72.869],
+  };
+
+  const mcg = L.markerClusterGroup({ maxClusterRadius: 60, showCoverageOnHover: false,
+    iconCreateFunction: c => L.divIcon({
+      html: `<div style="background:rgba(255,255,255,0.97);border-radius:100px;padding:5px 12px;box-shadow:0 2px 12px rgba(0,0,0,.35);font-family:DM Sans,sans-serif;font-size:13px;font-weight:800;color:#2C1810;white-space:nowrap;transform:translate(-50%,-50%)">${c.getChildCount()} dabbas</div>`,
+      iconSize:[0,0], iconAnchor:[0,0], className:'' })
+  });
+
+  getAllListings().forEach(l => {
+    // Use stored lat/lng for user listings; fall back to AREA_COORDS for master listings
+    let lat, lng;
+    if (l.lat && l.lng) {
+      lat = l.lat + (Math.random()-.5)*.003;
+      lng = l.lng + (Math.random()-.5)*.003;
+    } else {
+      const coords = AREA_COORDS[l.area];
+      if (!coords) {
+        // Unknown area — place somewhere in central Mumbai
+        lat = 19.076 + (Math.random()-.5)*.08;
+        lng = 72.877 + (Math.random()-.5)*.08;
+      } else {
+        lat = coords[0] + (Math.random()-.5)*.012;
+        lng = coords[1] + (Math.random()-.5)*.012;
+      }
+    }
+    const emoji= TYPE_EMOJI[l.type]||'🥘';
+    const bg   = l.type==='veg'?'#15803d':l.type==='nonveg'?'#b91c1c':l.type==='jain'?'#6d28d9':'#0369a1';
+    const icon = L.divIcon({
+      html:`<div style="display:inline-flex;align-items:center;gap:4px;border-radius:100px;padding:5px 11px;font-size:12px;font-weight:700;font-family:DM Sans,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.45);white-space:nowrap;cursor:pointer;background:${bg};color:#fff;transform:translate(-50%,-50%)">${emoji} ₹${l.lunchPrice||l.dinnerPrice||'?'}</div>`,
+      iconSize:[0,0], iconAnchor:[0,0], className:''
+    });
+    L.marker([lat, lng], {icon}).addTo(mcg).bindPopup(
+      `<div style="font-family:DM Sans,sans-serif;padding:12px 14px;min-width:200px"><div style="font-family:Playfair Display,serif;font-size:15px;font-weight:800;color:#2C1810;margin-bottom:4px">${l.name}</div><div style="font-size:12px;color:#7C6B5A;margin-bottom:8px">📍 ${l.area}</div><div style="font-size:20px;font-family:Playfair Display,serif;font-weight:700;color:#C8771A;margin-bottom:10px">₹${l.lunchPrice||l.dinnerPrice||'?'}</div><a href="profile.html?id=${l.id}" style="display:block;text-align:center;padding:8px;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none">View Profile →</a></div>`,
+      {maxWidth:240, closeButton:false}
+    );
+  });
+  discoverMapInst.addLayer(mcg);
+}
+
+/* ══════════════════════════════════════════════════════════
+   WIRE UP ALL INPUTS
+══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Food type pills — each pill independently toggles; main.js handles the toggle class
+  bindPillGroup('ft-pills', filterState.foodTypes, function(){ currentPage=1; applyFilters(); });
+
+  // Meal pills — same approach
+  bindPillGroup('meal-pills', filterState.meals, function(){ currentPage=1; applyFilters(); });
+
+  // User pincode → geocode for distance sort
+  var pincodeGeoTimer = null;
+  document.getElementById('user-pincode').addEventListener('input', function() {
+    var pc = this.value.trim();
+    var status = document.getElementById('user-location-status');
+    clearTimeout(pincodeGeoTimer);
+    if (pc.length !== 6 || isNaN(pc)) { userLat = null; userLng = null; status.style.display='none'; return; }
+    status.style.display = '';
+    status.textContent = '⏳ Locating…';
+    pincodeGeoTimer = setTimeout(function() {
+      fetch('https://nominatim.openstreetmap.org/search?postalcode=' + pc + '&country=India&format=json&limit=1', {
+        headers: { 'Accept-Language': 'en', 'User-Agent': 'DabbaMap/1.0' }
+      }).then(function(r){ return r.json(); }).then(function(data) {
+        if (data && data[0]) {
+          userLat = parseFloat(data[0].lat);
+          userLng = parseFloat(data[0].lon);
+          status.textContent = '✅ ' + (data[0].display_name.split(',')[0] || pc);
+          if (filterState.sortBy === 'near') applyFilters();
+        } else {
+          status.textContent = '❌ Pincode not found';
+          userLat = null; userLng = null;
+        }
+      }).catch(function(){ status.textContent = '❌ Could not locate'; });
+    }, 700);
+  });
+
+  // Area input
+  document.getElementById('filter-area').addEventListener('input', function() {
+    filterState.area = this.value; currentPage = 1;
+    applyFilters();
+  });
+
+  // Name input
+  document.getElementById('filter-name').addEventListener('input', function() {
+    filterState.name = this.value; currentPage = 1;
+    applyFilters();
+  });
+
+  // Cuisine select
+  document.getElementById('filter-cuisine').addEventListener('change', function() {
+    filterState.cuisine = this.value; currentPage = 1;
+    applyFilters();
+  });
+
+  // Max price
+  document.getElementById('filter-price').addEventListener('input', function() {
+    filterState.maxPrice = this.value || null; currentPage = 1;
+    applyFilters();
+  });
+
+  // Sort
+  document.getElementById('sort-select').addEventListener('change', function() {
+    filterState.sortBy = this.value; currentPage = 1;
+    if (this.value === 'near' && userLat === null) {
+      if(window.showToast) showToast('Enter your pincode above to sort by distance');
+    }
+    applyFilters();
+  });
+
+  // Apply button
+  document.getElementById('apply-btn').addEventListener('click', applyFilters);
+
+  // Clear all
+  document.getElementById('clear-filters').addEventListener('click', clearAllFilters);
+
+  // View toggle
+  document.getElementById('view-list').addEventListener('click', () => {
+    document.getElementById('view-list').classList.add('active');
+    document.getElementById('view-map').classList.remove('active');
+    document.getElementById('list-view').style.display = '';
+    document.getElementById('map-view').style.display  = 'none';
+  });
+  document.getElementById('view-map').addEventListener('click', () => {
+    document.getElementById('view-map').classList.add('active');
+    document.getElementById('view-list').classList.remove('active');
+    document.getElementById('map-view').style.display  = '';
+    document.getElementById('list-view').style.display = 'none';
+    initDiscoverMap();
+  });
+
+  // Read URL params from home page search or footer links
+  const urlParams  = new URLSearchParams(window.location.search);
+  const qParam     = urlParams.get('q');
+  const nameParam2 = urlParams.get('name');
+  const mealParam  = urlParams.get('meal');
+  const typeParam  = urlParams.get('type');
+
+  if (qParam) {
+    document.getElementById('filter-area').value = qParam;
+    filterState.area = qParam;
+  }
+  if (nameParam2) {
+    document.getElementById('filter-name').value = nameParam2;
+    filterState.name = nameParam2;
+  }
+  if (mealParam && ['lunch','dinner'].includes(mealParam)) {
+    filterState.meals.add(mealParam);
+    document.querySelector(`#meal-pills [data-value="${mealParam}"]`)?.classList.add('active');
+  }
+  if (typeParam && ['veg','nonveg','jain','diet'].includes(typeParam)) {
+    filterState.foodTypes.add(typeParam);
+    document.querySelector(`#ft-pills [data-value="${typeParam}"]`)?.classList.add('active');
+  }
+
+  // Initial render
+  applyFilters();
+});
+</script>
+
+<style>
+  /* Discover-specific pill style without leaflet-cluster-default override */
+  .dm-pill-veg    { background:#15803d; color:#fff; }
+  .dm-pill-nonveg { background:#b91c1c; color:#fff; }
+  .dm-pill-jain   { background:#6d28d9; color:#fff; }
+  .dm-pill-diet   { background:#0369a1; color:#fff; }
+  #leaflet-map { border-radius: var(--radius-card); border:1px solid var(--border); }
+
+  /* ── Amazon/Flipkart-style pagination ── */
+  .pg-wrap { display:flex; align-items:center; gap:4px; flex-wrap:wrap; justify-content:center }
+  .pg-btn {
+    min-width:36px; height:36px; padding:0 10px; border-radius:4px;
+    border:1px solid #d5d9d9; background:#f0f2f2; color:#0f1111;
+    font-size:13px; font-weight:500; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center;
+    transition:background .15s, border-color .15s, transform .12s;
+    font-family:var(--font-body);
+  }
+  .pg-btn:hover:not(:disabled) { background:#e7ebec; border-color:#adb1b8; transform:translateY(-1px) }
+  .pg-btn:active:not(:disabled) { transform:translateY(0) }
+  .pg-btn:disabled { opacity:.45; cursor:not-allowed }
+  .pg-btn.pg-active {
+    background:var(--primary); border-color:var(--primary);
+    color:#fff; font-weight:700;
+    box-shadow:0 2px 8px rgba(200,119,26,.35);
+  }
+  .pg-btn.pg-active:hover { background:var(--primary-dark,#a8620f) }
+  .pg-arrow { font-size:20px; font-weight:400; color:var(--primary) }
+  .pg-ellipsis { padding:0 6px; color:var(--text-muted); font-size:14px; line-height:36px }
+</style>
+</body>
+</html>

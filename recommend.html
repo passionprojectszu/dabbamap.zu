@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recommend a Cook — DabbaMap</title>
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">🥘</span><span class="brand">Dabba<em>Map</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a><a href="discover.html">Discover</a><a href="about.html">About</a>
+    </div>
+    <div class="nav-cta">
+      <a href="list.html" class="btn btn-primary btn-sm">List My Dabba</a>
+      <button class="nav-hamburger" aria-label="Menu">☰</button>
+    </div>
+  </div>
+  <div class="nav-mobile-menu">
+    <a href="index.html">Home</a><a href="discover.html">Discover Dabbas</a>
+    <a href="list.html">List My Dabba</a><a href="recommend.html">Recommend a Cook</a><a href="about.html">About</a>
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ── -->
+<div style="background:var(--secondary-pale);border-bottom:1px solid var(--border);padding:var(--sp-10) 0 var(--sp-8);text-align:center">
+  <div class="container">
+    <div class="hero-pill" style="background:var(--secondary-pale);color:var(--secondary);border-color:rgba(74,124,89,0.25);display:inline-flex">⭐ Community Recommendation</div>
+    <h1 class="t-h1 mt-4" style="font-size:40px">Know a great home cook?</h1>
+    <p style="color:var(--text-muted);font-size:17px;margin-top:12px;max-width:480px;margin-left:auto;margin-right:auto">Help your neighbourhood find real home-cooked food by recommending a dabba you trust. We'll list it and give them credit.</p>
+  </div>
+</div>
+
+<section class="section-sm">
+  <div class="container" style="max-width:680px">
+
+    <!-- Success State -->
+    <div id="recommend-success" style="display:none">
+      <div class="card">
+        <div class="card-body success-state">
+          <div class="emoji">⭐</div>
+          <h2 class="t-h2">Thank you for recommending!</h2>
+          <p>We've added this cook to our community recommendations. If they're not already listed, we'll try to reach out through the community.</p>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+            <a href="discover.html" class="btn btn-primary btn-lg">Browse All Dabbas</a>
+            <button class="btn btn-secondary btn-lg" id="recommend-again">Recommend Another</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div id="recommend-form">
+      <div class="card">
+        <div class="card-body" style="padding:var(--sp-8)">
+          <div class="flex-col gap-6">
+
+            <div class="form-group">
+              <label class="form-label">Cook's Name or Nickname *</label>
+              <input type="text" class="form-input" placeholder="e.g. Sunita Aunty or Ramesh from Building A" />
+              <span class="t-caption t-muted">No real name needed — whatever people call them.</span>
+            </div>
+
+            <div class="form-2col">
+              <div class="form-group">
+                <label class="form-label">Area / Neighbourhood *</label>
+                <input type="text" class="form-input" placeholder="e.g. Andheri West" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pincode</label>
+                <input type="text" class="form-input" placeholder="e.g. 400058" maxlength="6" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Food Type</label>
+              <div class="checkbox-pills-row">
+                <label class="checkbox-pill"><input type="checkbox" /> 🌱 Veg</label>
+                <label class="checkbox-pill"><input type="checkbox" /> 🍗 Non-Veg</label>
+                <label class="checkbox-pill"><input type="checkbox" /> 🙏 Jain</label>
+                <label class="checkbox-pill"><input type="checkbox" /> 🥗 Diet Friendly</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Cuisine Style</label>
+              <div class="checkbox-pills-row">
+                <label class="checkbox-pill"><input type="checkbox" /> Gujarati</label>
+                <label class="checkbox-pill"><input type="checkbox" /> Punjabi</label>
+                <label class="checkbox-pill"><input type="checkbox" /> South Indian</label>
+                <label class="checkbox-pill"><input type="checkbox" /> Rajasthani</label>
+                <label class="checkbox-pill"><input type="checkbox" /> Maharashtrian</label>
+                <label class="checkbox-pill"><input type="checkbox" /> Bengali</label>
+                <label class="checkbox-pill"><input type="checkbox" /> North Indian</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Meals Offered</label>
+              <div class="checkbox-pills-row">
+                <label class="checkbox-pill"><input type="checkbox" /> 🌞 Lunch</label>
+                <label class="checkbox-pill"><input type="checkbox" /> 🌙 Dinner</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Approximate Price per Meal</label>
+              <div class="form-input-prefix" style="max-width:200px">
+                <span class="prefix">₹</span>
+                <input type="number" class="form-input" placeholder="e.g. 80" style="padding-left:28px" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Tell Us About Their Food *</label>
+              <textarea class="form-textarea" placeholder="What makes their dabba special? What do they cook? Why do you recommend them? Any details help!" data-maxlength="500" rows="5"></textarea>
+              <span class="char-count">0 / 500</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Your Name (Optional)</label>
+              <input type="text" class="form-input" placeholder="Leave blank to stay anonymous" />
+              <span class="t-caption t-muted">We may give you a "community recommender" credit on the listing.</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <button class="btn btn-primary btn-lg" style="width:100%" id="recommend-submit">⭐ Submit Recommendation</button>
+
+            <div class="privacy-box">
+              <p>🔒 This recommendation will be reviewed before being listed. The cook will be notified and can claim their listing anytime.</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand"><a href="index.html" class="nav-logo" style="margin-bottom:12px"><span class="logo-icon">🥘</span><span class="brand" style="color:#fff">Dabba<em style="color:var(--primary-light)">Map</em></span></a><div class="footer-tagline">Find ghar ka khana near you.</div></div>
+      <div class="footer-col"><h4>Discover</h4><ul><li><a href="discover.html">Browse Dabbas</a></li></ul></div>
+      <div class="footer-col"><h4>Info</h4><ul><li><a href="about.html">About</a></li></ul></div>
+      <div class="footer-col"><h4>Account</h4><ul><li><a href="list.html">List My Dabba</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">© 2025 DabbaMap · Not a food delivery app.</div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

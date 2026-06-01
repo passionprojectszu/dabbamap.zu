@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About DabbaMap</title>
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    /* ══ ABOUT PAGE ══ */
+    * { box-sizing:border-box }
+
+    /* ── HERO ── */
+    .ab-hero {
+      background: linear-gradient(160deg,#fef3e2 0%,#fff8ee 60%,#fdf4f4 100%);
+      min-height: 88vh; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; text-align:center; padding:60px 24px; position:relative; overflow:hidden;
+    }
+    .ab-hero::before {
+      content:''; position:absolute; inset:0;
+      background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(200,119,26,.08) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .ab-float-scene {
+      display:flex; align-items:flex-end; justify-content:center; gap:16px;
+      margin-bottom:40px; position:relative;
+    }
+    .ab-building {
+      background:linear-gradient(180deg,#e8d5c4,#d4b896);
+      border-radius:6px 6px 0 0; position:relative;
+    }
+    .ab-building .win {
+      position:absolute; background:rgba(255,255,255,.6); border-radius:2px;
+    }
+    .ab-pin-drop {
+      position:absolute; top:-56px; left:50%; transform:translateX(-50%);
+      font-size:44px; animation:pinDrop 2s ease-out forwards;
+      filter:drop-shadow(0 4px 12px rgba(200,119,26,.4));
+    }
+    @keyframes pinDrop {
+      0%  { top:-120px; opacity:0 }
+      60% { top:-40px; opacity:1 }
+      75% { top:-62px }
+      100%{ top:-52px; opacity:1 }
+    }
+    .ab-bowl { font-size:52px; animation:bowlPop .6s 1.8s ease-out both; transform-origin:bottom center }
+    @keyframes bowlPop { 0%{transform:scale(0);opacity:0} 70%{transform:scale(1.15)} 100%{transform:scale(1);opacity:1} }
+    .ab-hero h1 {
+      font-family:var(--font-display); font-size:clamp(42px,7vw,80px); font-weight:900;
+      letter-spacing:-0.04em; line-height:1.0; color:var(--text); margin-bottom:16px;
+    }
+    .ab-hero h1 em { color:var(--primary); font-style:normal }
+    .ab-hero-sub { font-size:17px; color:var(--text-muted); max-width:400px; margin:0 auto 48px; line-height:1.6 }
+    .ab-stats-row { display:flex; gap:0; border:2px solid rgba(200,119,26,.2); border-radius:20px; overflow:hidden; background:#fff; box-shadow:0 8px 40px rgba(200,119,26,.1) }
+    .ab-stat { flex:1; padding:28px 20px; text-align:center; border-right:2px solid rgba(200,119,26,.15) }
+    .ab-stat:last-child { border-right:none }
+    .ab-stat-n { font-family:var(--font-display); font-size:clamp(32px,4vw,52px); font-weight:900; color:var(--primary); line-height:1 }
+    .ab-stat-l { font-size:12px; color:var(--text-muted); margin-top:6px; line-height:1.4 }
+
+    /* ── STORY: BEFORE / AFTER ── */
+    .ab-story { display:grid; grid-template-columns:1fr 1fr; min-height:480px }
+    .ab-story-panel { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 40px; text-align:center; position:relative; overflow:hidden }
+    .ab-story-panel.before { background:#1a0a06; color:#fff }
+    .ab-story-panel.after  { background:var(--primary); color:#fff }
+    .story-label { font-size:10px; font-weight:800; letter-spacing:.18em; text-transform:uppercase; opacity:.6; margin-bottom:32px }
+    .story-contrast-list { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; width:100%; max-width:320px }
+    .scl-item { font-size:14px; line-height:1.5; opacity:0.82; padding:10px 14px; border-radius:8px; background:rgba(255,255,255,0.08); text-align:left }
+    .ab-story-panel.before .scl-item { border-left:2px solid rgba(255,100,100,0.5) }
+    .ab-story-panel.after  .scl-item { border-left:2px solid rgba(255,255,255,0.4) }
+    .story-caption { font-family:var(--font-display); font-size:clamp(16px,2vw,22px); font-weight:800; line-height:1.3 }
+    .story-sub { font-size:14px; opacity:.7; margin-top:8px }
+    .story-x { font-size:28px; opacity:.3 }
+
+    /* ── HOW IT WORKS: VISUAL STORYBOARD ── */
+    .ab-how { background:#fff; padding:80px 0 }
+    .how-label { text-align:center; font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--primary); margin-bottom:12px }
+    .how-title { text-align:center; font-family:var(--font-display); font-size:clamp(24px,3.5vw,40px); font-weight:900; margin-bottom:56px; color:var(--text) }
+    .how-grid { display:grid; grid-template-columns:repeat(4,1fr); position:relative; max-width:960px; margin:0 auto; padding:0 24px }
+    .how-step { text-align:center; padding:0 12px; position:relative }
+    .how-arrow { position:absolute; right:-18px; top:60px; font-size:28px; color:rgba(200,119,26,.3); z-index:1 }
+    .how-visual {
+      width:120px; height:120px; border-radius:28px; margin:0 auto 20px;
+      display:flex; align-items:center; justify-content:center; font-size:52px;
+      position:relative;
+    }
+    .how-visual.v1 { background:linear-gradient(135deg,#fef3e2,#fde8c0) }
+    .how-visual.v2 { background:linear-gradient(135deg,#f0fdf4,#bbf7d0) }
+    .how-visual.v3 { background:linear-gradient(135deg,#eff6ff,#bfdbfe) }
+    .how-visual.v4 { background:linear-gradient(135deg,#fdf4ff,#e9d5ff) }
+    .how-num {
+      position:absolute; top:-8px; right:-8px; width:28px; height:28px;
+      background:var(--primary); border-radius:50%; color:#fff;
+      font-size:13px; font-weight:900; display:flex; align-items:center; justify-content:center;
+      font-family:var(--font-display);
+    }
+    .how-step-title { font-size:15px; font-weight:800; color:var(--text); margin-bottom:6px }
+    .how-step-desc { font-size:12px; color:var(--text-muted); line-height:1.5 }
+
+    /* ── BIG NUMBERS ── */
+    .ab-numbers { background:#2C1810; padding:80px 24px }
+    .numbers-grid { display:grid; grid-template-columns:repeat(4,1fr); max-width:900px; margin:0 auto; gap:0 }
+    .num-block { text-align:center; padding:40px 20px; border-right:1px solid rgba(255,255,255,.08) }
+    .num-block:last-child { border-right:none }
+    .num-big { font-family:var(--font-display); font-size:clamp(48px,6vw,80px); font-weight:900; color:var(--primary-light,#F5A623); line-height:1 }
+    .num-icon { font-size:32px; margin-bottom:8px }
+    .num-lbl { font-size:12px; color:rgba(255,255,255,.45); margin-top:8px; line-height:1.4 }
+
+    /* ── FOR WHO: ILLUSTRATED PERSONAS ── */
+    .ab-who { display:grid; grid-template-columns:1fr 1fr; min-height:520px }
+    .who-panel { display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:60px 40px }
+    .who-panel.cook   { background:linear-gradient(160deg,#fef9f0 0%,#fde8c0 100%) }
+    .who-panel.seeker { background:linear-gradient(160deg,#f0f9ff 0%,#bae6fd 100%) }
+    .who-illustration { font-size:80px; margin-bottom:8px; filter:drop-shadow(0 8px 20px rgba(0,0,0,.12)) }
+    .who-scene { text-align:center; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center }
+    .who-scene-emoji { display:flex; gap:8px; align-items:flex-end; justify-content:center; margin-bottom:24px }
+    .who-title { font-family:var(--font-display); font-size:24px; font-weight:900; color:var(--text); margin-bottom:8px }
+    .who-desc { font-size:14px; color:var(--text-muted); text-align:center; line-height:1.6; max-width:260px }
+    .who-pills { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:20px }
+    .who-pill { font-size:12px; font-weight:700; padding:5px 14px; border-radius:100px }
+    .who-panel.cook   .who-pill { background:rgba(200,119,26,.15); color:#92400e }
+    .who-panel.seeker .who-pill { background:rgba(14,165,233,.15); color:#0369a1 }
+
+    /* ── PRIVACY: VISUAL FLOW ── */
+    .ab-privacy { background:#f8f5f2; padding:80px 24px; text-align:center }
+    .priv-flow { display:flex; align-items:center; justify-content:center; gap:0; max-width:700px; margin:48px auto 56px; flex-wrap:wrap; gap:8px }
+    .priv-node { text-align:center; padding:0 8px }
+    .priv-node-circle {
+      width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:32px; margin:0 auto 10px; box-shadow:0 4px 20px rgba(0,0,0,.1);
+    }
+    .priv-node-circle.customer { background:linear-gradient(135deg,#eff6ff,#dbeafe) }
+    .priv-node-circle.shield   { background:linear-gradient(135deg,#2C1810,#4a2010); font-size:36px }
+    .priv-node-circle.provider { background:linear-gradient(135deg,#fef3e2,#fde8c0) }
+    .priv-node-lbl { font-size:12px; font-weight:700; color:var(--text-muted) }
+    .priv-arrow { font-size:28px; color:rgba(200,119,26,.4); padding:0 4px; margin-top:-20px }
+    .priv-features { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; max-width:700px; margin:0 auto }
+    .priv-feat { background:#fff; border-radius:16px; padding:24px 16px; border:1.5px solid var(--border) }
+    .priv-feat-icon { font-size:36px; margin-bottom:10px }
+    .priv-feat-lbl { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px }
+    .priv-feat-desc { font-size:12px; color:var(--text-muted); line-height:1.45 }
+
+    /* ── SAFETY: ICON GRID ── */
+    .ab-safety { background:#fff; padding:80px 24px }
+    .safety-icons { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; max-width:640px; margin:48px auto 0 }
+    .safety-icon-card { text-align:center; padding:32px 20px; border-radius:20px; background:var(--primary-pale); border:1px solid rgba(200,119,26,.15) }
+    .safety-icon-big { font-size:52px; margin-bottom:12px; display:block }
+    .safety-icon-lbl { font-size:13px; font-weight:700; color:var(--text); line-height:1.4 }
+
+    /* ── CTA ── */
+    .ab-cta { background:var(--primary); padding:80px 24px; text-align:center; position:relative; overflow:hidden }
+    .ab-cta::before {
+      content:'🍛'; font-size:200px; position:absolute; right:-40px; top:-30px;
+      opacity:.08; transform:rotate(-20deg); pointer-events:none;
+    }
+    .ab-cta::after {
+      content:'🏠'; font-size:160px; position:absolute; left:-20px; bottom:-20px;
+      opacity:.08; transform:rotate(15deg); pointer-events:none;
+    }
+    .ab-cta h2 { font-family:var(--font-display); font-size:clamp(26px,4vw,44px); font-weight:900; color:#fff; margin-bottom:12px }
+    .ab-cta p  { color:rgba(255,255,255,.75); font-size:16px; margin-bottom:36px }
+    .btn-cta-w { background:#fff; color:var(--primary); font-weight:800; border:none }
+    .btn-cta-g { background:transparent; color:#fff; border:2px solid rgba(255,255,255,.5); font-weight:700 }
+
+    /* Responsive */
+    @media(max-width:720px) {
+      .ab-story,.ab-who { grid-template-columns:1fr }
+      .how-grid { grid-template-columns:1fr 1fr }
+      .how-arrow { display:none }
+      .numbers-grid { grid-template-columns:1fr 1fr }
+      .num-block { border-right:none; border-bottom:1px solid rgba(255,255,255,.08) }
+      .priv-features { grid-template-columns:1fr 1fr }
+      .safety-icons { grid-template-columns:1fr 1fr }
+      .ab-story-panel,.who-panel { padding:48px 28px }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">🥘</span><span class="brand">Dabba<em>Map</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a><a href="discover.html">Discover</a><a href="dashboard.html">Dashboard</a><a href="about.html" class="active">About</a>
+    </div>
+    <div class="nav-cta">
+      <a href="list.html" class="btn btn-primary btn-sm">List My Dabba</a>
+      <div class="nav-profile" id="nav-profile-wrap" style="position:relative;display:inline-flex;align-items:center;margin-left:4px">
+        <button class="nav-profile-btn" id="nav-profile-btn" title="Account" style="width:38px;height:38px;border-radius:50%;border:2px solid #C8771A;background:#FEF3E2;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#C8771A;padding:0">
+          <svg viewBox="0 0 24 24" style="width:19px;height:19px;stroke:#C8771A;fill:none;stroke-width:1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </button>
+        <div class="nav-profile-drop" id="nav-profile-drop"></div>
+      </div>
+      <button class="nav-hamburger" aria-label="Menu">☰</button>
+    </div>
+  </div>
+  <div class="nav-mobile-menu">
+    <a href="index.html">Home</a><a href="discover.html">Discover Dabbas</a>
+    <a href="dashboard.html">Dashboard</a><a href="list.html">List My Dabba</a><a href="about.html">About</a>
+  </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="ab-hero">
+  <h1>Home food,<br><em>found.</em></h1>
+  <p class="ab-hero-sub">Mumbai's first home-cook directory. No commissions. No middlemen. Just real food from real kitchens near you.</p>
+  <p style="font-size:13px;font-weight:600;color:var(--primary);letter-spacing:0.06em;margin-bottom:32px;text-transform:uppercase">Coming to other cities soon</p>
+
+  <div class="ab-stats-row" data-reveal data-delay="0.4">
+    <div class="ab-stat">
+      <div class="ab-stat-n" id="about-stat-count">70+</div>
+      <div class="ab-stat-l">Home cooks<br>listed</div>
+    </div>
+    <div class="ab-stat">
+      <div class="ab-stat-n">₹0</div>
+      <div class="ab-stat-l">Commission<br>ever</div>
+    </div>
+    <div class="ab-stat">
+      <div class="ab-stat-n">🔒</div>
+      <div class="ab-stat-l">Anonymous<br>first contact</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ BEFORE / AFTER ══════════ -->
+<div class="ab-story" id="why">
+  <div class="ab-story-panel before">
+    <div class="story-label">Without DabbaMap</div>
+    <div class="story-contrast-list">
+      <div class="scl-item">No way to find home cooks nearby</div>
+      <div class="scl-item">Phone numbers shared before trust is built</div>
+      <div class="scl-item">Platforms take 20–30% of every order</div>
+      <div class="scl-item">No map of local tiffin providers exists</div>
+    </div>
+    <div class="story-caption">Hungry. Surrounded by home cooks.<br>No way to connect.</div>
+  </div>
+  <div class="ab-story-panel after">
+    <div class="story-label">With DabbaMap</div>
+    <div class="story-contrast-list">
+      <div class="scl-item">Browse 70+ home cooks by area &amp; price</div>
+      <div class="scl-item">Anonymous messaging — no numbers until you choose</div>
+      <div class="scl-item">100% free. Zero commission. Forever.</div>
+      <div class="scl-item">Every provider pinned on a live map</div>
+    </div>
+    <div class="story-caption">Ghar ka khana, two streets away.</div>
+  </div>
+</div>
+
+<!-- ab-how removed per design feedback -->
+<div class="ab-how" id="how" style="display:none">
+  <div class="container">
+    <div class="how-label">The process</div>
+    <div class="how-title">4 steps. No friction.</div>
+
+    <div class="how-grid" data-stagger>
+      <div class="how-step">
+        <div class="how-visual v1">
+          <div class="how-num">1</div>
+          🍳
+        </div>
+        <div class="how-step-title">Cook lists</div>
+        <div class="how-step-desc">Fill a 4-step form. Pin your location. Go live instantly.</div>
+        <div class="how-arrow">→</div>
+      </div>
+      <div class="how-step">
+        <div class="how-visual v2">
+          <div class="how-num">2</div>
+          🗺️
+        </div>
+        <div class="how-step-title">Gets discovered</div>
+        <div class="how-step-desc">Profile appears on the map. Filterable by area, type & price.</div>
+        <div class="how-arrow">→</div>
+      </div>
+      <div class="how-step">
+        <div class="how-visual v3">
+          <div class="how-num">3</div>
+          💬
+        </div>
+        <div class="how-step-title">Anonymous message</div>
+        <div class="how-step-desc">Customer sends enquiry. No phone numbers shared yet.</div>
+        <div class="how-arrow">→</div>
+      </div>
+      <div class="how-step">
+        <div class="how-visual v4">
+          <div class="how-num">4</div>
+          🤝
+        </div>
+        <div class="how-step-title">Arrange directly</div>
+        <div class="how-step-desc">Connect. Trial meal. Subscribe. DabbaMap steps out.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ab-numbers removed per design feedback -->
+<div class="ab-numbers" style="display:none">
+  <div class="numbers-grid" data-stagger>
+    <div class="num-block">
+      <div class="num-icon">🍱</div>
+      <div class="num-big" data-count="40" data-suffix="+">40+</div>
+      <div class="num-lbl">Home cooks<br>on the map</div>
+    </div>
+    <div class="num-block">
+      <div class="num-icon">💰</div>
+      <div class="num-big">₹0</div>
+      <div class="num-lbl">Commission<br>taken, ever</div>
+    </div>
+    <div class="num-block">
+      <div class="num-icon">⚡</div>
+      <div class="num-big" data-count="4">4</div>
+      <div class="num-lbl">Steps to list<br>your dabba</div>
+    </div>
+    <div class="num-block">
+      <div class="num-icon">🔒</div>
+      <div class="num-big" data-count="100" data-suffix="%">100%</div>
+      <div class="num-lbl">Anonymous<br>first contact</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ FOR WHO: ILLUSTRATED PERSONAS ══════════ -->
+<div class="ab-who">
+  <!-- Home Cook -->
+  <div class="who-panel cook">
+    <div class="who-scene">
+      <div class="who-scene-emoji">
+        <span style="font-size:96px;filter:drop-shadow(0 8px 24px rgba(200,119,26,.25))">👩‍🍳</span>
+        <span style="font-size:48px;margin-bottom:8px">🍲</span>
+        <span style="font-size:32px;margin-bottom:4px">✨</span>
+      </div>
+      <div class="who-title">Home Cooks</div>
+      <div class="who-desc">Cook for a few extra people. Earn from your kitchen. No platform fees. Ever.</div>
+      <div class="who-pills">
+        <span class="who-pill">Free to list</span>
+        <span class="who-pill">Own profile page</span>
+        <span class="who-pill">No commission</span>
+        <span class="who-pill">Your own hours</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Food Seeker -->
+  <div class="who-panel seeker">
+    <div class="who-scene">
+      <div class="who-scene-emoji">
+        <span style="font-size:96px;filter:drop-shadow(0 8px 24px rgba(14,165,233,.2))">🧑‍💼</span>
+        <span style="font-size:48px;margin-bottom:8px">🍛</span>
+        <span style="font-size:32px;margin-bottom:4px">😊</span>
+      </div>
+      <div class="who-title">Food Seekers</div>
+      <div class="who-desc">Miss home-cooked meals in a new city? Real dabbas are closer than you think.</div>
+      <div class="who-pills">
+        <span class="who-pill">No login to browse</span>
+        <span class="who-pill">Filter by area</span>
+        <span class="who-pill">Try before subscribing</span>
+        <span class="who-pill">Stay anonymous</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PRIVACY: VISUAL FLOW ══════════ -->
+<div class="ab-privacy" id="privacy">
+  <div class="container">
+    <div class="how-label">Privacy by design</div>
+    <div class="how-title">Your number stays yours.</div>
+
+    <!-- Visual anonymous messaging flow -->
+    <div class="priv-flow">
+      <div class="priv-node">
+        <div class="priv-node-circle customer">🧑</div>
+        <div class="priv-node-lbl">Customer</div>
+      </div>
+      <div class="priv-arrow">→</div>
+      <div class="priv-node">
+        <div class="priv-node-circle" style="background:#eff6ff">💬</div>
+        <div class="priv-node-lbl">Message sent</div>
+      </div>
+      <div class="priv-arrow">→</div>
+      <div class="priv-node">
+        <div class="priv-node-circle shield">🛡️</div>
+        <div class="priv-node-lbl" style="color:var(--primary);font-weight:800">DabbaMap</div>
+      </div>
+      <div class="priv-arrow">→</div>
+      <div class="priv-node">
+        <div class="priv-node-circle" style="background:#fef3e2">📬</div>
+        <div class="priv-node-lbl">Provider gets it</div>
+      </div>
+      <div class="priv-arrow">→</div>
+      <div class="priv-node">
+        <div class="priv-node-circle provider">👩‍🍳</div>
+        <div class="priv-node-lbl">Cook</div>
+      </div>
+    </div>
+
+    <!-- 4 privacy features as visual cards -->
+    <div class="priv-features" data-stagger>
+      <div class="priv-feat">
+        <div class="priv-feat-icon">🎭</div>
+        <div class="priv-feat-lbl">Nickname only</div>
+        <div class="priv-feat-desc">No real name required from either side.</div>
+      </div>
+      <div class="priv-feat">
+        <div class="priv-feat-icon">🔒</div>
+        <div class="priv-feat-lbl">Relayed messages</div>
+        <div class="priv-feat-desc">Contact details hidden until you choose to share.</div>
+      </div>
+      <div class="priv-feat">
+        <div class="priv-feat-icon">🗝️</div>
+        <div class="priv-feat-lbl">OTP login</div>
+        <div class="priv-feat-desc">One-time code. No passwords stored anywhere.</div>
+      </div>
+      <div class="priv-feat">
+        <div class="priv-feat-icon">📱</div>
+        <div class="priv-feat-lbl">Local storage</div>
+        <div class="priv-feat-desc">Data stays in your browser. No tracking, no ads.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ab-safety removed per design feedback -->
+<div class="ab-safety" style="display:none">
+  <div class="container">
+    <div class="how-label">Before you order</div>
+    <div class="how-title" style="margin-bottom:0">Six smart habits.</div>
+    <div class="safety-icons" data-stagger>
+      <div class="safety-icon-card">
+        <span class="safety-icon-big">🍽️</span>
+        <div class="safety-icon-lbl">Always try a trial meal first</div>
+      </div>
+      <div class="safety-icon-card">
+        <span class="safety-icon-big">📅</span>
+        <div class="safety-icon-lbl">Check the listing is still active</div>
+      </div>
+      <div class="safety-icon-card">
+        <span class="safety-icon-big">🔒</span>
+        <div class="safety-icon-lbl">Message anonymously first</div>
+      </div>
+      <div class="safety-icon-card">
+        <span class="safety-icon-big">📍</span>
+        <div class="safety-icon-lbl">Meet at a neutral spot for pickup</div>
+      </div>
+      <div class="safety-icon-card">
+        <span class="safety-icon-big">💰</span>
+        <div class="safety-icon-lbl">Pay only after receiving food</div>
+      </div>
+      <div class="safety-icon-card">
+        <span class="safety-icon-big">🚩</span>
+        <div class="safety-icon-lbl">Flag suspicious listings</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ CTA ══════════ -->
+<div class="ab-cta">
+  <div class="container" style="position:relative;z-index:1">
+    <h2>Ready for ghar ka khana?</h2>
+    <p>Free. No account. Real food from real kitchens near you.</p>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+      <a href="discover.html" class="btn btn-lg btn-cta-w">Find Dabbas Near Me →</a>
+      <a href="list.html"     class="btn btn-lg btn-cta-g">List My Dabba</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo" style="margin-bottom:12px"><span class="logo-icon">🥘</span><span class="brand" style="color:#fff">Dabba<em style="color:var(--primary-light)">Map</em></span></a>
+        <div class="footer-tagline">Find ghar ka khana near you.</div>
+      </div>
+      <div class="footer-col"><h4>Discover</h4><ul><li><a href="discover.html">Browse Dabbas</a></li><li><a href="discover.html?meal=lunch">Lunch Dabbas</a></li><li><a href="discover.html?meal=dinner">Dinner Dabbas</a></li></ul></div>
+      <div class="footer-col"><h4>Providers</h4><ul><li><a href="list.html">List My Dabba</a></li><li><a href="dashboard.html">My Dashboard</a></li></ul></div>
+      <div class="footer-col"><h4>Info</h4><ul><li><a href="about.html">About DabbaMap</a></li><li><a href="about.html#how">How It Works</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">© 2025 DabbaMap · Not a food delivery app.</div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+<script src="js/animations.js"></script>
+<script>
+/* Sync stat count with actual data */
+(function() {
+  var base = (window.DABBA_DATA || []).length;
+  var extra = 0;
+  try { extra = JSON.parse(localStorage.getItem('dabbamapListings') || '[]').length; } catch(e) {}
+  var total = base + extra;
+  // Round DOWN to nearest 10 for display (e.g. 74 → "70+")
+  var display = Math.floor(total / 10) * 10;
+  var el = document.getElementById('about-stat-count');
+  if (el) el.textContent = display + '+';
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>List My Dabba — DabbaMap</title>
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #list-map .leaflet-control-attribution { font-size: 9px !important; }
+    .list-map-wrap { position:relative; margin-top: 8px; border-radius: 10px; overflow: hidden; border: 1.5px solid var(--border); }
+    .map-crosshair { position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);z-index:1000;pointer-events:none;font-size:30px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35)) }
+    .list-map-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+    .area-group { position:relative }
+    .area-dropdown { position:absolute;top:100%;left:0;right:0;z-index:600;background:#fff;border:1.5px solid var(--border);border-radius:10px;box-shadow:0 4px 20px rgba(44,24,16,0.13);max-height:180px;overflow-y:auto;margin-top:3px;display:none }
+    .area-dropdown.open { display:block }
+    .area-dd-item { padding:9px 14px;font-size:14px;cursor:pointer;color:var(--text);transition:background .12s }
+    .area-dd-item:hover { background:var(--primary-pale) }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="index.html" class="nav-logo"><span class="logo-icon">🥘</span><span class="brand">Dabba<em>Map</em></span></a>
+    <div class="nav-links">
+      <a href="index.html">Home</a><a href="discover.html">Discover</a><a href="dashboard.html">Dashboard</a><a href="about.html">About</a>
+    </div>
+    <div class="nav-cta">
+      <a href="list.html" class="btn btn-primary btn-sm active">List My Dabba</a>
+      <div class="nav-profile" id="nav-profile-wrap" style="position:relative;display:inline-flex;align-items:center;margin-left:4px">
+        <button class="nav-profile-btn" id="nav-profile-btn" title="Account" style="width:38px;height:38px;border-radius:50%;border:2px solid #C8771A;background:#FEF3E2;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#C8771A;padding:0">
+          <svg viewBox="0 0 24 24" style="width:19px;height:19px;stroke:#C8771A;fill:none;stroke-width:1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </button>
+        <div class="nav-profile-drop" id="nav-profile-drop"></div>
+      </div>
+      <button class="nav-hamburger" aria-label="Menu">☰</button>
+    </div>
+  </div>
+  <div class="nav-mobile-menu">
+    <a href="index.html">Home</a><a href="discover.html">Discover Dabbas</a>
+    <a href="dashboard.html">Dashboard</a><a href="list.html">List My Dabba</a><a href="about.html">About</a>
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ── -->
+<div id="form-header" style="background:var(--primary-pale);padding:var(--sp-10) 0 0;border-bottom:1px solid var(--border)">
+  <div class="container" style="text-align:center">
+    <div class="hero-pill" style="display:inline-flex">🍱 Free to list · No commissions</div>
+    <h1 class="t-h1 mt-4" style="font-size:40px">List Your Dabba</h1>
+    <p class="t-body" style="color:var(--text-muted);margin-top:8px;margin-bottom:0">Share your home cooking with people in your neighbourhood.</p>
+  </div>
+
+  <!-- Step Progress -->
+  <div class="container">
+    <div class="step-progress">
+      <div class="step-item">
+        <div class="step-dot current">1</div>
+        <div class="step-label current">Your Info</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item">
+        <div class="step-dot">2</div>
+        <div class="step-label">What You Cook</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item">
+        <div class="step-dot">3</div>
+        <div class="step-label">Pricing</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item">
+        <div class="step-dot">4</div>
+        <div class="step-label">Review &amp; Go Live</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FORM ── -->
+<section class="section-sm">
+  <div class="container">
+
+    <!-- Success State (hidden initially) -->
+    <div id="list-success" style="display:none">
+      <div class="list-form-card">
+        <div class="card-body success-state">
+          <div class="emoji">🎉</div>
+          <h2 class="t-h2">You're on DabbaMap!</h2>
+          <p>Your listing is live. Share your profile link to start getting enquiries from home food lovers near you.</p>
+
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:24px">
+            <a id="goto-dashboard-btn" href="dashboard.html?role=provider" class="btn btn-primary btn-lg">Go to My Dashboard →</a>
+            <a id="view-profile-btn" href="profile.html" class="btn btn-secondary btn-lg">View My Profile</a>
+          </div>
+
+          <div class="url-block mt-4" style="text-align:left">
+            <div class="url-label">Your Public Profile Link</div>
+            <div class="url-text" id="public-url">profile.html</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" id="copy-public-url">Copy Link</button>
+            </div>
+          </div>
+
+          <div class="tip-box mt-6" style="text-align:left">
+            <p><strong>💡 Next step:</strong> Share your profile link on your building WhatsApp group or with neighbours. Confirm you're active every 2 weeks so customers know you're still cooking!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Wrapper -->
+    <div id="list-form-wrap">
+      <div class="list-form-card">
+        <div class="card-body" style="padding:var(--sp-8)">
+
+          <!-- Step 1 — Your Info -->
+          <div class="step-panel active" id="step-1">
+            <h2 class="t-h3 mb-6">Your Info</h2>
+            <div class="flex-col gap-6">
+              <div class="form-group">
+                <label class="form-label">Nickname / Provider Name *</label>
+                <input type="text" id="input-name" class="form-input" placeholder="e.g. Sunita's Kitchen or Ramesh Tiffins" />
+                <span class="t-caption t-muted">This is how customers will know you. No real name needed.</span>
+              </div>
+              <div class="form-2col">
+                <div class="form-group area-group">
+                  <label class="form-label">Area / Neighbourhood *</label>
+                  <input type="text" id="input-area" class="form-input" placeholder="e.g. Andheri West" autocomplete="off" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Pincode *</label>
+                  <input type="text" id="input-pincode" class="form-input" placeholder="e.g. 400058" maxlength="6" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Pin Your Location on Map</label>
+                <div class="list-map-wrap">
+                  <div id="list-map" style="height:230px"></div>
+                  <div class="map-crosshair">📍</div>
+                </div>
+                <div class="list-map-hint">📍 Pan the map to set your exact location · Pincode will centre the map automatically</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">About Your Dabba *</label>
+                <textarea id="input-description" class="form-textarea" placeholder="Tell potential customers what makes your food special — what you cook, how you cook it, your story…" data-maxlength="400" rows="5"></textarea>
+                <span class="char-count">0 / 400</span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:32px">
+              <button class="btn btn-primary btn-lg" data-next>Next: What You Cook →</button>
+            </div>
+          </div>
+
+          <!-- Step 2 — What You Cook -->
+          <div class="step-panel" id="step-2">
+            <h2 class="t-h3 mb-6">What You Cook</h2>
+            <div class="flex-col gap-8">
+              <div class="form-group">
+                <label class="form-label">Food Type *</label>
+                <div class="checkbox-pills-row" id="ft-pills">
+                  <div class="checkbox-pill" data-value="veg">🌱 Veg</div>
+                  <div class="checkbox-pill" data-value="nonveg">🍗 Non-Veg</div>
+                  <div class="checkbox-pill" data-value="jain">🙏 Jain</div>
+                  <div class="checkbox-pill" data-value="diet">🥗 Diet Friendly</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cuisine Style *</label>
+                <div class="checkbox-pills-row" id="cuisine-pills">
+                  <div class="checkbox-pill" data-value="Gujarati">Gujarati</div>
+                  <div class="checkbox-pill" data-value="Punjabi">Punjabi</div>
+                  <div class="checkbox-pill" data-value="South Indian">South Indian</div>
+                  <div class="checkbox-pill" data-value="Rajasthani">Rajasthani</div>
+                  <div class="checkbox-pill" data-value="Maharashtrian">Maharashtrian</div>
+                  <div class="checkbox-pill" data-value="Bengali">Bengali</div>
+                  <div class="checkbox-pill" data-value="North Indian">North Indian</div>
+                  <div class="checkbox-pill" data-value="Other">Other</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Meals Offered *</label>
+                <div class="checkbox-pills-row" id="meals-pills">
+                  <div class="checkbox-pill" data-value="lunch">🌞 Lunch</div>
+                  <div class="checkbox-pill" data-value="dinner">🌙 Dinner</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Daily Capacity (meals)</label>
+                <input type="number" id="input-capacity" class="form-input" placeholder="e.g. 10" min="1" max="100" style="max-width:160px" />
+                <span class="t-caption t-muted">Optional — helps customers know availability.</span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:32px">
+              <button class="btn btn-ghost btn-lg" data-prev>← Back</button>
+              <button class="btn btn-primary btn-lg" data-next>Next: Pricing →</button>
+            </div>
+          </div>
+
+          <!-- Step 3 — Pricing -->
+          <div class="step-panel" id="step-3">
+            <h2 class="t-h3 mb-6">Pricing</h2>
+            <div class="flex-col gap-6">
+              <div class="form-group">
+                <label class="form-label">Lunch Price per Meal *</label>
+                <div class="form-input-prefix" style="max-width:200px">
+                  <span class="prefix">₹</span>
+                  <input type="number" id="input-lunch-price" class="form-input" placeholder="80" min="0" style="padding-left:28px" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Dinner Price per Meal</label>
+                <div class="form-input-prefix" style="max-width:200px">
+                  <span class="prefix">₹</span>
+                  <input type="number" id="input-dinner-price" class="form-input" placeholder="90" min="0" style="padding-left:28px" />
+                </div>
+                <span class="t-caption t-muted">Only if you offer dinner service.</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Monthly Subscription Price</label>
+                <div class="form-input-prefix" style="max-width:200px">
+                  <span class="prefix">₹</span>
+                  <input type="number" id="input-monthly-price" class="form-input" placeholder="1800" min="0" style="padding-left:28px" />
+                </div>
+                <span class="t-caption t-muted">Optional — for customers who want a monthly plan.</span>
+              </div>
+              <div class="form-group">
+                <div class="checkbox-pill" id="trial-pill" data-value="trial" style="width:auto;display:inline-flex">
+                  ✓ Offer trial meals (highly recommended!)
+                </div>
+                <span class="t-caption t-muted mt-2 mb-0" style="display:block;margin-top:8px">Allow potential customers to order a trial meal before committing. This builds trust and gets you more regular customers.</span>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:32px">
+              <button class="btn btn-ghost btn-lg" data-prev>← Back</button>
+              <button class="btn btn-primary btn-lg" id="btn-to-review" data-next>Review My Listing →</button>
+            </div>
+          </div>
+
+          <!-- Step 4 — Review -->
+          <div class="step-panel" id="step-4">
+            <h2 class="t-h3 mb-6">Review Your Listing</h2>
+
+            <div class="review-table mb-8">
+              <div class="review-row"><div class="review-key">Name</div><div class="review-val" id="review-name">—</div></div>
+              <div class="review-row"><div class="review-key">Location</div><div class="review-val" id="review-location">—</div></div>
+              <div class="review-row"><div class="review-key">Food Type</div><div class="review-val" id="review-foodtype">—</div></div>
+              <div class="review-row"><div class="review-key">Cuisine</div><div class="review-val" id="review-cuisine">—</div></div>
+              <div class="review-row"><div class="review-key">Meals</div><div class="review-val" id="review-meals">—</div></div>
+              <div class="review-row"><div class="review-key">Lunch Price</div><div class="review-val" id="review-lunch">—</div></div>
+              <div class="review-row" id="review-row-dinner"><div class="review-key">Dinner Price</div><div class="review-val" id="review-dinner">—</div></div>
+              <div class="review-row" id="review-row-monthly"><div class="review-key">Monthly Plan</div><div class="review-val" id="review-monthly">—</div></div>
+              <div class="review-row"><div class="review-key">Trial Meals</div><div class="review-val" id="review-trial">—</div></div>
+              <div class="review-row"><div class="review-key">Description</div><div class="review-val t-body-sm" id="review-description">—</div></div>
+            </div>
+
+            <div class="privacy-box mb-6">
+              <p>🔒 <strong>Your privacy is protected.</strong> Customers contact you through our anonymous messaging system — your WhatsApp is only shared when you choose.</p>
+            </div>
+
+            <button class="btn btn-primary btn-lg" style="width:100%" id="list-submit-btn">🚀 Go Live!</button>
+            <div style="display:flex;justify-content:flex-start;margin-top:16px">
+              <button class="btn btn-ghost" data-prev>← Back to Pricing</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- /list-form-wrap -->
+  </div>
+</section>
+
+<!-- Listing requires email + password login via the shared nav login modal -->
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo" style="margin-bottom:12px"><span class="logo-icon">🥘</span><span class="brand" style="color:#fff">Dabba<em style="color:var(--primary-light)">Map</em></span></a>
+        <div class="footer-tagline">Find ghar ka khana near you.</div>
+      </div>
+      <div class="footer-col"><h4>Discover</h4><ul><li><a href="discover.html">Browse Dabbas</a></li><li><a href="discover.html?meal=lunch">Lunch Dabbas</a></li><li><a href="discover.html?meal=dinner">Dinner Dabbas</a></li></ul></div>
+      <div class="footer-col"><h4>Providers</h4><ul><li><a href="list.html">List My Dabba</a></li><li><a href="dashboard.html">My Dashboard</a></li></ul></div>
+      <div class="footer-col"><h4>Info</h4><ul><li><a href="about.html">About DabbaMap</a></li><li><a href="about.html#how">How It Works</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">© 2025 DabbaMap · Not a food delivery app.</div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/store.js"></script>
+<script src="js/main.js"></script>
+<script src="js/animations.js"></script>
+<script>
+/* ── Form validation (intercepts data-next clicks before main.js) ── */
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('[data-next]');
+  if (!btn) return;
+  var activePanel = document.querySelector('.step-panel.active');
+  if (!activePanel) return;
+
+  function err(msg) {
+    if (window.showToast) showToast('⚠️ ' + msg);
+    e.stopImmediatePropagation();
+  }
+
+  function val(id) { return (document.getElementById(id)||{}).value||''; }
+  function activePills(cid) {
+    return Array.from(document.getElementById(cid).querySelectorAll('.checkbox-pill.active')).length > 0;
+  }
+
+  if (activePanel.id === 'step-1') {
+    if (!val('input-name').trim())    return err('Please enter your nickname / provider name.');
+    if (!val('input-area').trim())    return err('Please enter your area or neighbourhood.');
+    var pc = val('input-pincode').trim();
+    if (!pc || pc.length !== 6 || isNaN(pc)) return err('Please enter a valid 6-digit pincode.');
+    if (!val('input-description').trim()) return err('Please write a short description about your dabba.');
+  }
+  if (activePanel.id === 'step-2') {
+    if (!activePills('ft-pills'))      return err('Please select at least one food type (Veg, Non-Veg, etc.).');
+    if (!activePills('cuisine-pills')) return err('Please select at least one cuisine style.');
+    if (!activePills('meals-pills'))   return err('Please select at least one meal (Lunch or Dinner).');
+  }
+  if (activePanel.id === 'step-3') {
+    var meals = Array.from(document.getElementById('meals-pills').querySelectorAll('.checkbox-pill.active')).map(function(p){ return p.dataset.value; });
+    if (meals.includes('lunch') && !val('input-lunch-price').trim()) return err('Please enter your lunch price.');
+    if (meals.includes('dinner') && !val('input-dinner-price').trim()) return err('Please enter your dinner price.');
+  }
+}, true);
+
+/* ── Shared state ── */
+var listingLat = 19.0760;
+var listingLng = 72.8777;
+var listingMap = null;
+var listingMarker = null;
+var pendingListingSave = null; // listing object waiting for login
+
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* ──── Leaflet map picker ──── */
+  listingMap = L.map('list-map', { zoomControl: true, scrollWheelZoom: false }).setView([listingLat, listingLng], 13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap contributors © CARTO', subdomains: 'abcd', maxZoom: 19
+  }).addTo(listingMap);
+
+  // Crosshair is fixed at map centre; track map centre as selected location
+  listingMap.on('move', function() {
+    var c = listingMap.getCenter();
+    listingLat = c.lat;
+    listingLng = c.lng;
+  });
+
+  /* Auto-geocode on pincode change */
+  var geocodeTimer = null;
+  function geocodePincode(pincode) {
+    if (!pincode || pincode.length !== 6) return;
+    clearTimeout(geocodeTimer);
+    geocodeTimer = setTimeout(function() {
+      fetch('https://nominatim.openstreetmap.org/search?postalcode=' + encodeURIComponent(pincode) + '&country=India&format=json&limit=1', {
+        headers: { 'Accept-Language': 'en', 'User-Agent': 'DabbaMap/1.0' }
+      }).then(function(r){ return r.json(); }).then(function(data) {
+        if (data && data[0]) {
+          var lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+          listingMap.setView([lat, lng], 15);
+          if (window.showToast) showToast('Map centred to your pincode area');
+        }
+      }).catch(function(){});
+    }, 800);
+  }
+
+  var pincodeInput = document.getElementById('input-pincode');
+  if (pincodeInput) pincodeInput.addEventListener('input', function() { geocodePincode(this.value.trim()); });
+
+  /* ──── Area autocomplete ──── */
+  var MUMBAI_AREAS = [
+    'Andheri West','Andheri East','Bandra West','Bandra East','Borivali West','Borivali East',
+    'Chembur','Chunabhatti','Colaba','Churchgate','CST','Dadar','Dahisar','Dharavi','Fort',
+    'Ghatkopar East','Ghatkopar West','Goregaon East','Goregaon West','Grant Road',
+    'Jogeshwari East','Jogeshwari West','Juhu','Kandivali East','Kandivali West',
+    'Kurla East','Kurla West','Lalbaug','Lokhandwala','Lower Parel','Mahim',
+    'Malad East','Malad West','Marine Lines','Matunga','Mulund East','Mulund West',
+    'Nariman Point','Oshiwara','Parel','Powai','Prabhadevi','Rajawadi',
+    'Santacruz East','Santacruz West','Sewri','Sion','Thane','Versova',
+    'Vile Parle East','Vile Parle West','Wadala','Worli',
+    'Belapur','Kharghar','Nerul','Vashi','Panvel','Navi Mumbai',
+    'Mira Road','Vasai','Virar'
+  ];
+
+  var areaInput = document.getElementById('input-area');
+  var areaDropdown = document.createElement('div');
+  areaDropdown.className = 'area-dropdown';
+  areaInput.parentNode.appendChild(areaDropdown);
+
+  function showAreaSuggestions(q) {
+    if (!q) { areaDropdown.classList.remove('open'); return; }
+    var matches = MUMBAI_AREAS.filter(function(a){ return a.toLowerCase().includes(q.toLowerCase()); }).slice(0, 8);
+    if (!matches.length) { areaDropdown.classList.remove('open'); return; }
+    areaDropdown.innerHTML = matches.map(function(a){
+      return '<div class="area-dd-item" data-area="' + a + '">' + a + '</div>';
+    }).join('');
+    areaDropdown.classList.add('open');
+  }
+
+  areaDropdown.addEventListener('mousedown', function(e) {
+    var item = e.target.closest('.area-dd-item');
+    if (!item) return;
+    e.preventDefault();
+    areaInput.value = item.dataset.area;
+    areaDropdown.classList.remove('open');
+  });
+
+  areaInput.addEventListener('input', function() { showAreaSuggestions(this.value.trim()); });
+  areaInput.addEventListener('focus', function() { if (this.value.trim()) showAreaSuggestions(this.value.trim()); });
+  areaInput.addEventListener('blur', function() { setTimeout(function(){ areaDropdown.classList.remove('open'); }, 150); });
+
+  /* Invalidate map when step nav happens (map may be hidden/shown) */
+  document.querySelectorAll('[data-next],[data-prev]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      setTimeout(function() { if (listingMap) listingMap.invalidateSize(); }, 120);
+    });
+  });
+
+  /* ──── Helpers ──── */
+  function getActivePills(containerId) {
+    return Array.from(document.getElementById(containerId).querySelectorAll('.checkbox-pill.active'))
+      .map(function (p) { return p.dataset.value; });
+  }
+
+  function buildListingObject() {
+    var name = document.getElementById('input-name').value.trim();
+    var area = document.getElementById('input-area').value.trim();
+    var pincode = document.getElementById('input-pincode').value.trim();
+    var description = document.getElementById('input-description').value.trim();
+    var capacity = document.getElementById('input-capacity').value.trim();
+    var lunchPrice = document.getElementById('input-lunch-price').value.trim();
+    var dinnerPrice = document.getElementById('input-dinner-price').value.trim();
+    var monthlyPrice = document.getElementById('input-monthly-price').value.trim();
+    var trialActive = document.getElementById('trial-pill').classList.contains('active');
+    var foodTypes = getActivePills('ft-pills');
+    var cuisines = getActivePills('cuisine-pills');
+    var meals = getActivePills('meals-pills');
+
+    return {
+      id: 'U' + Date.now(),
+      name: name || 'My Dabba',
+      initial: (name || 'M')[0].toUpperCase(),
+      area: area || 'Mumbai',
+      pincode: pincode || '',
+      type: foodTypes[0] || 'veg',
+      foodTypes: foodTypes.length ? foodTypes : ['veg'],
+      cuisines: cuisines.length ? cuisines : ['Other'],
+      meals: meals.length ? meals : ['lunch'],
+      capacity: capacity ? parseInt(capacity) : null,
+      lunchPrice: lunchPrice ? parseInt(lunchPrice) : null,
+      dinnerPrice: dinnerPrice ? parseInt(dinnerPrice) : null,
+      monthlyPrice: monthlyPrice ? parseInt(monthlyPrice) : null,
+      trial: trialActive,
+      communityPick: false,
+      description: description,
+      daysAgo: 0,
+      lat: listingLat,
+      lng: listingLng,
+      listedAt: new Date().toISOString(),
+    };
+  }
+
+  function saveListing(listing) {
+    // Scoped to the current user (or this session if not logged in)
+    if (window.DabbaStore) {
+      DabbaStore.addListing(listing);
+    } else {
+      var existing = [];
+      try { existing = JSON.parse(localStorage.getItem('dabbamapListings') || '[]'); } catch(e) {}
+      existing.unshift(listing);
+      localStorage.setItem('dabbamapListings', JSON.stringify(existing));
+    }
+    return listing;
+  }
+
+  function showSuccessScreen(listing) {
+    var profileUrl = 'profile.html?id=' + listing.id;
+    document.getElementById('public-url').textContent = profileUrl;
+    document.getElementById('view-profile-btn').href = profileUrl;
+    document.getElementById('list-form-wrap').style.display = 'none';
+    document.getElementById('form-header').style.display = 'none';
+    document.getElementById('list-success').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (window.showToast) showToast('🎉 Your dabba is now live!');
+  }
+
+  /* ──── Populate review ──── */
+  var btnToReview = document.getElementById('btn-to-review');
+  if (btnToReview) {
+    btnToReview.addEventListener('click', function() {
+      var listing = buildListingObject();
+      var ftMap = { veg: 'badge-veg', nonveg: 'badge-nonveg', jain: 'badge-jain', diet: 'badge-diet' };
+      var ftLabels = { veg: 'Veg', nonveg: 'Non-Veg', jain: 'Jain', diet: 'Diet Friendly' };
+      document.getElementById('review-name').textContent = listing.name;
+      document.getElementById('review-location').textContent = [listing.area, listing.pincode].filter(Boolean).join(', ') || '—';
+      var allFoodTypes = Array.from(document.getElementById('ft-pills').querySelectorAll('.checkbox-pill.active')).map(function(p){ return p.dataset.value; });
+      document.getElementById('review-foodtype').innerHTML = allFoodTypes.length ? allFoodTypes.map(function(t){ return '<span class="badge ' + (ftMap[t]||'') + ' badge-dot">' + (ftLabels[t]||t) + '</span>'; }).join(' ') : '—';
+      document.getElementById('review-cuisine').textContent = listing.cuisines.join(', ') || '—';
+      var mealLabels = { lunch: 'Lunch', dinner: 'Dinner' };
+      document.getElementById('review-meals').textContent = listing.meals.map(function(m){ return mealLabels[m]||m; }).join(' & ') || '—';
+      document.getElementById('review-lunch').textContent = listing.lunchPrice ? '₹' + listing.lunchPrice + ' / meal' : '—';
+      document.getElementById('review-dinner').textContent = listing.dinnerPrice ? '₹' + listing.dinnerPrice + ' / meal' : '—';
+      document.getElementById('review-monthly').textContent = listing.monthlyPrice ? '₹' + listing.monthlyPrice + ' / month' : '—';
+      document.getElementById('review-trial').textContent = listing.trial ? '✓ Available' : '✗ Not offered';
+      document.getElementById('review-description').textContent = listing.description || '—';
+    });
+  }
+
+  /* ──── Go Live button ──── */
+  var submitBtn = document.getElementById('list-submit-btn');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', function() {
+      pendingListingSave = buildListingObject();
+      var user = null;
+      try { user = JSON.parse(localStorage.getItem('dabbamapUser') || 'null'); } catch(e) {}
+
+      function finish(u) {
+        pendingListingSave.userId = (u && u.email) || '';
+        saveListing(pendingListingSave);
+        showSuccessScreen(pendingListingSave);
+      }
+
+      if (user && user.loggedIn) {
+        finish(user);
+      } else {
+        // Require email + password login before listing
+        if (window.openNavLoginModal) {
+          openNavLoginModal(function(u) { finish(u); });
+        } else {
+          finish(null);
+        }
+      }
+    });
+  }
+
+  /* ──── Copy link on success screen ──── */
+  document.getElementById('copy-public-url').addEventListener('click', function() {
+    var url = document.getElementById('public-url').textContent;
+    navigator.clipboard.writeText(url).then(function(){ if(window.showToast) showToast('Link copied!'); }).catch(function(){});
+  });
+});
+</script>
+</body>
+</html>
