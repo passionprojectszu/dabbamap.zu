@@ -82,12 +82,13 @@
             <div id="user-location-status" style="font-size:11px;color:var(--text-muted);margin-top:4px;display:none"></div>
           </div>
 
-          <div class="filter-section">
+          <div class="filter-section" style="position:relative">
             <label>Area / Pincode</label>
             <div class="search-bar" style="border-radius:var(--radius-btn)">
               <span class="search-icon">📍</span>
-              <input type="text" id="filter-area" placeholder="e.g. Andheri or 400058" />
+              <input type="text" id="filter-area" placeholder="Any place or pincode in India" autocomplete="off" />
             </div>
+            <div id="area-suggest" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:600;background:#fff;border:1.5px solid var(--border);border-radius:10px;box-shadow:0 6px 24px rgba(44,24,16,.14);max-height:220px;overflow-y:auto;margin-top:4px"></div>
           </div>
 
           <div class="filter-section">
@@ -772,11 +773,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 700);
   });
 
-  // Area input
-  document.getElementById('filter-area').addEventListener('input', function() {
-    filterState.area = this.value; currentPage = 1;
+  // Area input — filters listings live AND suggests pan-India places
+  var areaInput   = document.getElementById('filter-area');
+  var areaSuggest = document.getElementById('area-suggest');
+  var areaTimer   = null;
+
+  function hideAreaSuggest() { areaSuggest.style.display = 'none'; }
+
+  function renderAreaSuggest(places) {
+    if (!places.length) { hideAreaSuggest(); return; }
+    areaSuggest.innerHTML = places.map(function(p) {
+      var safe = p.label.replace(/"/g,'&quot;');
+      return '<div class="area-opt" data-val="' + safe + '" style="padding:9px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f3ece4;font-size:13px">' +
+        '<span style="font-weight:600;color:#2C1810">' + p.label + '</span>' +
+        '<span style="font-size:11px;color:#C8771A;font-weight:600">' + p.sub + '</span>' +
+      '</div>';
+    }).join('');
+    areaSuggest.style.display = 'block';
+    areaSuggest.querySelectorAll('.area-opt').forEach(function(el) {
+      el.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        areaInput.value = el.dataset.val;
+        filterState.area = el.dataset.val; currentPage = 1;
+        hideAreaSuggest();
+        applyFilters();
+      });
+      el.addEventListener('mouseover', function(){ el.style.background = '#fdf8f0'; });
+      el.addEventListener('mouseout',  function(){ el.style.background = ''; });
+    });
+  }
+
+  areaInput.addEventListener('input', function() {
+    var q = this.value;
+    filterState.area = q; currentPage = 1;
     applyFilters();
+    clearTimeout(areaTimer);
+    if (q.trim().length < 3) { hideAreaSuggest(); return; }
+    areaTimer = setTimeout(function() {
+      if (areaInput.value !== q) return;
+      window.fetchIndiaPlaces(q, function(places) {
+        if (areaInput.value !== q) return;
+        renderAreaSuggest(places);
+      }, 6);
+    }, 350);
   });
+  areaInput.addEventListener('blur', function() { setTimeout(hideAreaSuggest, 150); });
 
   // Name input
   document.getElementById('filter-name').addEventListener('input', function() {

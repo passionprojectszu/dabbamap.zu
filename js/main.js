@@ -308,6 +308,35 @@ function initProfileIcon() {
   window.refreshProfileIcon = render;
 }
 
+// ── Pan-India place / pincode lookup (OpenStreetMap Nominatim) ───────────────
+// Returns up to `limit` Indian places matching the query via cb([{label, sub, lat, lng}]).
+window.fetchIndiaPlaces = function (query, cb, limit) {
+  query = (query || '').trim();
+  if (query.length < 3) { cb([]); return; }
+  var isPin = /^\d{3,6}$/.test(query);
+  var url = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=in&limit='
+    + (limit || 6) + '&' + (isPin ? 'postalcode=' + encodeURIComponent(query) : 'q=' + encodeURIComponent(query));
+  fetch(url, { headers: { 'Accept-Language': 'en' } })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var seen = {}, out = [];
+      (data || []).forEach(function (d) {
+        var a = d.address || {};
+        var primary = a.suburb || a.neighbourhood || a.village || a.town || a.city
+          || a.county || (d.display_name || '').split(',')[0];
+        var region  = a.city || a.state_district || a.state || '';
+        if (!primary) return;
+        var label = primary + (region && region !== primary ? ', ' + region : '');
+        var key = label.toLowerCase();
+        if (seen[key]) return;
+        seen[key] = 1;
+        out.push({ label: label, sub: a.postcode || a.state || 'India', lat: d.lat, lng: d.lon });
+      });
+      cb(out);
+    })
+    .catch(function () { cb([]); });
+};
+
 // ── Account storage helpers (email + password) ──────────────────────────────
 function getAccounts() {
   try { return JSON.parse(localStorage.getItem('dabbamapAccounts') || '{}'); } catch(e) { return {}; }
@@ -331,7 +360,7 @@ function openNavLoginModal(onSuccess) {
       <h3 id="nlm-title" style="font-family:var(--font-display);font-size:21px;font-weight:800;margin-bottom:6px">Welcome back</h3>
       <p id="nlm-subtitle" style="font-size:13px;color:var(--text-muted);margin-bottom:18px">Log in to manage your dabba and messages.</p>
 
-      <div style="display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px">
+      <div id="nlm-tabs" style="display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px">
         <button id="nlm-tab-login"  type="button" style="flex:1;padding:9px;border:none;background:var(--primary);color:#fff;font-weight:700;cursor:pointer;font-family:var(--font-body);font-size:13px">Log In</button>
         <button id="nlm-tab-signup" type="button" style="flex:1;padding:9px;border:none;background:transparent;color:var(--text-muted);font-weight:600;cursor:pointer;font-family:var(--font-body);font-size:13px">Sign Up</button>
       </div>
@@ -347,8 +376,12 @@ function openNavLoginModal(onSuccess) {
       </div>
 
       <div class="form-group mb-3">
-        <label class="form-label">Password</label>
+        <label class="form-label" id="nlm-pass-label">Password</label>
         <input type="password" id="nlm-password" class="form-input" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+
+      <div id="nlm-forgot-wrap" style="text-align:right;margin-top:-6px;margin-bottom:14px">
+        <a href="#" id="nlm-forgot" style="font-size:12px;color:var(--primary);font-weight:600;text-decoration:none">Forgot password?</a>
       </div>
 
       <div id="nlm-confirm-field" class="form-group mb-4" style="display:none">
@@ -372,10 +405,13 @@ function openNavLoginModal(onSuccess) {
 
   const title    = document.getElementById('nlm-title');
   const subtitle = document.getElementById('nlm-subtitle');
+  const tabs      = document.getElementById('nlm-tabs');
   const tabLogin = document.getElementById('nlm-tab-login');
   const tabSignup= document.getElementById('nlm-tab-signup');
   const nameField= document.getElementById('nlm-name-field');
   const confField= document.getElementById('nlm-confirm-field');
+  const passLabel= document.getElementById('nlm-pass-label');
+  const forgotWrap = document.getElementById('nlm-forgot-wrap');
   const submit   = document.getElementById('nlm-submit');
   const errBox   = document.getElementById('nlm-error');
   const switchHint = document.getElementById('nlm-switch-hint');
@@ -387,27 +423,45 @@ function openNavLoginModal(onSuccess) {
     mode = m;
     clearError();
     const isSignup = m === 'signup';
+    const isReset  = m === 'reset';
+
+    // Tabs only relevant for login/signup
+    tabs.style.display = isReset ? 'none' : 'flex';
     tabLogin.style.background  = isSignup ? 'transparent' : 'var(--primary)';
     tabLogin.style.color       = isSignup ? 'var(--text-muted)' : '#fff';
     tabLogin.style.fontWeight  = isSignup ? '600' : '700';
     tabSignup.style.background  = isSignup ? 'var(--primary)' : 'transparent';
     tabSignup.style.color       = isSignup ? '#fff' : 'var(--text-muted)';
     tabSignup.style.fontWeight  = isSignup ? '700' : '600';
+
     nameField.style.display = isSignup ? '' : 'none';
-    confField.style.display = isSignup ? '' : 'none';
-    title.textContent    = isSignup ? 'Create your account' : 'Welcome back';
-    subtitle.textContent = isSignup ? 'Sign up to list your dabba or save your messages.' : 'Log in to manage your dabba and messages.';
-    submit.textContent   = isSignup ? 'Create Account →' : 'Log In →';
-    switchHint.innerHTML = isSignup
-      ? 'Already have an account? <a href="#" id="nlm-switch-link" style="color:var(--primary);font-weight:600;text-decoration:none">Log in</a>'
-      : 'New to DabbaMap? <a href="#" id="nlm-switch-link" style="color:var(--primary);font-weight:600;text-decoration:none">Create an account</a>';
-    document.getElementById('nlm-switch-link').addEventListener('click', e => { e.preventDefault(); setMode(isSignup ? 'login' : 'signup'); });
-    document.getElementById('nlm-password').setAttribute('autocomplete', isSignup ? 'new-password' : 'current-password');
+    confField.style.display = (isSignup || isReset) ? '' : 'none';
+    forgotWrap.style.display = (m === 'login') ? '' : 'none';
+    passLabel.textContent = isReset ? 'New Password' : 'Password';
+
+    title.textContent =
+      isSignup ? 'Create your account' :
+      isReset  ? 'Reset your password'  : 'Welcome back';
+    subtitle.textContent =
+      isSignup ? 'Sign up to list your dabba or save your messages.' :
+      isReset  ? 'Enter your email and choose a new password.' :
+                 'Log in to manage your dabba and messages.';
+    submit.textContent =
+      isSignup ? 'Create Account →' :
+      isReset  ? 'Reset Password →'  : 'Log In →';
+
+    switchHint.innerHTML =
+      isSignup ? 'Already have an account? <a href="#" id="nlm-switch-link" style="color:var(--primary);font-weight:600;text-decoration:none">Log in</a>' :
+      isReset  ? 'Remembered it? <a href="#" id="nlm-switch-link" style="color:var(--primary);font-weight:600;text-decoration:none">Back to log in</a>' :
+                 'New to DabbaMap? <a href="#" id="nlm-switch-link" style="color:var(--primary);font-weight:600;text-decoration:none">Create an account</a>';
+    document.getElementById('nlm-switch-link').addEventListener('click', e => { e.preventDefault(); setMode((isSignup || isReset) ? 'login' : 'signup'); });
+    document.getElementById('nlm-password').setAttribute('autocomplete', (isSignup || isReset) ? 'new-password' : 'current-password');
   }
 
   tabLogin.addEventListener('click', () => setMode('login'));
   tabSignup.addEventListener('click', () => setMode('signup'));
   document.getElementById('nlm-switch-link').addEventListener('click', e => { e.preventDefault(); setMode('signup'); });
+  document.getElementById('nlm-forgot').addEventListener('click', e => { e.preventDefault(); setMode('reset'); });
 
   function closeModal() { modal.remove(); }
   modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
@@ -423,6 +477,21 @@ function openNavLoginModal(onSuccess) {
 
     if (!validEmail(email)) { showError('Please enter a valid email address.'); return; }
     if (!pass || pass.length < 4) { showError('Password must be at least 4 characters.'); return; }
+
+    if (mode === 'reset') {
+      const conf = document.getElementById('nlm-confirm').value;
+      if (pass !== conf) { showError('Passwords do not match.'); return; }
+      if (!accounts[email]) { showError('No account found with this email. Please sign up first.'); return; }
+      accounts[email].password = pass;
+      saveAccounts(accounts);
+      const u = { name: accounts[email].name, email, loggedIn: true, loginMethod: 'email' };
+      localStorage.setItem('dabbamapUser', JSON.stringify(u));
+      closeModal();
+      showToast("Password reset — you're logged in.");
+      if (window.refreshProfileIcon) window.refreshProfileIcon();
+      if (typeof onSuccess === 'function') onSuccess(u);
+      return;
+    }
 
     if (mode === 'signup') {
       const name = document.getElementById('nlm-name').value.trim();

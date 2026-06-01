@@ -628,18 +628,12 @@ window.doHeroSearch = function () {
     return items;
   }
 
-  window.heroSearchSuggest = function(q) {
-    // Hide stat pill while user is typing a search
-    var statRow = document.querySelector('.map-stats-row');
-    if (statRow) statRow.style.display = q ? 'none' : '';
+  var heroPlaceTimer = null;
 
+  function renderHeroBox(items) {
     var box = document.getElementById('hero-suggestions');
-    if (!q || q.length < 1) { box.style.display = 'none'; return; }
-    var matches = getSuggestions().filter(function(i) {
-      return i.label.toLowerCase().includes(q.toLowerCase());
-    }).slice(0, 8);
-    if (!matches.length) { box.style.display = 'none'; return; }
-    box.innerHTML = matches.map(function(m) {
+    if (!items.length) { box.style.display = 'none'; return; }
+    box.innerHTML = items.map(function(m) {
       var type = m.sub === 'Provider' ? 'name' : 'area';
       var safeLabel = m.label.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       return '<div style="padding:10px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f3ece4;font-family:\'DM Sans\',sans-serif" ' +
@@ -650,6 +644,39 @@ window.doHeroSearch = function () {
       '</div>';
     }).join('');
     box.style.display = 'block';
+  }
+
+  window.heroSearchSuggest = function(q) {
+    // Hide stat pill while user is typing a search
+    var statRow = document.querySelector('.map-stats-row');
+    if (statRow) statRow.style.display = q ? 'none' : '';
+
+    var box = document.getElementById('hero-suggestions');
+    if (!q || q.length < 1) { box.style.display = 'none'; return; }
+
+    // 1) Instant local matches (Mumbai listings + areas + providers)
+    var local = getSuggestions().filter(function(i) {
+      return i.label.toLowerCase().includes(q.toLowerCase());
+    }).slice(0, 6);
+    renderHeroBox(local);
+
+    // 2) Pan-India places (cities, areas, pincodes) — appended when they arrive
+    clearTimeout(heroPlaceTimer);
+    heroPlaceTimer = setTimeout(function() {
+      var current = document.getElementById('hero-search-input').value.trim();
+      if (current !== q) return; // stale
+      window.fetchIndiaPlaces(q, function(places) {
+        if (document.getElementById('hero-search-input').value.trim() !== q) return;
+        var seen = {};
+        var combined = [];
+        local.forEach(function(i){ seen[i.label.toLowerCase()] = 1; combined.push(i); });
+        places.forEach(function(p){
+          if (seen[p.label.toLowerCase()]) return;
+          combined.push({ label: p.label, sub: 'Place' });
+        });
+        renderHeroBox(combined.slice(0, 10));
+      }, 6);
+    }, 350);
   };
 
   // Hide dropdown when clicking outside
