@@ -331,8 +331,10 @@
 <!-- ── Scripts ── -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/supabase.js"></script>
 <script src="js/main.js"></script>
 <script src="js/animations.js"></script>
 <script>
@@ -552,43 +554,45 @@ const mcg = L.markerClusterGroup({
 const markerObjects = ALL_DABBAS.map(d => ({ marker: makeMarker(d), type: d.type, trial: d.trial }));
 markerObjects.forEach(m => mcg.addLayer(m.marker));
 
-/* ── Add user-created listings to map ── */
-(function addUserMarkers() {
-  try {
-    var stored = window.DabbaStore ? DabbaStore.getListings() : JSON.parse(localStorage.getItem('dabbamapListings') || '[]');
-    stored.forEach(function(s) {
-      var lat = parseFloat(s.lat), lng = parseFloat(s.lng);
-      if (!lat || !lng) { lat = 19.076 + (Math.random()-0.5)*0.12; lng = 72.877 + (Math.random()-0.5)*0.12; }
-      var d = {
-        lat: lat, lng: lng,
-        price: '₹' + (s.lunchPrice || s.dinnerPrice || '?'),
-        type: s.type || 'veg', trial: false,
-        name: s.name || 'My Dabba', area: s.area || 'Mumbai',
-        cuisine: (s.cuisines && s.cuisines[0]) || 'Other',
-        id: s.id || null
-      };
-      var m = makeMarker(d);
-      markerObjects.push({ marker: m, type: d.type, trial: false });
-      mcg.addLayer(m);
-    });
-  } catch(e) {}
-})();
-
 map.addLayer(mcg);
 
-/* ── Update stat count ── */
-function getLiveCount() {
-  var extra = 0;
-  try { extra = (window.DabbaStore ? DabbaStore.getListings() : JSON.parse(localStorage.getItem('dabbamapListings') || '[]')).length; } catch(e) {}
-  return ALL_DABBAS.length + extra;
+/* ── Add a cloud listing as a map marker ── */
+function addCloudMarker(s) {
+  var lat = parseFloat(s.lat), lng = parseFloat(s.lng);
+  if (!lat || !lng) { lat = 19.076 + (Math.random()-0.5)*0.12; lng = 72.877 + (Math.random()-0.5)*0.12; }
+  var d = {
+    lat: lat, lng: lng,
+    price: '₹' + (s.lunchPrice || s.dinnerPrice || '?'),
+    type: s.type || 'veg', trial: !!s.trial,
+    name: s.name || 'Dabba', area: s.area || 'Mumbai',
+    cuisine: (s.cuisines && s.cuisines[0]) || 'Other',
+    id: s.id || null
+  };
+  var m = makeMarker(d);
+  markerObjects.push({ marker: m, type: d.type, trial: d.trial });
+  mcg.addLayer(m);
 }
-function updateStat(n) {
-  document.getElementById('stat-count').textContent = n;
+
+/* ── Stat count ── */
+var cloudCount = 0;
+function updateStat(n) { document.getElementById('stat-count').textContent = n; }
+updateStat(ALL_DABBAS.length);
+
+/* ── Load cloud listings (shared across all devices) + live updates ── */
+if (window.DabbaListings) {
+  DabbaListings.fetchAll().then(function(rows) {
+    rows = rows || [];
+    cloudCount = rows.length;
+    rows.forEach(addCloudMarker);
+    updateStat(ALL_DABBAS.length + cloudCount);
+  });
+  DabbaListings.subscribe(function(newListing) {
+    cloudCount++;
+    addCloudMarker(newListing);
+    updateStat(ALL_DABBAS.length + cloudCount);
+    if (window.showToast) showToast('🍱 New dabba listed: ' + newListing.name);
+  });
 }
-updateStat(getLiveCount());
-window.addEventListener('storage', function(e) {
-  if (e.key === 'dabbamapListings') updateStat(getLiveCount());
-});
 
 /* ── Hero search ── */
 var heroSearchType = null; // set by autocomplete click: 'area' or 'name'

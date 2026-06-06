@@ -292,7 +292,9 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/store.js"></script>
+<script src="js/supabase.js"></script>
 <script src="js/main.js"></script>
 <script src="js/animations.js"></script>
 <script>
@@ -523,19 +525,26 @@ document.addEventListener('DOMContentLoaded', function () {
       try { user = JSON.parse(localStorage.getItem('dabbamapUser') || 'null'); } catch(e) {}
 
       function finish(u) {
-        pendingListingSave.userId = (u && u.email) || '';
-        saveListing(pendingListingSave);
-        showSuccessScreen(pendingListingSave);
+        if (!u || !u.id) { if (window.showToast) showToast('Please log in to list your dabba.'); return; }
+        pendingListingSave.owner = u.id;
+        submitBtn.disabled = true; submitBtn.textContent = 'Publishing…';
+        window.DabbaListings.insert(pendingListingSave).then(function(saved) {
+          submitBtn.disabled = false; submitBtn.textContent = '🚀 Go Live!';
+          showSuccessScreen(saved || pendingListingSave);
+        }).catch(function(err) {
+          submitBtn.disabled = false; submitBtn.textContent = '🚀 Go Live!';
+          if (window.showToast) showToast('Could not publish: ' + (err && err.message ? err.message : 'try again'));
+        });
       }
 
-      if (user && user.loggedIn) {
+      if (user && user.loggedIn && user.id) {
         finish(user);
       } else {
         // Require email + password login before listing
         if (window.openNavLoginModal) {
           openNavLoginModal(function(u) { finish(u); });
         } else {
-          finish(null);
+          if (window.showToast) showToast('Login is still loading — try again in a moment.');
         }
       }
     });

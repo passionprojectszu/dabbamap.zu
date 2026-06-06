@@ -195,8 +195,10 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/supabase.js"></script>
 <script src="js/main.js"></script>
 <script src="js/animations.js"></script>
 <script>
@@ -424,35 +426,11 @@ function distanceKm(lat1, lng1, lat2, lng2) {
 }
 
 /* ══════════════════════════════════════════════════════════
-   GET ALL LISTINGS (master + localStorage)
+   GET ALL LISTINGS (cloud listings from Supabase + built-in master set)
 ══════════════════════════════════════════════════════════ */
+var cloudListings = [];   // populated from Supabase on load + realtime
 function getAllListings() {
-  let all = [...MASTER_LISTINGS];
-  try {
-    const stored = window.DabbaStore ? DabbaStore.getListings() : JSON.parse(localStorage.getItem('dabbamapListings') || '[]');
-    const normalised = stored.map((s, i) => ({
-      id:          s.id || s.secretId || ('U' + i),
-      name:        s.name      || 'Unnamed Cook',
-      initial:     (s.name||'?')[0].toUpperCase(),
-      avatarBg:    'linear-gradient(135deg,#C8771A,#F5A623)',
-      area:        s.area      || '',
-      pincode:     s.pincode   || '',
-      type:        s.type || 'veg',
-      cuisines:    s.cuisines  || [],
-      meals:       s.meals     || [],
-      lunchPrice:  parseInt(s.lunchPrice)  || null,
-      dinnerPrice: parseInt(s.dinnerPrice) || null,
-      monthlyPrice:parseInt(s.monthlyPrice)|| null,
-      trial:       !!s.trial,
-      communityPick: false,
-      description: s.description || '',
-      daysAgo:     0,
-      lat:         parseFloat(s.lat) || null,
-      lng:         parseFloat(s.lng) || null,
-    }));
-    all = [...normalised, ...all];
-  } catch(e) {}
-  return all;
+  return [...cloudListings, ...MASTER_LISTINGS];
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -891,8 +869,25 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector(`#ft-pills [data-value="${typeParam}"]`)?.classList.add('active');
   }
 
-  // Initial render
+  // Initial render (master listings show instantly)
   applyFilters();
+
+  // Load cloud listings from Supabase, then re-render; subscribe for live updates
+  if (window.DabbaListings) {
+    DabbaListings.fetchAll().then(function(rows) {
+      cloudListings = rows || [];
+      applyFilters();
+      if (discoverMapInst) { discoverMapInst.remove(); discoverMapInst = null;
+        if (document.getElementById('map-view').style.display !== 'none') initDiscoverMap(); }
+    });
+    DabbaListings.subscribe(function(newListing) {
+      if (!cloudListings.some(function(l){ return l.id === newListing.id; })) {
+        cloudListings.unshift(newListing);
+        applyFilters();
+        if (window.showToast) showToast('🍱 New dabba just listed: ' + newListing.name);
+      }
+    });
+  }
 });
 </script>
 

@@ -278,9 +278,15 @@ function initProfileIcon() {
       drop.querySelector('#npd-dash-p').onclick = function() { window.location.href = 'dashboard.html?role=provider'; };
       drop.querySelector('#npd-dash-c').onclick = function() { window.location.href = 'dashboard.html?role=consumer'; };
       drop.querySelector('#npd-logout').onclick = function() {
-        localStorage.removeItem('dabbamapUser');
-        showToast('Logged out.');
-        setTimeout(function() { location.reload(); }, 700);
+        if (window.DabbaAuth) {
+          window.DabbaAuth.signOut().then(function() {
+            showToast('Logged out.');
+            setTimeout(function() { location.reload(); }, 500);
+          });
+        } else {
+          localStorage.removeItem('dabbamapUser');
+          setTimeout(function() { location.reload(); }, 300);
+        }
       };
     } else {
       btn.innerHTML = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;stroke:var(--primary);fill:none;stroke-width:1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
@@ -375,7 +381,7 @@ function openNavLoginModal(onSuccess) {
         <input type="email" id="nlm-email" class="form-input" placeholder="you@example.com" autocomplete="email" />
       </div>
 
-      <div class="form-group mb-3">
+      <div class="form-group mb-3" id="nlm-pass-field">
         <label class="form-label" id="nlm-pass-label">Password</label>
         <input type="password" id="nlm-password" class="form-input" placeholder="••••••••" autocomplete="current-password" />
       </div>
@@ -409,6 +415,7 @@ function openNavLoginModal(onSuccess) {
   const tabLogin = document.getElementById('nlm-tab-login');
   const tabSignup= document.getElementById('nlm-tab-signup');
   const nameField= document.getElementById('nlm-name-field');
+  const passField= document.getElementById('nlm-pass-field');
   const confField= document.getElementById('nlm-confirm-field');
   const passLabel= document.getElementById('nlm-pass-label');
   const forgotWrap = document.getElementById('nlm-forgot-wrap');
@@ -435,27 +442,28 @@ function openNavLoginModal(onSuccess) {
     tabSignup.style.fontWeight  = isSignup ? '700' : '600';
 
     nameField.style.display = isSignup ? '' : 'none';
-    confField.style.display = (isSignup || isReset) ? '' : 'none';
+    passField.style.display = isReset ? 'none' : '';
+    confField.style.display = isSignup ? '' : 'none';
     forgotWrap.style.display = (m === 'login') ? '' : 'none';
-    passLabel.textContent = isReset ? 'New Password' : 'Password';
+    passLabel.textContent = 'Password';
 
     title.textContent =
       isSignup ? 'Create your account' :
-      isReset  ? 'Reset your password'  : 'Welcome back';
+      isReset  ? 'Forgot password'      : 'Welcome back';
     subtitle.textContent =
       isSignup ? 'Sign up to list your dabba or save your messages.' :
-      isReset  ? 'Enter your email and choose a new password.' :
+      isReset  ? "Enter your registered email and we'll email you a reset link." :
                  'Log in to manage your dabba and messages.';
     submit.textContent =
       isSignup ? 'Create Account →' :
-      isReset  ? 'Reset Password →'  : 'Log In →';
+      isReset  ? 'Send Reset Link →'  : 'Log In →';
 
     switchHint.innerHTML =
       isSignup ? 'Already have an account? <a href="#" id="nlm-switch-link" style="color:var(--primary);font-weight:600;text-decoration:none">Log in</a>' :
       isReset  ? 'Remembered it? <a href="#" id="nlm-switch-link" style="color:var(--primary);font-weight:600;text-decoration:none">Back to log in</a>' :
                  'New to DabbaMap? <a href="#" id="nlm-switch-link" style="color:var(--primary);font-weight:600;text-decoration:none">Create an account</a>';
     document.getElementById('nlm-switch-link').addEventListener('click', e => { e.preventDefault(); setMode((isSignup || isReset) ? 'login' : 'signup'); });
-    document.getElementById('nlm-password').setAttribute('autocomplete', (isSignup || isReset) ? 'new-password' : 'current-password');
+    document.getElementById('nlm-password').setAttribute('autocomplete', isSignup ? 'new-password' : 'current-password');
   }
 
   tabLogin.addEventListener('click', () => setMode('login'));
@@ -469,54 +477,72 @@ function openNavLoginModal(onSuccess) {
 
   function validEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
 
+  function userFromRes(res, fallbackName, email) {
+    var su = (res.data && (res.data.user || (res.data.session && res.data.session.user))) || null;
+    if (!su) return { name: fallbackName || (email||'').split('@')[0], email: email, loggedIn: true };
+    return {
+      id: su.id,
+      name: (su.user_metadata && su.user_metadata.name) || fallbackName || (su.email||'').split('@')[0],
+      email: su.email, loggedIn: true, loginMethod: 'email'
+    };
+  }
+
   submit.addEventListener('click', () => {
     clearError();
+    const Auth  = window.DabbaAuth;
     const email = document.getElementById('nlm-email').value.trim().toLowerCase();
     const pass  = document.getElementById('nlm-password').value;
-    const accounts = getAccounts();
 
     if (!validEmail(email)) { showError('Please enter a valid email address.'); return; }
-    if (!pass || pass.length < 4) { showError('Password must be at least 4 characters.'); return; }
+    if (!Auth) { showError('Still connecting to the server — try again in a second.'); return; }
 
+    // FORGOT PASSWORD → email a reset link
     if (mode === 'reset') {
-      const conf = document.getElementById('nlm-confirm').value;
-      if (pass !== conf) { showError('Passwords do not match.'); return; }
-      if (!accounts[email]) { showError('No account found with this email. Please sign up first.'); return; }
-      accounts[email].password = pass;
-      saveAccounts(accounts);
-      const u = { name: accounts[email].name, email, loggedIn: true, loginMethod: 'email' };
-      localStorage.setItem('dabbamapUser', JSON.stringify(u));
-      closeModal();
-      showToast("Password reset — you're logged in.");
-      if (window.refreshProfileIcon) window.refreshProfileIcon();
-      if (typeof onSuccess === 'function') onSuccess(u);
+      submit.disabled = true; submit.textContent = 'Sending…';
+      Auth.resetPassword(email).then(function (res) {
+        submit.disabled = false; submit.textContent = 'Send Reset Link →';
+        if (res.error) { showError(res.error.message); return; }
+        var card = modal.querySelector('div');
+        card.innerHTML =
+          '<div style="font-size:28px;margin-bottom:8px">📩</div>' +
+          '<h3 style="font-family:var(--font-display);font-size:21px;font-weight:800;margin-bottom:6px">Check your email</h3>' +
+          '<p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">We sent a password reset link to <strong>' + email + '</strong>. Open it to set a new password.</p>' +
+          '<button class="btn btn-primary" style="width:100%" id="nlm-ok">Done</button>';
+        card.querySelector('#nlm-ok').addEventListener('click', closeModal);
+      });
       return;
     }
+
+    if (!pass || pass.length < 4) { showError('Password must be at least 4 characters.'); return; }
 
     if (mode === 'signup') {
       const name = document.getElementById('nlm-name').value.trim();
       const conf = document.getElementById('nlm-confirm').value;
       if (!name) { showError('Please enter your name.'); return; }
       if (pass !== conf) { showError('Passwords do not match.'); return; }
-      if (accounts[email]) { showError('An account with this email already exists. Please log in.'); return; }
-      accounts[email] = { name, email, password: pass };
-      saveAccounts(accounts);
-      const u = { name, email, loggedIn: true, loginMethod: 'email' };
-      localStorage.setItem('dabbamapUser', JSON.stringify(u));
-      closeModal();
-      showToast('Account created — welcome, ' + name + '!');
-      if (window.refreshProfileIcon) window.refreshProfileIcon();
-      if (typeof onSuccess === 'function') onSuccess(u);
+      submit.disabled = true; submit.textContent = 'Creating…';
+      Auth.signUp(name, email, pass).then(function (res) {
+        submit.disabled = false; submit.textContent = 'Create Account →';
+        if (res.error) { showError(res.error.message); return; }
+        if (!res.data.session) { // email confirmation is enabled
+          showError('Account created! Please check your email to confirm, then log in.');
+          setMode('login');
+          return;
+        }
+        closeModal();
+        showToast('Account created — welcome, ' + name + '!');
+        if (typeof onSuccess === 'function') onSuccess(userFromRes(res, name, email));
+      });
     } else {
-      const acct = accounts[email];
-      if (!acct) { showError('No account found with this email. Please sign up first.'); return; }
-      if (acct.password !== pass) { showError('Incorrect password. Please try again.'); return; }
-      const u = { name: acct.name, email, loggedIn: true, loginMethod: 'email' };
-      localStorage.setItem('dabbamapUser', JSON.stringify(u));
-      closeModal();
-      showToast('Welcome back, ' + acct.name + '!');
-      if (window.refreshProfileIcon) window.refreshProfileIcon();
-      if (typeof onSuccess === 'function') onSuccess(u);
+      submit.disabled = true; submit.textContent = 'Logging in…';
+      Auth.signIn(email, pass).then(function (res) {
+        submit.disabled = false; submit.textContent = 'Log In →';
+        if (res.error) { showError(res.error.message || 'Incorrect email or password.'); return; }
+        var u = userFromRes(res, null, email);
+        closeModal();
+        showToast('Welcome back' + (u.name ? ', ' + u.name : '') + '!');
+        if (typeof onSuccess === 'function') onSuccess(u);
+      });
     }
   });
 
@@ -525,6 +551,38 @@ function openNavLoginModal(onSuccess) {
 
   setMode('login');
 }
+
+// ── Password recovery (opens when the reset email link is clicked) ───────────
+window.onDabbaPasswordRecovery = function () {
+  if (document.getElementById('nav-recovery-modal')) return;
+  var modal = document.createElement('div');
+  modal.id = 'nav-recovery-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(44,24,16,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:20px;padding:28px;max-width:400px;width:100%;box-shadow:0 12px 48px rgba(44,24,16,.3)">' +
+      '<div style="font-size:28px;margin-bottom:8px">🔑</div>' +
+      '<h3 style="font-family:var(--font-display);font-size:21px;font-weight:800;margin-bottom:6px">Set a new password</h3>' +
+      '<p style="font-size:13px;color:var(--text-muted);margin-bottom:18px">Choose a new password for your account.</p>' +
+      '<div class="form-group mb-3"><label class="form-label">New Password</label><input type="password" id="nrm-pass" class="form-input" placeholder="••••••••" autocomplete="new-password" /></div>' +
+      '<div class="form-group mb-4"><label class="form-label">Confirm Password</label><input type="password" id="nrm-conf" class="form-input" placeholder="••••••••" autocomplete="new-password" /></div>' +
+      '<div id="nrm-error" style="display:none;font-size:13px;color:#dc2626;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:8px 12px;margin-bottom:14px"></div>' +
+      '<button class="btn btn-primary" style="width:100%" id="nrm-submit">Update Password →</button>' +
+    '</div>';
+  document.body.appendChild(modal);
+  function err(m) { var e = document.getElementById('nrm-error'); e.textContent = m; e.style.display = ''; }
+  document.getElementById('nrm-submit').addEventListener('click', function () {
+    var p = document.getElementById('nrm-pass').value;
+    var c = document.getElementById('nrm-conf').value;
+    if (!p || p.length < 4) { err('Password must be at least 4 characters.'); return; }
+    if (p !== c) { err('Passwords do not match.'); return; }
+    window.DabbaAuth.updatePassword(p).then(function (res) {
+      if (res.error) { err(res.error.message); return; }
+      modal.remove();
+      showToast('Password updated — you\'re logged in.');
+      if (window.refreshProfileIcon) window.refreshProfileIcon();
+    });
+  });
+};
 
 // ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {

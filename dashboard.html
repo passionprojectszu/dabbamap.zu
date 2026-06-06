@@ -301,7 +301,9 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/store.js"></script>
+<script src="js/supabase.js"></script>
 <script src="js/main.js"></script>
 <script src="js/animations.js"></script>
 <script>
@@ -315,7 +317,8 @@ var LISTINGS_KEY      = 'dabbamapListings';
 function getConversations()   { return window.DabbaStore ? DabbaStore.getConversations() : []; }
 function saveConversations(c) { if (window.DabbaStore) DabbaStore.setConversations(c); }
 function getCurrentUser()     { try { return JSON.parse(localStorage.getItem(USER_KEY)||'null'); } catch(e){ return null; } }
-function getStoredListings()  { return window.DabbaStore ? DabbaStore.getListings() : []; }
+var cloudMyListings = [];   // this user's listings from Supabase (filled on load)
+function getStoredListings()  { return cloudMyListings; }
 
 /* ════════════════════════════════════════════════════════
    MASTER LISTINGS (for display metadata when showing provider view)
@@ -839,28 +842,35 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  /* ── Auto-routing on load ── */
-  var user    = getCurrentUser();
-  var convs   = getConversations();
-  var stored  = getStoredListings();
-  var urlRole = new URLSearchParams(window.location.search).get('role');
+  /* ── Auto-routing on load (after loading this user's cloud listings) ── */
+  function route() {
+    var convs   = getConversations();
+    var stored  = getStoredListings();
+    var urlRole = new URLSearchParams(window.location.search).get('role');
 
-  if (urlRole === 'provider') {
-    currentView = 'provider'; renderProviderDashboard();
-  } else if (urlRole === 'consumer') {
-    currentView = 'consumer'; renderConsumerDashboard();
-  } else if (convs.length > 0 && stored.length === 0) {
-    currentView = 'consumer'; renderConsumerDashboard();
-  } else if (stored.length > 0 && convs.length === 0) {
-    currentView = 'provider'; renderProviderDashboard();
-  } else if (stored.length > 0 && convs.length > 0) {
-    showView('view-role-selector');
-  } else {
-    // No real data — show role selector; demo data available in provider view
-    showView('view-role-selector');
+    if (urlRole === 'provider') {
+      currentView = 'provider'; renderProviderDashboard();
+    } else if (urlRole === 'consumer') {
+      currentView = 'consumer'; renderConsumerDashboard();
+    } else if (convs.length > 0 && stored.length === 0) {
+      currentView = 'consumer'; renderConsumerDashboard();
+    } else if (stored.length > 0 && convs.length === 0) {
+      currentView = 'provider'; renderProviderDashboard();
+    } else {
+      showView('view-role-selector');
+    }
+    startPolling();
   }
 
-  startPolling();
+  var user = getCurrentUser();
+  if (user && user.id && window.DabbaListings) {
+    DabbaListings.fetchMine(user.id).then(function(rows) {
+      cloudMyListings = rows || [];
+      route();
+    }).catch(route);
+  } else {
+    route();
+  }
 });
 </script>
 </body>

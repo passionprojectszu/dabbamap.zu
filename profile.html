@@ -187,8 +187,10 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/supabase.js"></script>
 <script src="js/main.js"></script>
 <script src="js/animations.js"></script>
 <script>
@@ -372,7 +374,24 @@ function getAllListings() {
   return all;
 }
 
-const listing = getAllListings().find(l => l.id === lid) || MASTER_LISTINGS[0];
+let listing = getAllListings().find(l => l.id === lid);
+// Cloud listing (created by another user / device) — fetch it from Supabase
+if (!listing) {
+  try {
+    var SUPA_URL = 'https://yewydnzrtfxyyfiiyvzn.supabase.co';
+    var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlld3lkbnpydGZ4eXlmaWl5dnpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjg2ODUsImV4cCI6MjA5NTkwNDY4NX0.sv32feVTxuTT_ExFw2F3QF1JQ3eIu40EsKfw66DhbYI';
+    var _x = new XMLHttpRequest();
+    _x.open('GET', SUPA_URL + '/rest/v1/listings?id=eq.' + encodeURIComponent(lid) + '&select=*', false);
+    _x.setRequestHeader('apikey', SUPA_KEY);
+    _x.setRequestHeader('Authorization', 'Bearer ' + SUPA_KEY);
+    _x.send(null);
+    if (_x.status === 200) {
+      var _a = JSON.parse(_x.responseText);
+      if (_a && _a[0] && window.rowToListing) listing = window.rowToListing(_a[0]);
+    }
+  } catch(e) {}
+}
+listing = listing || MASTER_LISTINGS[0];
 
 /* ══════════════════════════════════════════════════════════
    POPULATE PAGE WITH LISTING DATA
