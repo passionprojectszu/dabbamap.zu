@@ -85,7 +85,7 @@
     }
     .map-stats-pill .dot {
       width: 8px; height: 8px; border-radius: 50%; background: var(--success);
-      flex-shrink: 0; animation: pulse 2s infinite;
+      flex-shrink: 0;
     }
     .live-pill {
       background: var(--primary); color: #fff; border-radius: 100px;
@@ -573,24 +573,28 @@ function addCloudMarker(s) {
   mcg.addLayer(m);
 }
 
-/* ── Stat count ── */
-var cloudCount = 0;
+/* ── Stat count (always reflects the real cloud count) ── */
 function updateStat(n) { document.getElementById('stat-count').textContent = n; }
 updateStat(ALL_DABBAS.length);
+
+function refreshStat() {
+  if (!window.DabbaListings) return;
+  DabbaListings.count().then(function(c) { updateStat(ALL_DABBAS.length + c); });
+}
 
 /* ── Load cloud listings (shared across all devices) + live updates ── */
 if (window.DabbaListings) {
   DabbaListings.fetchAll().then(function(rows) {
     rows = rows || [];
-    cloudCount = rows.length;
     rows.forEach(addCloudMarker);
-    updateStat(ALL_DABBAS.length + cloudCount);
+    updateStat(ALL_DABBAS.length + rows.length);
   });
-  DabbaListings.subscribe(function(newListing) {
-    cloudCount++;
-    addCloudMarker(newListing);
-    updateStat(ALL_DABBAS.length + cloudCount);
-    if (window.showToast) showToast('🍱 New dabba listed: ' + newListing.name);
+  DabbaListings.subscribe(function(listing, eventType) {
+    refreshStat(); // recount from the database so it's always accurate
+    if (eventType === 'INSERT') {
+      addCloudMarker(listing);
+      if (window.showToast) showToast('🍱 New dabba listed: ' + listing.name);
+    }
   });
 }
 

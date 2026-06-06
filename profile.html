@@ -551,21 +551,39 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.showToast) showToast('Message sent anonymously!');
   }
 
-  // Send message button
-  document.getElementById('anon-send').addEventListener('click', function() {
+  // Send message button → saves to the cloud so the provider sees it on any device
+  var sendBtn = document.getElementById('anon-send');
+  var sendOrig = sendBtn.textContent;
+  sendBtn.addEventListener('click', function() {
     if (!ta.value.trim()) { if (window.showToast) showToast('Please write a message first.'); return; }
-    pendingMessage = ta.value.trim();
+    var msg = ta.value.trim();
+
+    function doSend(u) {
+      if (!listing.owner) {
+        if (window.showToast) showToast('This is a sample listing — messaging works on real listed dabbas.');
+        return;
+      }
+      sendBtn.disabled = true; sendBtn.textContent = 'Sending…';
+      window.DabbaMessages.startOrGet(listing, u.name).then(function(conv) {
+        return window.DabbaMessages.send(conv.id, 'consumer', msg);
+      }).then(function() {
+        sendBtn.disabled = false; sendBtn.textContent = sendOrig;
+        showSuccess();
+      }).catch(function(e) {
+        sendBtn.disabled = false; sendBtn.textContent = sendOrig;
+        if (window.showToast) showToast(e && e.message ? e.message : 'Could not send — try again.');
+      });
+    }
 
     var currentUser = getCurrentUser();
-    if (currentUser && currentUser.loggedIn) {
-      // Logged in → save to their account
-      saveConversation(currentUser.name, currentUser.phone || '');
-      showSuccess();
+    if (currentUser && currentUser.loggedIn && currentUser.id) {
+      doSend(currentUser);
     } else {
-      // Guest → save to this session only (lost on browser exit)
-      saveConversation('Guest', '');
-      showSuccess();
-      if (window.showToast) showToast('Sent as guest — log in to save it to your account.');
+      if (window.openNavLoginModal) {
+        openNavLoginModal(function(u) { doSend(u); });
+      } else {
+        if (window.showToast) showToast('Please log in to send a message.');
+      }
     }
   });
 

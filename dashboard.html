@@ -314,11 +314,36 @@ var CONVERSATIONS_KEY = 'dabbamapConsumerConversations';
 var USER_KEY          = 'dabbamapUser';
 var LISTINGS_KEY      = 'dabbamapListings';
 
-function getConversations()   { return window.DabbaStore ? DabbaStore.getConversations() : []; }
-function saveConversations(c) { if (window.DabbaStore) DabbaStore.setConversations(c); }
 function getCurrentUser()     { try { return JSON.parse(localStorage.getItem(USER_KEY)||'null'); } catch(e){ return null; } }
 var cloudMyListings = [];   // this user's listings from Supabase (filled on load)
 function getStoredListings()  { return cloudMyListings; }
+
+/* ── Cloud conversations (shared across devices) ── */
+var consumerConvs = [];   // conversations where I'm the customer
+var providerConvs = [];   // conversations where I'm the cook (across my listings)
+
+function adaptConv(c) {
+  var msgs = (c.messages || []).slice().sort(function(a,b){
+    return new Date(a.created_at) - new Date(b.created_at);
+  }).map(function(m){ return { from: m.from_role, text: m.body, timestamp: m.created_at }; });
+  return {
+    id: c.id, providerId: c.listing_id,
+    providerName: c.provider_name || 'Provider', providerArea: 'Mumbai', providerType: 'veg',
+    userName: c.consumer_name || 'Customer',
+    messages: msgs, consumerUnread: 0, providerUnread: 0
+  };
+}
+
+function reloadCloudConvs() {
+  if (!window.DabbaMessages) return Promise.resolve();
+  return Promise.all([DabbaMessages.myConsumer(), DabbaMessages.myProvider()]).then(function(res) {
+    consumerConvs = (res[0] || []).map(adaptConv);
+    providerConvs = (res[1] || []).map(adaptConv);
+  });
+}
+
+function getConversations()   { return consumerConvs; }
+function saveConversations(c) { /* cloud-backed now; replies persist via DabbaMessages.send */ }
 
 /* ════════════════════════════════════════════════════════
    MASTER LISTINGS (for display metadata when showing provider view)
@@ -468,15 +493,18 @@ function openConsumerConv(convId) {
     var text = txt.value.trim();
     if (!text) return;
     txt.value = '';
-    var convs2 = getConversations();
-    var c2 = convs2.find(function(x){ return x.id === convId; });
-    if (!c2) return;
-    c2.messages = c2.messages || [];
-    c2.messages.push({ from:'consumer', text:text, timestamp:new Date().toISOString() });
-    c2.providerUnread = (c2.providerUnread || 0) + 1;
-    saveConversations(convs2);
-    refreshConsumerChat(convId);
-    buildConsumerConvList(getConversations());
+    var c2 = consumerConvs.find(function(x){ return x.id === convId; });
+    if (c2) {
+      c2.messages = c2.messages || [];
+      c2.messages.push({ from:'consumer', text:text, timestamp:new Date().toISOString() });
+      refreshConsumerChat(convId);
+      buildConsumerConvList(consumerConvs);
+    }
+    if (window.DabbaMessages) {
+      window.DabbaMessages.send(convId, 'consumer', text).catch(function() {
+        if (window.showToast) showToast('Message failed to send — check your connection.');
+      });
+    }
   }
 
   document.getElementById('c-snd-' + convId).addEventListener('click', doSend);
@@ -557,13 +585,7 @@ function buildProviderListings() {
 }
 
 function getConvsForListing(listingId) {
-  // Real conversations sent by consumers
-  var real = getConversations().filter(function(c){ return c.providerId === listingId; });
-  // Demo starters (only if no real convs for this listing and it's a demo listing)
-  var demos = (DEMO_STARTER_CONVS[listingId] || []).filter(function(d){
-    return !real.find(function(r){ return r.id === d.id; });
-  });
-  return real.concat(demos);
+  return providerConvs.filter(function(c){ return c.providerId === listingId; });
 }
 
 function getTotalUnreadForListing(listingId) {
@@ -678,21 +700,8 @@ function openProviderConv(convId, listingId, listings) {
   var c = allConvs.find(function(x){ return x.id === convId; });
   if (!c) return;
 
-  // Mark provider unread as 0 — save if it's a real conv, persist to localStorage if demo
-  if (c.providerUnread) {
-    var realConvs = getConversations();
-    var rc = realConvs.find(function(x){ return x.id === convId; });
-    if (rc) { rc.providerUnread = 0; saveConversations(realConvs); }
-    else {
-      // Demo conv — persist read state so it survives polling
-      var readConvs = DabbaStore.getReadConvs();
-      readConvs[convId] = true;
-      DabbaStore.setReadConvs(readConvs);
-      c.providerUnread = 0;
-    }
-    // Refresh listing tile badges
-    buildProviderListingList(listings);
-  }
+  // Mark as read (badges are recomputed on next render)
+  if (c.providerUnread) { c.providerUnread = 0; buildProviderListingList(listings); }
 
   var msgsId = 'p-msgs-' + convId;
   document.getElementById('provider-chat-main').innerHTML =
@@ -717,26 +726,20 @@ function openProviderConv(convId, listingId, listings) {
     if (!text) return;
     txt.value = '';
 
-    var realConvs = getConversations();
-    var rc = realConvs.find(function(x){ return x.id === convId; });
-    if (rc) {
-      // Real conversation — save reply so consumer sees it
-      rc.messages = rc.messages || [];
-      rc.messages.push({ from:'provider', text:text, timestamp:new Date().toISOString() });
-      rc.consumerUnread = (rc.consumerUnread || 0) + 1;
-      saveConversations(realConvs);
-      // Refresh the chat
+    var c2 = providerConvs.find(function(x){ return x.id === convId; });
+    if (c2) {
+      c2.messages = c2.messages || [];
+      c2.messages.push({ from:'provider', text:text, timestamp:new Date().toISOString() });
       var el = document.getElementById(msgsId);
-      if (el) { el.innerHTML = renderMsgs(rc.messages, 'provider'); scrollBot(msgsId); }
-    } else {
-      // Demo conversation — just show locally
-      c.messages = c.messages || [];
-      c.messages.push({ from:'provider', text:text, timestamp:new Date().toISOString() });
-      var el = document.getElementById(msgsId);
-      if (el) { el.innerHTML = renderMsgs(c.messages, 'provider'); scrollBot(msgsId); }
+      if (el) { el.innerHTML = renderMsgs(c2.messages, 'provider'); scrollBot(msgsId); }
     }
-    if (window.showToast) showToast('Reply sent.');
-    buildProviderListingList(listings);
+    if (window.DabbaMessages) {
+      window.DabbaMessages.send(convId, 'provider', text).then(function() {
+        if (window.showToast) showToast('Reply sent.');
+      }).catch(function() {
+        if (window.showToast) showToast('Reply failed to send — try again.');
+      });
+    }
   }
 
   document.getElementById('p-snd-' + convId).addEventListener('click', doProviderSend);
@@ -746,12 +749,7 @@ function openProviderConv(convId, listingId, listings) {
 }
 
 function getConvs_withDemos(listingId) {
-  var real  = getConversations().filter(function(c){ return c.providerId === listingId; });
-  var readConvs = DabbaStore.getReadConvs();
-  var demos = (DEMO_STARTER_CONVS[listingId] || [])
-    .filter(function(d){ return !real.find(function(r){ return r.id === d.id; }); })
-    .map(function(d){ return readConvs[d.id] ? Object.assign({}, d, { providerUnread: 0 }) : d; });
-  return real.concat(demos);
+  return getConvsForListing(listingId);
 }
 
 /* ════════════════════════════════════════════════════════
@@ -792,13 +790,17 @@ function refreshCurrentView() {
 
 function startPolling() {
   if (pollTimer) clearInterval(pollTimer);
-  pollTimer = setInterval(refreshCurrentView, 2000);
+  // Re-fetch conversations from the cloud, then refresh the view
+  pollTimer = setInterval(function() {
+    reloadCloudConvs().then(refreshCurrentView);
+  }, 4000);
+  // Realtime: react instantly when a message/conversation arrives
+  if (window.DabbaMessages && !window._dabbaMsgSub) {
+    window._dabbaMsgSub = DabbaMessages.subscribe(function() {
+      reloadCloudConvs().then(refreshCurrentView);
+    });
+  }
 }
-
-// Cross-tab: another window (e.g., the profile page) changed localStorage
-window.addEventListener('storage', function(e) {
-  if (e.key === CONVERSATIONS_KEY) refreshCurrentView();
-});
 
 /* ════════════════════════════════════════════════════════
    CONFIRM ACTIVE
@@ -864,8 +866,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var user = getCurrentUser();
   if (user && user.id && window.DabbaListings) {
-    DabbaListings.fetchMine(user.id).then(function(rows) {
-      cloudMyListings = rows || [];
+    Promise.all([ DabbaListings.fetchMine(user.id), reloadCloudConvs() ]).then(function(res) {
+      cloudMyListings = res[0] || [];
       route();
     }).catch(route);
   } else {
