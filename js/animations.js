@@ -232,7 +232,6 @@ document.addEventListener('DOMContentLoaded', function() {
   initDiscoverStagger();
   initFilterSlide();
   initHeroStagger();
-  initHomeStatCounter();
   initStepSlide();
   // Page transitions last (so other click handlers fire first)
   setTimeout(initPageTransitions, 150);

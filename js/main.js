@@ -584,10 +584,61 @@ window.onDabbaPasswordRecovery = function () {
   });
 };
 
+// ── Dashboard notification badge (unread enquiries/replies) ──────────────────
+function initDashboardBadge() {
+  var links = Array.prototype.slice.call(
+    document.querySelectorAll('.nav-links a[href="dashboard.html"], .nav-mobile-menu a[href="dashboard.html"]')
+  );
+  if (!links.length) return;
+
+  var badges = links.map(function (a) {
+    a.style.position = 'relative';
+    var b = document.createElement('span');
+    b.className = 'nav-dash-badge';
+    b.style.display = 'none';
+    a.appendChild(b);
+    return b;
+  });
+
+  function setBadge(n) {
+    badges.forEach(function (b) {
+      if (n > 0) { b.textContent = n > 9 ? '9+' : String(n); b.style.display = 'flex'; }
+      else { b.style.display = 'none'; }
+    });
+  }
+
+  var onDash = location.pathname.indexOf('dashboard.html') !== -1;
+
+  function compute() {
+    var u = window.DabbaAuth && window.DabbaAuth.getUser();
+    if (!u || !u.id || !window.DabbaMessages) { setBadge(0); return; }
+    var seenKey = 'dabbamapDashSeen:' + u.id;
+    if (onDash) { localStorage.setItem(seenKey, String(Date.now())); setBadge(0); return; }
+    var lastSeen = parseInt(localStorage.getItem(seenKey) || '0', 10);
+    Promise.all([window.DabbaMessages.myConsumer(), window.DabbaMessages.myProvider()]).then(function (r) {
+      var n = 0;
+      (r[0] || []).forEach(function (c) { (c.messages || []).forEach(function (m) {
+        if (m.from_role === 'provider' && new Date(m.created_at).getTime() > lastSeen) n++;
+      }); });
+      (r[1] || []).forEach(function (c) { (c.messages || []).forEach(function (m) {
+        if (m.from_role === 'consumer' && new Date(m.created_at).getTime() > lastSeen) n++;
+      }); });
+      setBadge(n);
+    }).catch(function () { setBadge(0); });
+  }
+
+  if (window.DabbaAuthReady) window.DabbaAuthReady.then(compute); else compute();
+  if (window.DabbaMessages && !window._dashBadgeSub) {
+    window._dashBadgeSub = window.DabbaMessages.subscribe(function () { compute(); });
+  }
+  setInterval(compute, 15000);
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initNavbar();
   initProfileIcon();
+  initDashboardBadge();
   initCheckboxPills();
   initTabs();
   initStepForm();
