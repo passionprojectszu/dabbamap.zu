@@ -58,6 +58,29 @@
   .nav-hamburger { display: flex; }
 }
 
+/* ── Cookie consent banner ── */
+.cookie-banner {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 99998;
+  max-width: 720px; margin: 0 auto;
+  background: #2C1810; color: rgba(255,255,255,0.92);
+  border-radius: 16px; box-shadow: 0 12px 48px rgba(0,0,0,0.35);
+  padding: 18px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  animation: cookieUp 0.4s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes cookieUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform:none; } }
+.cookie-banner p { font-size: 13px; line-height: 1.6; margin: 0; flex: 1 1 280px; color: rgba(255,255,255,0.82); }
+.cookie-banner p a { color: var(--primary-light); font-weight: 600; }
+.cookie-banner .cookie-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.cookie-banner button {
+  border: none; cursor: pointer; font-family: var(--font-body); font-weight: 700;
+  font-size: 13px; padding: 9px 16px; border-radius: 100px; transition: transform 0.15s, background 0.15s;
+}
+.cookie-banner .ck-reject { background: transparent; color: rgba(255,255,255,0.7); border: 1.5px solid rgba(255,255,255,0.3); }
+.cookie-banner .ck-reject:hover { background: rgba(255,255,255,0.08); }
+.cookie-banner .ck-accept { background: var(--primary); color: #fff; }
+.cookie-banner .ck-accept:hover { transform: translateY(-1px); }
+@media (max-width: 520px) { .cookie-banner .cookie-actions { width: 100%; } .cookie-banner button { flex: 1; } }
+
 /* ── Dashboard notification badge ── */
 .nav-dash-badge {
   position: absolute; top: -8px; right: -14px;

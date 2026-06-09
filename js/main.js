@@ -634,11 +634,44 @@ function initDashboardBadge() {
   setInterval(compute, 15000);
 }
 
+// ── Cookie consent banner ───────────────────────────────────────────────────
+function initCookieBanner() {
+  var KEY = 'dabbamapCookieConsent';
+  var choice;
+  try { choice = localStorage.getItem(KEY); } catch (e) { choice = 'accepted'; }
+  if (choice === 'accepted' || choice === 'rejected') return; // already chosen
+
+  var banner = document.createElement('div');
+  banner.className = 'cookie-banner';
+  banner.setAttribute('role', 'dialog');
+  banner.setAttribute('aria-label', 'Cookie consent');
+  banner.innerHTML =
+    '<p>We use cookies to keep you signed in, understand usage, and show ads via Google AdSense. ' +
+    'You can accept all cookies or reject non-essential ones. See our ' +
+    '<a href="privacy.html#cookies">Cookies &amp; Privacy Policy</a>.</p>' +
+    '<div class="cookie-actions">' +
+      '<button class="ck-reject" id="ck-reject">Reject non-essential</button>' +
+      '<button class="ck-accept" id="ck-accept">Accept all</button>' +
+    '</div>';
+  document.body.appendChild(banner);
+
+  function choose(val) {
+    try { localStorage.setItem(KEY, val); } catch (e) {}
+    banner.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+    banner.style.opacity = '0';
+    banner.style.transform = 'translateY(20px)';
+    setTimeout(function () { banner.remove(); }, 260);
+  }
+  document.getElementById('ck-accept').addEventListener('click', function () { choose('accepted'); });
+  document.getElementById('ck-reject').addEventListener('click', function () { choose('rejected'); });
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initNavbar();
   initProfileIcon();
   initDashboardBadge();
+  initCookieBanner();
   initCheckboxPills();
   initTabs();
   initStepForm();
