@@ -57,6 +57,12 @@
   .nav-links, .nav-cta .btn:not(.btn-primary) { display: none; }
   .nav-hamburger { display: flex; }
 }
+@media (max-width: 600px) {
+  /* Tight phones: free up the bar — "List My Dabba" stays in the hamburger menu */
+  .navbar-inner { padding: 0 16px; }
+  .nav-cta { gap: 8px; }
+  .nav-cta .btn-primary { display: none; }
+}
 
 /* ── Cookie consent banner ── */
 .cookie-banner {
@@ -215,9 +221,17 @@
 /* ── How it works bg ── */
 .hiw-section { background: var(--secondary-pale); }
 
+/* ── Mobile overflow hardening (let flex/grid children shrink to fit) ── */
+.search-bar { min-width: 0; }
+.search-bar input { min-width: 0; }
+.map-search { min-width: 0; }
+.map-search input { min-width: 0; }
+.discover-layout > * { min-width: 0; }
+.results-grid { min-width: 0; }
+
 /* ── Discover Page ── */
 .discover-layout {
-  display: grid; grid-template-columns: 260px 1fr; gap: var(--sp-8); align-items: start;
+  display: grid; grid-template-columns: 260px 1fr; gap: var(--sp-8); align-items: start; min-width: 0;
 }
 .filter-panel {
   position: sticky; top: 88px; background: var(--card-bg);
@@ -241,6 +255,7 @@
 
 .results-header {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-6);
+  flex-wrap: wrap; gap: var(--sp-2);
 }
 .results-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-5); }
 
