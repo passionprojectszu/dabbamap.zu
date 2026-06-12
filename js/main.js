@@ -589,7 +589,6 @@ function initDashboardBadge() {
   var links = Array.prototype.slice.call(
     document.querySelectorAll('.nav-links a[href="dashboard.html"], .nav-mobile-menu a[href="dashboard.html"]')
   );
-  if (!links.length) return;
 
   var badges = links.map(function (a) {
     a.style.position = 'relative';
@@ -600,11 +599,25 @@ function initDashboardBadge() {
     return b;
   });
 
+  // Red dot on the hamburger (☰) so mobile users see it without opening the menu
+  var hamDot = null;
+  var hamburger = document.querySelector('.nav-hamburger');
+  if (hamburger) {
+    hamburger.style.position = 'relative';
+    hamDot = document.createElement('span');
+    hamDot.className = 'nav-ham-dot';
+    hamDot.style.display = 'none';
+    hamburger.appendChild(hamDot);
+  }
+
+  if (!badges.length && !hamDot) return;
+
   function setBadge(n) {
     badges.forEach(function (b) {
       if (n > 0) { b.textContent = n > 9 ? '9+' : String(n); b.style.display = 'flex'; }
       else { b.style.display = 'none'; }
     });
+    if (hamDot) hamDot.style.display = n > 0 ? 'block' : 'none';
   }
 
   var onDash = location.pathname.indexOf('dashboard.html') !== -1;

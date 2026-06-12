@@ -87,6 +87,14 @@
 .cookie-banner .ck-accept:hover { transform: translateY(-1px); }
 @media (max-width: 520px) { .cookie-banner .cookie-actions { width: 100%; } .cookie-banner button { flex: 1; } }
 
+/* ── Hamburger notification dot (mobile) ── */
+.nav-ham-dot {
+  position: absolute; top: 2px; right: 2px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #dc2626; border: 2px solid var(--bg);
+  box-shadow: 0 1px 3px rgba(220,38,38,0.5);
+}
+
 /* ── Dashboard notification badge ── */
 .nav-dash-badge {
   position: absolute; top: -8px; right: -14px;
