@@ -661,7 +661,7 @@ function initDiscoverMap() {
   if (!el) return;
   el.style.height = '460px';
 
-  discoverMapInst = L.map('leaflet-map', { zoomControl: true }).setView([19.095, 72.870], 12);
+  discoverMapInst = L.map('leaflet-map', { zoomControl: true }).setView([20.5937, 78.9629], 5);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© OpenStreetMap contributors © CARTO', subdomains: 'abcd', maxZoom: 19
   }).addTo(discoverMapInst);

@@ -353,4 +353,151 @@ window.DABBA_DATA = [
     area:'Mahim',         pincode:'400016', type:'nonveg', cuisines:['Coastal'],        meals:['lunch'],
     lunchPrice:80,  dinnerPrice:null, monthlyPrice:1800, trial:false, communityPick:false,
     description:"Koli-style coastal fish curry and rice from a Mahim home. Mumbai's original seafood tiffin.", daysAgo:5, lat:19.0422, lng:72.8542 },
+
+  /* ── Delhi NCR ─────────────────────────────────────── */
+  { id:'C071', name:"Lajpat Nagar Home Kitchen",  initial:'L', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Lajpat Nagar',  pincode:'110024', type:'veg',    cuisines:['Punjabi'],        meals:['lunch','dinner'],
+    lunchPrice:90,  dinnerPrice:100, monthlyPrice:2100, trial:true,  communityPick:false,
+    description:'Dal makhani, paneer, fresh rotis — hearty Punjabi home food from a South Delhi household.', daysAgo:2, lat:28.5672, lng:77.2430 },
+
+  { id:'C072', name:"Saket Dilli Ki Rasoi",       initial:'S', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Saket',         pincode:'110017', type:'nonveg', cuisines:['North Indian'],   meals:['lunch','dinner'],
+    lunchPrice:100, dinnerPrice:110, monthlyPrice:2400, trial:true,  communityPick:false,
+    description:'Authentic Delhi home cooking — butter chicken, keema, and slow-cooked dal from a South Delhi home.', daysAgo:4, lat:28.5244, lng:77.2167 },
+
+  { id:'C073', name:"Karol Bagh Rajasthani Thali",initial:'K', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    area:'Karol Bagh',    pincode:'110005', type:'veg',    cuisines:['Rajasthani'],     meals:['lunch'],
+    lunchPrice:85,  dinnerPrice:null, monthlyPrice:1900, trial:false, communityPick:false,
+    description:'Dal baati churma, gatte ki sabzi, and ker sangri. Authentic Marwari home cooking in Central Delhi.', daysAgo:6, lat:28.6520, lng:77.1900 },
+
+  { id:'C074', name:"CP Diet Tiffin",             initial:'C', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'Connaught Place',pincode:'110001', type:'diet',  cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:130, dinnerPrice:140, monthlyPrice:3200, trial:true,  communityPick:true,
+    description:'Low-cal, macro-counted office tiffin for CP professionals. Protein bowls, salads, and clean gravies.', daysAgo:1, lat:28.6328, lng:77.2197 },
+
+  /* ── Bengaluru ──────────────────────────────────────── */
+  { id:'C075', name:"Koramangala South Indian",   initial:'K', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Koramangala',   pincode:'560034', type:'veg',    cuisines:['South Indian'],   meals:['lunch','dinner'],
+    lunchPrice:80,  dinnerPrice:85,  monthlyPrice:1850, trial:true,  communityPick:true,
+    description:'Rice plates, sambar, rasam, and a seasonal poriyal every day. Authentic South Indian home cooking.', daysAgo:3, lat:12.9352, lng:77.6244 },
+
+  { id:'C076', name:"Indiranagar Kerala Kitchen", initial:'I', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Indiranagar',   pincode:'560038', type:'nonveg', cuisines:['Kerala'],         meals:['lunch','dinner'],
+    lunchPrice:95,  dinnerPrice:105, monthlyPrice:2200, trial:true,  communityPick:false,
+    description:'Kerala fish curry, appam, stew, and prawn dishes. Authentic Malabar home cooking in Bangalore.', daysAgo:5, lat:12.9784, lng:77.6408 },
+
+  { id:'C077', name:"HSR Layout Diet Box",        initial:'H', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'HSR Layout',    pincode:'560102', type:'diet',   cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:120, dinnerPrice:130, monthlyPrice:2900, trial:true,  communityPick:false,
+    description:'Calorie-counted, macro-tracked home tiffin for the fitness crowd in HSR. Veg and non-veg options.', daysAgo:2, lat:12.9116, lng:77.6412 },
+
+  { id:'C078', name:"Jayanagar Brahmin Mess",     initial:'J', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Jayanagar',     pincode:'560041', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
+    lunchPrice:70,  dinnerPrice:null, monthlyPrice:1550, trial:false, communityPick:false,
+    description:'Traditional Karnataka Brahmin cooking — bisibele bath, chitranna, and proper rasam. Pure satvik.', daysAgo:8, lat:12.9251, lng:77.5938 },
+
+  /* ── Chennai ────────────────────────────────────────── */
+  { id:'C079', name:"Anna Nagar Brahmin Tiffin",  initial:'A', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Anna Nagar',    pincode:'600040', type:'veg',    cuisines:['South Indian'],   meals:['lunch','dinner'],
+    lunchPrice:75,  dinnerPrice:80,  monthlyPrice:1700, trial:true,  communityPick:false,
+    description:'Satvik Brahmin home cooking — kootu, rasam, rice, and avial. No onion, no garlic. Pure taste.', daysAgo:3, lat:13.0850, lng:80.2101 },
+
+  { id:'C080', name:"T Nagar Chettinad Kitchen",  initial:'T', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'T Nagar',       pincode:'600017', type:'nonveg', cuisines:['South Indian'],   meals:['lunch','dinner'],
+    lunchPrice:100, dinnerPrice:110, monthlyPrice:2300, trial:true,  communityPick:true,
+    description:'Authentic Chettinad chicken curry, kola urundai, and rice. Home cooking from a Karaikudi family.', daysAgo:4, lat:13.0418, lng:80.2341 },
+
+  { id:'C081', name:"Mylapore Iyengar Kitchen",   initial:'M', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Mylapore',      pincode:'600004', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
+    lunchPrice:70,  dinnerPrice:null, monthlyPrice:1550, trial:true,  communityPick:false,
+    description:'Iyengar-style home meals from Mylapore. Puliyodarai, kovil sadam, and filter coffee on request.', daysAgo:6, lat:13.0335, lng:80.2697 },
+
+  { id:'C082', name:"Velachery South Tiffin",     initial:'V', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
+    area:'Velachery',     pincode:'600042', type:'veg',    cuisines:['South Indian'],   meals:['lunch','dinner'],
+    lunchPrice:65,  dinnerPrice:70,  monthlyPrice:1450, trial:false, communityPick:false,
+    description:'Budget-friendly South Indian home tiffin in Velachery. Idli, sambar, rice, and chutneys daily.', daysAgo:9, lat:12.9790, lng:80.2209 },
+
+  /* ── Kolkata ────────────────────────────────────────── */
+  { id:'C083', name:"Salt Lake Bengali Dabba",    initial:'S', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Salt Lake',     pincode:'700091', type:'nonveg', cuisines:['Bengali'],        meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:95,  monthlyPrice:2000, trial:true,  communityPick:false,
+    description:'Ilish maach, chingri malai curry, and dal with posto. Authentic Bengali home cooking in Bidhannagar.', daysAgo:2, lat:22.5797, lng:88.4209 },
+
+  { id:'C084', name:"Ballygunge Veg Tiffin",      initial:'B', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Ballygunge',    pincode:'700019', type:'veg',    cuisines:['Bengali'],        meals:['lunch'],
+    lunchPrice:70,  dinnerPrice:null, monthlyPrice:1550, trial:true,  communityPick:false,
+    description:'Bengali veg home meals — shukto, dal, sabzi, and rice. Simple, fresh, and cooked with mustard oil.', daysAgo:5, lat:22.5214, lng:88.3678 },
+
+  { id:'C085', name:"Howrah Home Meals",          initial:'H', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Howrah',        pincode:'711101', type:'nonveg', cuisines:['Bengali'],        meals:['lunch','dinner'],
+    lunchPrice:75,  dinnerPrice:80,  monthlyPrice:1700, trial:false, communityPick:false,
+    description:'Hearty Bengali non-veg tiffin from Howrah. Fish curry, chicken, and rice — home-style every day.', daysAgo:7, lat:22.5958, lng:88.2636 },
+
+  { id:'C086', name:"South Kolkata Thali",        initial:'S', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
+    area:'Jadavpur',      pincode:'700032', type:'veg',    cuisines:['Bengali'],        meals:['lunch'],
+    lunchPrice:65,  dinnerPrice:null, monthlyPrice:1450, trial:true,  communityPick:false,
+    description:'Vegetarian Bengali home lunch from Jadavpur. Luchi, cholar dal, and aloo dum on request.', daysAgo:10, lat:22.4974, lng:88.3718 },
+
+  /* ── Hyderabad ──────────────────────────────────────── */
+  { id:'C087', name:"Banjara Hills Andhra Meals", initial:'B', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Banjara Hills',  pincode:'500034', type:'nonveg', cuisines:['Andhra'],        meals:['lunch','dinner'],
+    lunchPrice:90,  dinnerPrice:100, monthlyPrice:2100, trial:true,  communityPick:true,
+    description:'Spicy Andhra home meals — gongura mutton, royyala iguru, and rice with tangy tamarind dal.', daysAgo:2, lat:17.4156, lng:78.4339 },
+
+  { id:'C088', name:"Jubilee Hills Biryani Box",  initial:'J', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Jubilee Hills',  pincode:'500033', type:'nonveg', cuisines:['Mughlai'],       meals:['lunch','dinner'],
+    lunchPrice:110, dinnerPrice:120, monthlyPrice:2700, trial:true,  communityPick:false,
+    description:'Hyderabadi dum biryani and haleem from a Jubilee Hills home. Slow-cooked, saffron-kissed.', daysAgo:3, lat:17.4239, lng:78.4061 },
+
+  { id:'C089', name:"HITEC City Veg Tiffin",      initial:'H', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'HITEC City',     pincode:'500081', type:'veg',   cuisines:['South Indian'],   meals:['lunch'],
+    lunchPrice:80,  dinnerPrice:null, monthlyPrice:1800, trial:false, communityPick:false,
+    description:'South Indian veg tiffin in the IT corridor. Rice plates, sambar, rasam — reliable everyday lunch.', daysAgo:5, lat:17.4474, lng:78.3762 },
+
+  { id:'C090', name:"Secunderabad Diet Meals",    initial:'S', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'Secunderabad',   pincode:'500003', type:'diet',  cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:120, dinnerPrice:130, monthlyPrice:2900, trial:true,  communityPick:false,
+    description:'Calorie-counted home tiffin for health-conscious professionals in Secunderabad. Macros on request.', daysAgo:4, lat:17.4399, lng:78.4983 },
+
+  /* ── Pune ───────────────────────────────────────────── */
+  { id:'C091', name:"Kothrud Maharashtrian Thali",initial:'K', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Kothrud',        pincode:'411038', type:'veg',   cuisines:['Maharashtrian'],  meals:['lunch','dinner'],
+    lunchPrice:75,  dinnerPrice:80,  monthlyPrice:1700, trial:true,  communityPick:false,
+    description:'Traditional Maharashtrian thali from Kothrud. Pitla, bhakri, amti, and seasonal sabzi. Home-cooked daily.', daysAgo:3, lat:18.5074, lng:73.8077 },
+
+  { id:'C092', name:"Koregaon Park Diet Kitchen", initial:'K', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'Koregaon Park',  pincode:'411001', type:'diet',  cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:130, dinnerPrice:140, monthlyPrice:3200, trial:true,  communityPick:true,
+    description:'Macro-balanced home tiffin for the Koregaon Park crowd. Keto, vegan, and protein-high options.', daysAgo:1, lat:18.5362, lng:73.8936 },
+
+  { id:'C093', name:"Wakad Gujarati Kitchen",     initial:'W', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Wakad',          pincode:'411057', type:'veg',   cuisines:['Gujarati'],       meals:['lunch','dinner'],
+    lunchPrice:70,  dinnerPrice:75,  monthlyPrice:1600, trial:false, communityPick:false,
+    description:'Simple Gujarati home meals in Wakad. Dal, rotli, sabzi, and rice — light and wholesome every day.', daysAgo:6, lat:18.5910, lng:73.7613 },
+
+  { id:'C094', name:"Pune Camp North Indian",     initial:'P', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
+    area:'Pune Camp',      pincode:'411001', type:'nonveg', cuisines:['North Indian'],  meals:['lunch','dinner'],
+    lunchPrice:95,  dinnerPrice:105, monthlyPrice:2200, trial:true,  communityPick:false,
+    description:'Hearty North Indian home food in Camp area. Chicken curry, dal makhani, and fresh rotis.', daysAgo:4, lat:18.5204, lng:73.8777 },
+
+  /* ── Ahmedabad ──────────────────────────────────────── */
+  { id:'C095', name:"Navrangpura Gujarati Thali", initial:'N', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
+    area:'Navrangpura',    pincode:'380009', type:'veg',   cuisines:['Gujarati'],       meals:['lunch','dinner'],
+    lunchPrice:70,  dinnerPrice:75,  monthlyPrice:1600, trial:true,  communityPick:true,
+    description:'Full Gujarati thali from Navrangpura. Kadhi, dal, sabzi, rotli, and seasonal sweets on weekends.', daysAgo:2, lat:23.0394, lng:72.5644 },
+
+  { id:'C096', name:"Vastrapur Jain Bhoj",        initial:'V', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    area:'Vastrapur',      pincode:'380015', type:'jain',  cuisines:['Jain'],           meals:['lunch','dinner'],
+    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, trial:true,  communityPick:false,
+    description:'Certified Jain kitchen in Vastrapur. No root vegetables, no onion-garlic. Paryushana specials.', daysAgo:5, lat:23.0321, lng:72.5284 },
+
+  { id:'C097', name:"Satellite Diet Tiffin",      initial:'S', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
+    area:'Satellite',      pincode:'380015', type:'diet',  cuisines:['Multi'],          meals:['lunch','dinner'],
+    lunchPrice:110, dinnerPrice:120, monthlyPrice:2700, trial:true,  communityPick:false,
+    description:'Low-oil, high-protein home tiffin for the Satellite colony. Diabetic-friendly and gym-friendly options.', daysAgo:3, lat:23.0180, lng:72.5097 },
+
+  { id:'C098', name:"Ellis Bridge Jain Mess",     initial:'E', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
+    area:'Ellis Bridge',   pincode:'380006', type:'jain',  cuisines:['Gujarati'],       meals:['lunch'],
+    lunchPrice:75,  dinnerPrice:null, monthlyPrice:1650, trial:false, communityPick:false,
+    description:'Traditional Jain Gujarati lunch near Ellis Bridge. Pure, fresh, and prepared with traditional methods.', daysAgo:7, lat:23.0190, lng:72.5795 },
 ];

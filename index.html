@@ -472,7 +472,7 @@ const map = L.map('home-map', {
   zoomControl: false,
   scrollWheelZoom: true,
   attributionControl: true,
-}).setView([19.095, 72.870], 12);
+}).setView([20.5937, 78.9629], 5);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com">CARTO</a>',
@@ -563,7 +563,11 @@ map.addLayer(mcg);
 /* ── Add a cloud listing as a map marker ── */
 function addCloudMarker(s) {
   var lat = parseFloat(s.lat), lng = parseFloat(s.lng);
-  if (!lat || !lng) { lat = 19.076 + (Math.random()-0.5)*0.12; lng = 72.877 + (Math.random()-0.5)*0.12; }
+  if (!lat || !lng) {
+    var _cities = [[19.076,72.877],[28.613,77.209],[12.972,77.595],[13.083,80.271],[22.573,88.364],[17.385,78.487],[18.520,73.857],[23.023,72.571]];
+    var _c = _cities[Math.floor(Math.random()*_cities.length)];
+    lat = _c[0] + (Math.random()-0.5)*0.08; lng = _c[1] + (Math.random()-0.5)*0.08;
+  }
   var d = {
     lat: lat, lng: lng,
     price: '₹' + (s.lunchPrice || s.dinnerPrice || '?'),
