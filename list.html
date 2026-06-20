@@ -131,7 +131,7 @@
               <div class="form-2col">
                 <div class="form-group area-group">
                   <label class="form-label">Area / Neighbourhood *</label>
-                  <input type="text" id="input-area" class="form-input" placeholder="e.g. Andheri West" autocomplete="off" />
+                  <input type="text" id="input-area" class="form-input" placeholder="Start typing your area or locality…" autocomplete="off" />
                 </div>
                 <div class="form-group">
                   <label class="form-label">Pincode *</label>
@@ -379,34 +379,36 @@ document.addEventListener('DOMContentLoaded', function () {
   var pincodeInput = document.getElementById('input-pincode');
   if (pincodeInput) pincodeInput.addEventListener('input', function() { geocodePincode(this.value.trim()); });
 
-  /* ──── Area autocomplete ──── */
-  var MUMBAI_AREAS = [
-    'Andheri West','Andheri East','Bandra West','Bandra East','Borivali West','Borivali East',
-    'Chembur','Chunabhatti','Colaba','Churchgate','CST','Dadar','Dahisar','Dharavi','Fort',
-    'Ghatkopar East','Ghatkopar West','Goregaon East','Goregaon West','Grant Road',
-    'Jogeshwari East','Jogeshwari West','Juhu','Kandivali East','Kandivali West',
-    'Kurla East','Kurla West','Lalbaug','Lokhandwala','Lower Parel','Mahim',
-    'Malad East','Malad West','Marine Lines','Matunga','Mulund East','Mulund West',
-    'Nariman Point','Oshiwara','Parel','Powai','Prabhadevi','Rajawadi',
-    'Santacruz East','Santacruz West','Sewri','Sion','Thane','Versova',
-    'Vile Parle East','Vile Parle West','Wadala','Worli',
-    'Belapur','Kharghar','Nerul','Vashi','Panvel','Navi Mumbai',
-    'Mira Road','Vasai','Virar'
-  ];
-
+  /* ──── Area autocomplete (pan-India via OpenStreetMap Nominatim) ──── */
   var areaInput = document.getElementById('input-area');
   var areaDropdown = document.createElement('div');
   areaDropdown.className = 'area-dropdown';
   areaInput.parentNode.appendChild(areaDropdown);
+  var areaTimer = null;
 
-  function showAreaSuggestions(q) {
-    if (!q) { areaDropdown.classList.remove('open'); return; }
-    var matches = MUMBAI_AREAS.filter(function(a){ return a.toLowerCase().includes(q.toLowerCase()); }).slice(0, 8);
-    if (!matches.length) { areaDropdown.classList.remove('open'); return; }
-    areaDropdown.innerHTML = matches.map(function(a){
-      return '<div class="area-dd-item" data-area="' + a + '">' + a + '</div>';
+  function renderAreaSuggestions(places) {
+    if (!places || !places.length) { areaDropdown.classList.remove('open'); return; }
+    areaDropdown.innerHTML = places.map(function(p){
+      var safe = (p.label || '').replace(/"/g, '&quot;');
+      return '<div class="area-dd-item" data-area="' + safe + '" data-lat="' + (p.lat || '') + '" data-lng="' + (p.lng || '') + '">' +
+        '<span style="font-weight:600">' + (p.label || '') + '</span>' +
+        '<span style="float:right;font-size:11px;color:var(--primary);font-weight:600">' + (p.sub || '') + '</span>' +
+      '</div>';
     }).join('');
     areaDropdown.classList.add('open');
+  }
+
+  function showAreaSuggestions(q) {
+    q = (q || '').trim();
+    clearTimeout(areaTimer);
+    if (q.length < 3) { areaDropdown.classList.remove('open'); return; }
+    areaTimer = setTimeout(function() {
+      if (areaInput.value.trim() !== q) return;
+      window.fetchIndiaPlaces(q, function(places) {
+        if (areaInput.value.trim() !== q) return;
+        renderAreaSuggestions(places);
+      }, 8);
+    }, 350);
   }
 
   areaDropdown.addEventListener('mousedown', function(e) {
@@ -415,10 +417,15 @@ document.addEventListener('DOMContentLoaded', function () {
     e.preventDefault();
     areaInput.value = item.dataset.area;
     areaDropdown.classList.remove('open');
+    var lat = parseFloat(item.dataset.lat), lng = parseFloat(item.dataset.lng);
+    if (!isNaN(lat) && !isNaN(lng) && listingMap) {
+      listingMap.setView([lat, lng], 14);
+      listingLat = lat; listingLng = lng;
+    }
   });
 
-  areaInput.addEventListener('input', function() { showAreaSuggestions(this.value.trim()); });
-  areaInput.addEventListener('focus', function() { if (this.value.trim()) showAreaSuggestions(this.value.trim()); });
+  areaInput.addEventListener('input', function() { showAreaSuggestions(this.value); });
+  areaInput.addEventListener('focus', function() { showAreaSuggestions(this.value); });
   areaInput.addEventListener('blur', function() { setTimeout(function(){ areaDropdown.classList.remove('open'); }, 150); });
 
   /* Invalidate map when step nav happens (map may be hidden/shown) */
