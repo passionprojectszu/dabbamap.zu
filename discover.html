@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<script src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/js/twemoji.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -923,5 +924,13 @@ document.addEventListener('DOMContentLoaded', () => {
   .pg-arrow { font-size:20px; font-weight:400; color:var(--primary) }
   .pg-ellipsis { padding:0 6px; color:var(--text-muted); font-size:14px; line-height:36px }
 </style>
-</body>
+<style>img.twemoji{width:1.2em;height:1.2em;vertical-align:-0.2em;display:inline-block}</style>
+<script>
+(function(){
+  var _o={folder:'svg',ext:'.svg',base:'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/',className:'twemoji'};
+  function _t(){if(typeof twemoji!=='undefined'){twemoji.parse(document.body,_o);}}
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',_t);}else{_t();}
+  setTimeout(_t,900);setTimeout(_t,2200);
+})();
+</script></body>
 </html>
