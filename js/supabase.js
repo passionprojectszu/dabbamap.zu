@@ -82,7 +82,9 @@
       lng: (r.lng != null ? Number(r.lng) : null),
       daysAgo: r.created_at ? Math.max(0, Math.floor((Date.now() - new Date(r.created_at).getTime()) / 86400000)) : 0,
       createdAt: r.created_at,
-      cloud: true
+      cloud: true,
+      stub: !!r.stub,
+      isClaimed: !!r.is_claimed
     };
   }
   window.rowToListing = rowToListing;
@@ -123,6 +125,32 @@
         if (res.error) throw res.error; return true;
       });
     },
+    insertStub: function (name, area, lat, lng) {
+      var u = window.DabbaAuth && window.DabbaAuth.getUser();
+      return sb.from('listings').insert({
+        owner: u && u.id,
+        name: name,
+        area: area || '',
+        lat: lat || null,
+        lng: lng || null,
+        stub: true,
+        is_claimed: false,
+        type: 'veg',
+        cuisines: [],
+        meals: ['lunch', 'dinner'],
+        trial: false,
+        description: ''
+      }).select().then(function (res) {
+        if (res.error) throw res.error;
+        return res.data && res.data[0] ? rowToListing(res.data[0]) : null;
+      });
+    },
+    updateListing: function (id, updates) {
+      return sb.from('listings').update(updates).eq('id', id).select().then(function (res) {
+        if (res.error) throw res.error;
+        return res.data && res.data[0] ? rowToListing(res.data[0]) : null;
+      });
+    },
     subscribe: function (cb) {
       return sb.channel('listings-changes')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'listings' },
@@ -130,6 +158,66 @@
         .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'listings' },
             function (payload) { cb(payload.old, 'DELETE'); })
         .subscribe();
+    }
+  };
+
+  /* ── Claim Requests API ── */
+  window.DabbaClaims = {
+    submit: function (data) {
+      return sb.from('claim_requests').insert({
+        listing_id: data.listingId,
+        claimant_name: data.name,
+        claimant_email: data.email,
+        claimant_phone: data.phone || null,
+        claim_message: data.message || null,
+        proposed_name: data.proposedName || null,
+        proposed_description: data.proposedDescription || null,
+        proposed_area: data.proposedArea || null,
+        proposed_pincode: data.proposedPincode || null,
+        proposed_lat: data.proposedLat ? parseFloat(data.proposedLat) : null,
+        proposed_lng: data.proposedLng ? parseFloat(data.proposedLng) : null,
+        proposed_type: data.proposedType || null,
+        proposed_lunch_price: data.proposedLunchPrice ? parseInt(data.proposedLunchPrice) : null,
+        proposed_dinner_price: data.proposedDinnerPrice ? parseInt(data.proposedDinnerPrice) : null,
+        proposed_monthly_price: data.proposedMonthlyPrice ? parseInt(data.proposedMonthlyPrice) : null,
+        status: 'pending'
+      }).select().then(function (res) {
+        if (res.error) throw res.error;
+        return res.data && res.data[0];
+      });
+    },
+    all: function () {
+      return sb.from('claim_requests')
+        .select('*, listings(name, area)')
+        .order('created_at', { ascending: false })
+        .then(function (res) { if (res.error) throw res.error; return res.data || []; });
+    },
+    approve: function (claimId, listingId, proposed) {
+      var updates = { is_claimed: true };
+      if (proposed.proposed_name)          updates.name          = proposed.proposed_name;
+      if (proposed.proposed_description)   updates.description   = proposed.proposed_description;
+      if (proposed.proposed_area)          updates.area          = proposed.proposed_area;
+      if (proposed.proposed_pincode)       updates.pincode       = proposed.proposed_pincode;
+      if (proposed.proposed_type)          updates.type          = proposed.proposed_type;
+      if (proposed.proposed_lunch_price)   updates.lunch_price   = proposed.proposed_lunch_price;
+      if (proposed.proposed_dinner_price)  updates.dinner_price  = proposed.proposed_dinner_price;
+      if (proposed.proposed_monthly_price) updates.monthly_price = proposed.proposed_monthly_price;
+      if (proposed.proposed_lat)           updates.lat           = proposed.proposed_lat;
+      if (proposed.proposed_lng)           updates.lng           = proposed.proposed_lng;
+      return Promise.all([
+        sb.from('listings').update(updates).eq('id', listingId),
+        sb.from('claim_requests').update({ status: 'approved', reviewed_at: new Date().toISOString() }).eq('id', claimId)
+      ]).then(function (r) {
+        if (r[0].error) throw r[0].error;
+        if (r[1].error) throw r[1].error;
+        return true;
+      });
+    },
+    reject: function (claimId) {
+      return sb.from('claim_requests')
+        .update({ status: 'rejected', reviewed_at: new Date().toISOString() })
+        .eq('id', claimId)
+        .then(function (res) { if (res.error) throw res.error; return true; });
     }
   };
 

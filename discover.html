@@ -473,8 +473,11 @@ function renderCard(l) {
         ${l.description ? `<div class="dabba-desc">${l.description}</div>` : ''}
         ${l._dist != null ? `<div style="font-size:12px;color:var(--primary);font-weight:700;margin-bottom:6px">📍 ${l._dist < 1 ? Math.round(l._dist*1000)+'m away' : l._dist.toFixed(1)+'km away'}</div>` : ''}
         <div class="dabba-footer">
-          <span class="dabba-date">${dateStr}</span>
-          <a href="profile.html?id=${l.id}" class="btn btn-primary btn-sm">View →</a>
+          <span class="dabba-date">${(l.stub && !l.isClaimed) ? '<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;border:1px solid #fde68a">UNCLAIMED</span>' : dateStr}</span>
+          ${(l.cloud && l.stub && !l.isClaimed)
+            ? `<div style="display:flex;gap:5px"><a href="claim.html?id=${l.id}" class="btn btn-primary btn-sm">Claim →</a><a href="profile.html?id=${l.id}" class="btn btn-ghost btn-sm" style="font-size:11px">View</a></div>`
+            : `<a href="profile.html?id=${l.id}" class="btn btn-primary btn-sm">View →</a>`
+          }
         </div>
       </div>
     </div>`;
@@ -709,8 +712,12 @@ function initDiscoverMap() {
       html:`<div style="display:inline-flex;align-items:center;gap:4px;border-radius:100px;padding:5px 11px;font-size:12px;font-weight:700;font-family:DM Sans,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.45);white-space:nowrap;cursor:pointer;background:${bg};color:#fff;transform:translate(-50%,-50%)">${emoji} ₹${l.lunchPrice||l.dinnerPrice||'?'}</div>`,
       iconSize:[0,0], iconAnchor:[0,0], className:''
     });
+    const popupClaimBtn = (l.cloud && l.stub && !l.isClaimed)
+      ? `<a href="claim.html?id=${l.id}" style="display:block;text-align:center;padding:8px;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:6px">Claim this listing →</a><a href="profile.html?id=${l.id}" style="display:block;text-align:center;padding:7px;background:transparent;color:#C8771A;border-radius:100px;font-size:12px;font-weight:700;text-decoration:none;border:1.5px solid #C8771A">View →</a>`
+      : `<a href="profile.html?id=${l.id}" style="display:block;text-align:center;padding:8px;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none">View Profile →</a>`;
+    const popupUnclaimedBadge = (l.stub && !l.isClaimed) ? '<div style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:100px;padding:2px 8px;display:inline-block;margin-bottom:6px">UNCLAIMED</div>' : '';
     L.marker([lat, lng], {icon}).addTo(mcg).bindPopup(
-      `<div style="font-family:DM Sans,sans-serif;padding:12px 14px;min-width:200px"><div style="font-family:Playfair Display,serif;font-size:15px;font-weight:800;color:#2C1810;margin-bottom:4px">${l.name}</div><div style="font-size:12px;color:#7C6B5A;margin-bottom:8px">📍 ${l.area}</div><div style="font-size:20px;font-family:Playfair Display,serif;font-weight:700;color:#C8771A;margin-bottom:10px">₹${l.lunchPrice||l.dinnerPrice||'?'}</div><a href="profile.html?id=${l.id}" style="display:block;text-align:center;padding:8px;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none">View Profile →</a></div>`,
+      `<div style="font-family:DM Sans,sans-serif;padding:12px 14px;min-width:200px">${popupUnclaimedBadge}<div style="font-family:Playfair Display,serif;font-size:15px;font-weight:800;color:#2C1810;margin-bottom:4px">${l.name}</div><div style="font-size:12px;color:#7C6B5A;margin-bottom:8px">📍 ${l.area}</div><div style="font-size:20px;font-family:Playfair Display,serif;font-weight:700;color:#C8771A;margin-bottom:10px">${(l.lunchPrice||l.dinnerPrice) ? '&#8377;'+(l.lunchPrice||l.dinnerPrice) : 'Price TBD'}</div>${popupClaimBtn}</div>`,
       {maxWidth:240, closeButton:false}
     );
   });

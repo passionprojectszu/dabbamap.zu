@@ -121,8 +121,16 @@
       <!-- ── RIGHT SIDEBAR ── -->
       <div class="sidebar-sticky">
 
+        <!-- Claim Banner — shown only for unclaimed stub listings (injected by JS) -->
+        <div id="claim-banner" style="display:none" class="sidebar-card">
+          <div style="font-size:28px;margin-bottom:8px">🔖</div>
+          <h3 class="t-h3 mb-2">Is this your dabba?</h3>
+          <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px">This listing was added on your behalf. Claim it to update details, add prices, and start receiving customer messages.</p>
+          <a id="claim-cta-btn" href="#" class="btn btn-primary btn-lg" style="width:100%;display:block;text-align:center">Claim this Listing →</a>
+        </div>
+
         <!-- Contact Card -->
-        <div class="sidebar-card">
+        <div class="sidebar-card" id="contact-card">
           <h3 class="t-h3 mb-2">Interested?</h3>
           <p id="contact-subtext" style="font-size:14px;color:var(--text-muted);margin-bottom:16px">Send an anonymous message. Your number stays private and completely anonymous.</p>
 
@@ -588,6 +596,16 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
+
+  /* ── Claim banner for unclaimed stub listings ── */
+  if (listing.stub && !listing.isClaimed) {
+    var claimBanner = document.getElementById('claim-banner');
+    var contactCard = document.getElementById('contact-card');
+    var claimCtaBtn = document.getElementById('claim-cta-btn');
+    if (claimBanner) { claimBanner.style.display = ''; }
+    if (contactCard) { contactCard.style.display = 'none'; }
+    if (claimCtaBtn) { claimCtaBtn.href = 'claim.html?id=' + encodeURIComponent(listing.id); }
+  }
 
   /* Track this view in localStorage */
   try {

@@ -113,6 +113,17 @@
     /* ── Provider layout ── */
     .provider-grid { display: grid; grid-template-columns: 240px 1fr; gap: 20px; align-items: start; }
     @media(max-width:680px){ .provider-grid { grid-template-columns: 1fr; } }
+
+    /* ── Admin tabs ── */
+    .admin-tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
+    .admin-tab { padding: 10px 20px; font-size: 14px; font-weight: 700; color: var(--text-muted); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+    .admin-tab:hover { color: var(--primary); }
+    .admin-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .claim-card { border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; background: #fff; }
+    .claim-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .claim-status { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 100px; white-space: nowrap; }
+    .claim-proposed { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .claim-msg { background: #fef3e2; border: 1px solid rgba(200,119,26,.2); border-radius: 8px; padding: 12px; margin-bottom: 14px; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -287,6 +298,56 @@
   </section>
 </div>
 
+<!-- ════════════════════════════════════════════════════════
+     ADMIN VIEW
+════════════════════════════════════════════════════════ -->
+<div id="view-admin" style="display:none">
+  <div class="dash-header">
+    <div class="container">
+      <div class="dash-header-inner">
+        <div>
+          <h1 style="font-family:var(--font-display);font-size:26px;font-weight:800">Admin Dashboard</h1>
+          <p style="color:var(--text-muted);margin-top:4px;font-size:14px">Manage listings and review claim requests</p>
+        </div>
+        <button class="dash-role-switch" id="admin-switch-btn">Back to My Dashboard</button>
+      </div>
+    </div>
+  </div>
+  <section class="section-sm">
+    <div class="container">
+      <div class="admin-tab-bar">
+        <button class="admin-tab active" data-admin-tab="claims" id="atab-claims">Claim Requests</button>
+        <button class="admin-tab" data-admin-tab="stubs" id="atab-stubs">Add Stub Listings</button>
+      </div>
+
+      <!-- Claims Tab -->
+      <div id="admin-panel-claims">
+        <div id="admin-claims-list"><div style="text-align:center;padding:40px;color:var(--text-muted)">Loading…</div></div>
+      </div>
+
+      <!-- Stubs Tab -->
+      <div id="admin-panel-stubs" style="display:none">
+        <div style="max-width:620px">
+          <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px">
+            Paste one listing per line in the format <strong>Name | Area</strong><br>
+            Example: <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px">Meena's Kitchen | Koramangala, Bengaluru</code>
+          </p>
+          <textarea id="stub-input" class="form-textarea" rows="12"
+            style="font-family:monospace;font-size:13px"
+            placeholder="Raju Tiffins | Banjara Hills, Hyderabad
+Sunita Home Food | Salt Lake, Kolkata
+Priya's Dabba | Anna Nagar, Chennai"></textarea>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:14px">
+            <button class="btn btn-primary" id="stub-submit-btn">Add Listings</button>
+            <span id="stub-status" style="font-size:13px;color:var(--text-muted)"></span>
+          </div>
+          <div id="stub-results" style="margin-top:16px;max-height:300px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
 <!-- ── FOOTER ── -->
 <footer class="footer">
   <div class="container">
@@ -380,9 +441,130 @@ function fmtTime(iso) {
 function esc(t) { return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function scrollBot(id) { var el = document.getElementById(id); if(el) el.scrollTop = el.scrollHeight; }
 function showView(id) {
-  ['view-role-selector','view-consumer','view-provider'].forEach(function(v){
+  ['view-role-selector','view-consumer','view-provider','view-admin'].forEach(function(v){
     document.getElementById(v).style.display = (v===id) ? '' : 'none';
   });
+}
+
+/* ════════════════════════════════════════════════════════
+   ADMIN
+════════════════════════════════════════════════════════ */
+var ADMIN_EMAIL = 'umangdungarwal7@gmail.com';
+
+function isAdmin() {
+  var u = getCurrentUser();
+  return u && u.email && u.email.toLowerCase() === ADMIN_EMAIL;
+}
+
+function renderAdminDashboard() {
+  showView('view-admin');
+  loadClaimRequests();
+}
+
+function switchAdminTab(tab) {
+  document.querySelectorAll('.admin-tab').forEach(function(el){
+    el.classList.toggle('active', el.dataset.adminTab === tab);
+  });
+  document.getElementById('admin-panel-claims').style.display = tab === 'claims' ? '' : 'none';
+  document.getElementById('admin-panel-stubs').style.display  = tab === 'stubs'  ? '' : 'none';
+}
+
+function escHtml(t) { return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function loadClaimRequests() {
+  var cont = document.getElementById('admin-claims-list');
+  cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Loading…</div>';
+  if (!window.DabbaClaims) { cont.innerHTML = '<div style="color:#dc2626;padding:16px">DabbaClaims not loaded — check script order.</div>'; return; }
+  DabbaClaims.all().then(function(claims) {
+    if (!claims.length) {
+      cont.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text-muted)"><div style="font-size:44px;margin-bottom:12px">📬</div><div style="font-size:18px;font-weight:700">No claim requests yet</div><div style="font-size:13px;margin-top:6px">Requests appear here when someone clicks "Claim this listing"</div></div>';
+      return;
+    }
+    cont.innerHTML = claims.map(renderClaimCard).join('');
+    cont.querySelectorAll('.js-approve').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var proposed = JSON.parse(decodeURIComponent(btn.dataset.proposed || '{}'));
+        approveClaim(btn.dataset.claim, btn.dataset.listing, proposed, btn);
+      });
+    });
+    cont.querySelectorAll('.js-reject').forEach(function(btn) {
+      btn.addEventListener('click', function() { rejectClaim(btn.dataset.claim, btn); });
+    });
+  }).catch(function(e) {
+    cont.innerHTML = '<div style="color:#dc2626;padding:16px">Error loading claims: ' + escHtml((e && e.message) || String(e)) + '</div>';
+  });
+}
+
+function renderClaimCard(c) {
+  var listing = c.listings || {};
+  var statusColors = { pending: ['#fef3c7','#92400e'], approved: ['#d1fae5','#065f46'], rejected: ['#fee2e2','#991b1b'] };
+  var sc = statusColors[c.status] || statusColors.pending;
+  var proposed = {
+    proposed_name: c.proposed_name, proposed_description: c.proposed_description,
+    proposed_area: c.proposed_area, proposed_pincode: c.proposed_pincode,
+    proposed_type: c.proposed_type, proposed_lunch_price: c.proposed_lunch_price,
+    proposed_dinner_price: c.proposed_dinner_price, proposed_monthly_price: c.proposed_monthly_price,
+    proposed_lat: c.proposed_lat, proposed_lng: c.proposed_lng
+  };
+  var proposedEnc = encodeURIComponent(JSON.stringify(proposed));
+
+  var proposedParts = [];
+  if (c.proposed_name)          proposedParts.push('<strong>Name:</strong> ' + escHtml(c.proposed_name));
+  if (c.proposed_area)          proposedParts.push('<strong>Area:</strong> ' + escHtml(c.proposed_area));
+  if (c.proposed_pincode)       proposedParts.push('<strong>Pincode:</strong> ' + escHtml(c.proposed_pincode));
+  if (c.proposed_type)          proposedParts.push('<strong>Type:</strong> ' + escHtml(c.proposed_type));
+  if (c.proposed_lunch_price)   proposedParts.push('<strong>Lunch:</strong> &#8377;' + c.proposed_lunch_price);
+  if (c.proposed_dinner_price)  proposedParts.push('<strong>Dinner:</strong> &#8377;' + c.proposed_dinner_price);
+  if (c.proposed_monthly_price) proposedParts.push('<strong>Monthly:</strong> &#8377;' + c.proposed_monthly_price);
+  if (c.proposed_description)   proposedParts.push('<strong>Desc:</strong> ' + escHtml(c.proposed_description.slice(0,80)) + (c.proposed_description.length>80?'…':''));
+
+  return '<div class="claim-card">' +
+    '<div class="claim-card-header">' +
+      '<div><div style="font-family:var(--font-display);font-size:17px;font-weight:800">' + escHtml(listing.name || 'Unknown listing') + '</div>' +
+      '<div style="font-size:12px;color:var(--text-muted);margin-top:2px">📍 ' + escHtml(listing.area || '—') + ' &nbsp;·&nbsp; Listing ID: <code style="font-size:11px">' + escHtml(c.listing_id || '—') + '</code></div></div>' +
+      '<span class="claim-status" style="background:' + sc[0] + ';color:' + sc[1] + '">' + (c.status||'').toUpperCase() + '</span>' +
+    '</div>' +
+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">' +
+      '<div style="background:#f9fafb;border-radius:8px;padding:12px">' +
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Claimant</div>' +
+        '<div style="font-size:14px;font-weight:700">' + escHtml(c.claimant_name) + '</div>' +
+        '<div style="font-size:13px;color:var(--text-muted)">' + escHtml(c.claimant_email) + '</div>' +
+        (c.claimant_phone ? '<div style="font-size:13px;color:var(--text-muted)">' + escHtml(c.claimant_phone) + '</div>' : '') +
+      '</div>' +
+      '<div style="background:#f9fafb;border-radius:8px;padding:12px">' +
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Submitted</div>' +
+        '<div style="font-size:14px;font-weight:700">' + new Date(c.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) + '</div>' +
+      '</div>' +
+    '</div>' +
+
+    (c.claim_message ? '<div class="claim-msg"><span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--primary);display:block;margin-bottom:4px">Claimant message</span>' + escHtml(c.claim_message) + '</div>' : '') +
+
+    '<div class="claim-proposed"><span style="font-size:10px;font-weight:700;text-transform:uppercase;color:#059669;display:block;margin-bottom:6px">Proposed updates (applied on approve)</span>' +
+      (proposedParts.length ? proposedParts.join(' &nbsp;&middot;&nbsp; ') : '<span style="color:var(--text-muted)">No changes proposed — listing details unchanged</span>') +
+    '</div>' +
+
+    (c.status === 'pending' ?
+      '<div style="display:flex;gap:10px">' +
+        '<button class="btn btn-primary js-approve" data-claim="' + escHtml(c.id) + '" data-listing="' + escHtml(c.listing_id) + '" data-proposed="' + proposedEnc + '">Approve & Update</button>' +
+        '<button class="btn btn-ghost js-reject" style="color:#dc2626;border-color:#dc2626" data-claim="' + escHtml(c.id) + '">Reject</button>' +
+      '</div>'
+    : '') +
+  '</div>';
+}
+
+function approveClaim(claimId, listingId, proposed, btn) {
+  btn.disabled = true; btn.textContent = 'Approving…';
+  DabbaClaims.approve(claimId, listingId, proposed)
+    .then(function() { if (window.showToast) showToast('Claim approved! Listing updated.'); loadClaimRequests(); })
+    .catch(function(e) { btn.disabled = false; btn.textContent = 'Approve & Update'; if (window.showToast) showToast('Error: ' + ((e && e.message)||'Failed')); });
+}
+
+function rejectClaim(claimId, btn) {
+  btn.disabled = true; btn.textContent = 'Rejecting…';
+  DabbaClaims.reject(claimId)
+    .then(function() { if (window.showToast) showToast('Claim rejected.'); loadClaimRequests(); })
+    .catch(function(e) { btn.disabled = false; btn.textContent = 'Reject'; if (window.showToast) showToast('Error: ' + ((e && e.message)||'Failed')); });
 }
 
 /* ════════════════════════════════════════════════════════
@@ -827,6 +1009,62 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('provider-switch-btn').addEventListener('click', function() {
     currentView = 'consumer'; renderConsumerDashboard();
   });
+  document.getElementById('admin-switch-btn').addEventListener('click', function() {
+    currentView = 'consumer'; renderConsumerDashboard();
+  });
+
+  /* ── Admin tab switching ── */
+  document.querySelectorAll('.admin-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() { switchAdminTab(btn.dataset.adminTab); });
+  });
+
+  /* ── Stub listing creator ── */
+  var stubSubmit = document.getElementById('stub-submit-btn');
+  if (stubSubmit) {
+    stubSubmit.addEventListener('click', function() {
+      var raw = (document.getElementById('stub-input').value || '').trim();
+      if (!raw) return;
+      var lines = raw.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+      var statusEl  = document.getElementById('stub-status');
+      var resultsEl = document.getElementById('stub-results');
+      stubSubmit.disabled = true;
+      statusEl.textContent = 'Adding 0/' + lines.length + '…';
+      resultsEl.innerHTML = '';
+      var done = 0;
+      function next(i) {
+        if (i >= lines.length) { stubSubmit.disabled = false; statusEl.textContent = done + '/' + lines.length + ' added.'; return; }
+        var parts = lines[i].split('|').map(function(p){ return p.trim(); });
+        var name = parts[0], area = parts[1] || '';
+        if (!name) { done++; next(i+1); return; }
+        window.DabbaListings.insertStub(name, area, null, null).then(function() {
+          done++; statusEl.textContent = 'Adding ' + done + '/' + lines.length + '…';
+          resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#059669">&#10003; ' + escHtml(name) + (area ? ' (' + escHtml(area) + ')' : '') + '</div>';
+          next(i+1);
+        }).catch(function(e) {
+          done++; statusEl.textContent = 'Adding ' + done + '/' + lines.length + '…';
+          resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#dc2626">&#10007; ' + escHtml(name) + ': ' + escHtml((e && e.message) || 'Error') + '</div>';
+          next(i+1);
+        });
+      }
+      next(0);
+    });
+  }
+
+  /* ── Admin role card (inject only for admin user) ── */
+  if (isAdmin()) {
+    var roleCards = document.querySelector('.role-cards');
+    if (roleCards) {
+      var adminCard = document.createElement('div');
+      adminCard.className = 'role-card';
+      adminCard.id = 'choose-admin';
+      adminCard.style.cssText = 'grid-column:1/-1';
+      adminCard.innerHTML = '<div class="role-icon">&#9881;</div><h3>Admin</h3><p>Review claim requests and manage stub listings</p><span class="role-badge" style="background:#fee2e2;color:#991b1b">Admin Only</span>';
+      roleCards.appendChild(adminCard);
+      adminCard.addEventListener('click', function() {
+        currentView = 'admin'; renderAdminDashboard();
+      });
+    }
+  }
 
   /* ── Role selector ── */
   document.getElementById('choose-consumer').addEventListener('click', function() {
@@ -852,10 +1090,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var stored  = getStoredListings();
     var urlRole = new URLSearchParams(window.location.search).get('role');
 
-    if (urlRole === 'provider') {
+    if (urlRole === 'admin' && isAdmin()) {
+      currentView = 'admin'; renderAdminDashboard();
+    } else if (urlRole === 'provider') {
       currentView = 'provider'; renderProviderDashboard();
     } else if (urlRole === 'consumer') {
       currentView = 'consumer'; renderConsumerDashboard();
+    } else if (isAdmin()) {
+      currentView = 'admin'; renderAdminDashboard();
     } else if (convs.length > 0 && stored.length === 0) {
       currentView = 'consumer'; renderConsumerDashboard();
     } else if (stored.length > 0 && convs.length === 0) {
