@@ -41,6 +41,7 @@
   sb.auth.onAuthStateChange(function (event, session) {
     mirror(session);
     if (window.refreshProfileIcon) window.refreshProfileIcon();
+    document.dispatchEvent(new Event('dabbamapAuthChange'));
     if (event === 'PASSWORD_RECOVERY' && typeof window.onDabbaPasswordRecovery === 'function') {
       window.onDabbaPasswordRecovery();
     }
@@ -164,22 +165,14 @@
   /* ── Claim Requests API ── */
   window.DabbaClaims = {
     submit: function (data) {
+      var u = window.DabbaAuth && window.DabbaAuth.getUser();
       return sb.from('claim_requests').insert({
         listing_id: data.listingId,
+        claimant_user_id: u && u.id || null,
         claimant_name: data.name,
         claimant_email: data.email,
         claimant_phone: data.phone || null,
         claim_message: data.message || null,
-        proposed_name: data.proposedName || null,
-        proposed_description: data.proposedDescription || null,
-        proposed_area: data.proposedArea || null,
-        proposed_pincode: data.proposedPincode || null,
-        proposed_lat: data.proposedLat ? parseFloat(data.proposedLat) : null,
-        proposed_lng: data.proposedLng ? parseFloat(data.proposedLng) : null,
-        proposed_type: data.proposedType || null,
-        proposed_lunch_price: data.proposedLunchPrice ? parseInt(data.proposedLunchPrice) : null,
-        proposed_dinner_price: data.proposedDinnerPrice ? parseInt(data.proposedDinnerPrice) : null,
-        proposed_monthly_price: data.proposedMonthlyPrice ? parseInt(data.proposedMonthlyPrice) : null,
         status: 'pending'
       }).select().then(function (res) {
         if (res.error) throw res.error;
@@ -193,17 +186,9 @@
         .then(function (res) { if (res.error) throw res.error; return res.data || []; });
     },
     approve: function (claimId, listingId, proposed) {
-      var updates = { is_claimed: true };
-      if (proposed.proposed_name)          updates.name          = proposed.proposed_name;
-      if (proposed.proposed_description)   updates.description   = proposed.proposed_description;
-      if (proposed.proposed_area)          updates.area          = proposed.proposed_area;
-      if (proposed.proposed_pincode)       updates.pincode       = proposed.proposed_pincode;
-      if (proposed.proposed_type)          updates.type          = proposed.proposed_type;
-      if (proposed.proposed_lunch_price)   updates.lunch_price   = proposed.proposed_lunch_price;
-      if (proposed.proposed_dinner_price)  updates.dinner_price  = proposed.proposed_dinner_price;
-      if (proposed.proposed_monthly_price) updates.monthly_price = proposed.proposed_monthly_price;
-      if (proposed.proposed_lat)           updates.lat           = proposed.proposed_lat;
-      if (proposed.proposed_lng)           updates.lng           = proposed.proposed_lng;
+      var updates = { is_claimed: true, stub: false };
+      /* Transfer listing ownership to the claimant so they can edit it from their dashboard */
+      if (proposed.claimant_user_id) updates.owner = proposed.claimant_user_id;
       return Promise.all([
         sb.from('listings').update(updates).eq('id', listingId),
         sb.from('claim_requests').update({ status: 'approved', reviewed_at: new Date().toISOString() }).eq('id', claimId)

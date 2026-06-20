@@ -501,6 +501,7 @@ function renderClaimCard(c) {
   var statusColors = { pending: ['#fef3c7','#92400e'], approved: ['#d1fae5','#065f46'], rejected: ['#fee2e2','#991b1b'] };
   var sc = statusColors[c.status] || statusColors.pending;
   var proposed = {
+    claimant_user_id: c.claimant_user_id,
     proposed_name: c.proposed_name, proposed_description: c.proposed_description,
     proposed_area: c.proposed_area, proposed_pincode: c.proposed_pincode,
     proposed_type: c.proposed_type, proposed_lunch_price: c.proposed_lunch_price,

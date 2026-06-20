@@ -78,6 +78,14 @@
       <a id="view-claimed-link" href="discover.html" class="btn btn-primary">View Listing &rarr;</a>
     </div>
 
+    <!-- Login required -->
+    <div id="state-login" style="display:none;text-align:center;padding:48px 24px">
+      <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f512.svg" alt="" style="width:52px;height:52px;margin-bottom:16px" />
+      <h2 style="font-family:var(--font-display);font-size:26px;font-weight:800;margin-bottom:8px">Sign In to Claim</h2>
+      <p style="color:var(--text-muted);font-size:15px;max-width:400px;margin:0 auto 24px">You need to be signed in to claim a listing. Your account email will be automatically filled in — no manual entry needed.</p>
+      <button class="btn btn-primary btn-lg" onclick="document.getElementById('nav-profile-btn').click()">Sign In / Sign Up</button>
+    </div>
+
     <!-- Success -->
     <div id="state-success" style="display:none;text-align:center;padding:48px 24px">
       <div style="font-size:48px;margin-bottom:16px">&#127881;</div>
@@ -86,24 +94,25 @@
       <a href="discover.html" class="btn btn-primary">Back to Discover &rarr;</a>
     </div>
 
-    <!-- Claim form -->
+    <!-- Claim form (contact info only — listing details updated after admin approves) -->
     <form id="claim-form" style="display:none" novalidate>
 
-      <!-- Section 1: Contact -->
       <div class="card card-body" style="margin-bottom:20px">
         <h2 style="font-family:var(--font-display);font-size:20px;font-weight:800;margin-bottom:4px">Your Contact Information</h2>
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">We&rsquo;ll use this to verify your ownership and notify you of the outcome.</p>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">For confirmation purposes only &mdash; we&rsquo;ll verify your ownership and notify you within 24 hours.</p>
 
         <div class="form-group mb-4">
           <label class="form-label">Full Name <span style="color:#dc2626">*</span></label>
           <input type="text" id="c-name" class="form-input" placeholder="Your full name" required autocomplete="name" />
         </div>
         <div class="form-group mb-4">
-          <label class="form-label">Email Address <span style="color:#dc2626">*</span></label>
-          <input type="email" id="c-email" class="form-input" placeholder="you@example.com" required autocomplete="email" />
+          <label class="form-label">Email Address</label>
+          <input type="email" id="c-email" class="form-input" readonly
+            style="background:var(--bg);color:var(--text-muted);cursor:not-allowed;border-color:var(--border)" />
+          <p style="font-size:12px;color:var(--text-muted);margin-top:4px">This is your account email &mdash; it cannot be changed.</p>
         </div>
         <div class="form-group mb-4">
-          <label class="form-label">Phone Number <span style="color:#dc2626">*</span></label>
+          <label class="form-label">Phone Number <span style="color:#dc2626">*</span> <span style="font-weight:400;color:var(--text-muted)">(for confirmation purposes only)</span></label>
           <input type="tel" id="c-phone" class="form-input" placeholder="+91 98765 43210" required autocomplete="tel" />
         </div>
         <div class="form-group">
@@ -113,66 +122,11 @@
         </div>
       </div>
 
-      <!-- Section 2: Updated listing details -->
-      <div class="card card-body" style="margin-bottom:24px">
-        <h2 style="font-family:var(--font-display);font-size:20px;font-weight:800;margin-bottom:4px">Update Listing Details</h2>
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">All fields below are optional. Fill in as much as you can &mdash; this is what customers will see on your profile.</p>
-
-        <div class="form-group mb-4">
-          <label class="form-label">Listing / Business Name</label>
-          <input type="text" id="p-name" class="form-input" placeholder="e.g. Sunita's Home Kitchen" />
-        </div>
-
-        <div class="form-group mb-4">
-          <label class="form-label">Food Type</label>
-          <select id="p-type" class="form-input">
-            <option value="">Select&hellip;</option>
-            <option value="veg">Vegetarian</option>
-            <option value="nonveg">Non-Vegetarian</option>
-            <option value="jain">Jain</option>
-            <option value="diet">Diet / Health</option>
-          </select>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" class="mb-4">
-          <div class="form-group">
-            <label class="form-label">Area / Locality</label>
-            <input type="text" id="p-area" class="form-input" placeholder="Koramangala, Bengaluru" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Pincode</label>
-            <input type="text" id="p-pincode" class="form-input" placeholder="560034" maxlength="6" pattern="[0-9]{6}" />
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px" class="mb-4">
-          <div class="form-group">
-            <label class="form-label">Lunch Price (&#8377;)</label>
-            <input type="number" id="p-lunch" class="form-input" placeholder="80" min="1" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Dinner Price (&#8377;)</label>
-            <input type="number" id="p-dinner" class="form-input" placeholder="90" min="1" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Monthly Plan (&#8377;)</label>
-            <input type="number" id="p-monthly" class="form-input" placeholder="2000" min="1" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Description</label>
-          <textarea id="p-desc" class="form-textarea" rows="4"
-            placeholder="Tell customers about your food &mdash; style of cooking, specialties, delivery area, timings&hellip;"></textarea>
-        </div>
-      </div>
-
-      <!-- Submit -->
       <div id="form-error" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:14px;color:#991b1b"></div>
 
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:40px">
         <button type="submit" class="btn btn-primary btn-lg" id="claim-submit-btn">Submit Claim &rarr;</button>
-        <span style="font-size:13px;color:var(--text-muted)">We review all claims manually before making any changes.</span>
+        <span style="font-size:13px;color:var(--text-muted)">We review all claims manually. Once approved you can update your full listing details.</span>
       </div>
     </form>
 
@@ -201,26 +155,16 @@
 <script src="js/main.js"></script>
 <script src="js/animations.js"></script>
 <script>
-/* ── Load listing from URL param ── */
 var SUPA_URL = 'https://yewydnzrtfxyyfiiyvzn.supabase.co';
 var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlld3lkbnpydGZ4eXlmaWl5dnpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjg2ODUsImV4cCI6MjA5NTkwNDY4NX0.sv32feVTxuTT_ExFw2F3QF1JQ3eIu40EsKfw66DhbYI';
 
 var params    = new URLSearchParams(window.location.search);
 var listingId = (params.get('id') || '').trim();
 var listing   = null;
+var listingStatus = 'notfound'; // notfound | claimed | valid
 
-function showState(id) {
-  ['listing-info','state-notfound','state-claimed','state-success','claim-form'].forEach(function(el) {
-    var node = document.getElementById(el);
-    if (node) node.style.display = 'none';
-  });
-  var target = document.getElementById(id);
-  if (target) target.style.display = '';
-}
-
-if (!listingId) {
-  showState('state-notfound');
-} else {
+/* ── Fetch listing synchronously before DOMContentLoaded ── */
+if (listingId) {
   try {
     var _x = new XMLHttpRequest();
     _x.open('GET', SUPA_URL + '/rest/v1/listings?id=eq.' + encodeURIComponent(listingId) + '&select=*', false);
@@ -229,89 +173,103 @@ if (!listingId) {
     _x.send(null);
     if (_x.status === 200) {
       var _d = JSON.parse(_x.responseText);
-      if (_d && _d[0]) listing = _d[0];
+      if (_d && _d[0]) {
+        listing = _d[0];
+        listingStatus = listing.is_claimed ? 'claimed' : 'valid';
+      }
     }
   } catch(e) {}
-
-  if (!listing) {
-    showState('state-notfound');
-  } else if (listing.is_claimed) {
-    var vcl = document.getElementById('view-claimed-link');
-    if (vcl) vcl.href = 'profile.html?id=' + encodeURIComponent(listingId);
-    showState('state-claimed');
-  } else {
-    /* Show listing info bar */
-    document.getElementById('listing-info').style.display = '';
-    document.getElementById('listing-name').textContent = listing.name || 'Unnamed Listing';
-    document.getElementById('listing-area').textContent = listing.area ? ('Serving ' + listing.area) : '';
-
-    /* Pre-fill proposed fields */
-    document.getElementById('p-name').value   = listing.name  || '';
-    document.getElementById('p-area').value   = listing.area  || '';
-    document.getElementById('p-pincode').value= listing.pincode || '';
-    document.getElementById('p-type').value   = listing.type  || '';
-
-    showState('claim-form');
-    document.title = 'Claim ' + (listing.name || 'Listing') + ' — DabbaMap';
-  }
 }
 
-/* ── Form submit ── */
+function showState(id) {
+  ['listing-info','state-notfound','state-claimed','state-login','state-success','claim-form'].forEach(function(el) {
+    var node = document.getElementById(el);
+    if (node) node.style.display = 'none';
+  });
+  var target = document.getElementById(id);
+  if (target) target.style.display = '';
+}
+
+/* ── All rendering happens after scripts are loaded ── */
 document.addEventListener('DOMContentLoaded', function() {
   initNavbar();
   initStickyNav();
 
-  var form    = document.getElementById('claim-form');
-  var errBox  = document.getElementById('form-error');
-  var submitBtn = document.getElementById('claim-submit-btn');
-  if (!form) return;
+  if (listingStatus === 'notfound') { showState('state-notfound'); return; }
 
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    var name  = (document.getElementById('c-name').value  || '').trim();
-    var email = (document.getElementById('c-email').value || '').trim();
-    var phone = (document.getElementById('c-phone').value || '').trim();
-    if (!name || !email || !phone) {
-      errBox.textContent = 'Please fill in your name, email, and phone number.';
-      errBox.style.display = '';
-      return;
-    }
-    errBox.style.display = 'none';
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting…';
+  if (listingStatus === 'claimed') {
+    var vcl = document.getElementById('view-claimed-link');
+    if (vcl) vcl.href = 'profile.html?id=' + encodeURIComponent(listingId);
+    showState('state-claimed');
+    return;
+  }
 
-    if (!window.DabbaClaims) {
-      errBox.textContent = 'Service not available. Please try again later.';
-      errBox.style.display = '';
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Claim →';
-      return;
-    }
+  /* Valid unclaimed listing — populate info bar */
+  document.getElementById('listing-name').textContent = listing.name || 'Unnamed Listing';
+  document.getElementById('listing-area').textContent = listing.area ? ('Serving ' + listing.area) : '';
+  document.title = 'Claim ' + (listing.name || 'Listing') + ' — DabbaMap';
+  document.getElementById('listing-info').style.display = '';
 
-    DabbaClaims.submit({
-      listingId:              listingId,
-      name:                   name,
-      email:                  email,
-      phone:                  phone,
-      message:                (document.getElementById('c-message').value || '').trim(),
-      proposedName:           (document.getElementById('p-name').value    || '').trim(),
-      proposedArea:           (document.getElementById('p-area').value    || '').trim(),
-      proposedPincode:        (document.getElementById('p-pincode').value || '').trim(),
-      proposedType:           document.getElementById('p-type').value || '',
-      proposedLunchPrice:     document.getElementById('p-lunch').value    || null,
-      proposedDinnerPrice:    document.getElementById('p-dinner').value   || null,
-      proposedMonthlyPrice:   document.getElementById('p-monthly').value  || null,
-      proposedDescription:    (document.getElementById('p-desc').value    || '').trim()
-    }).then(function() {
-      showState('state-success');
-      document.getElementById('listing-info').style.display = '';
-    }).catch(function(err) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Claim →';
-      errBox.textContent = (err && err.message) ? err.message : 'Could not submit claim. Please try again.';
-      errBox.style.display = '';
+  /* Check login — require sign-in before showing the form */
+  var user = window.DabbaAuth && window.DabbaAuth.getUser();
+  if (!user || !user.id) {
+    showState('state-login');
+    /* Re-check after auth state changes (user signs in on this tab) */
+    document.addEventListener('dabbamapAuthChange', function() {
+      user = window.DabbaAuth && window.DabbaAuth.getUser();
+      if (user && user.id) { mountForm(user); }
     });
-  });
+    return;
+  }
+
+  mountForm(user);
+
+  function mountForm(u) {
+    document.getElementById('c-email').value = u.email || '';
+    showState('claim-form');
+    document.getElementById('listing-info').style.display = '';
+
+    var form      = document.getElementById('claim-form');
+    var errBox    = document.getElementById('form-error');
+    var submitBtn = document.getElementById('claim-submit-btn');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var name  = (document.getElementById('c-name').value  || '').trim();
+      var phone = (document.getElementById('c-phone').value || '').trim();
+      if (!name || !phone) {
+        errBox.textContent = 'Please fill in your name and phone number.';
+        errBox.style.display = ''; return;
+      }
+      errBox.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting…';
+
+      if (!window.DabbaClaims) {
+        errBox.textContent = 'Service not available. Please try again later.';
+        errBox.style.display = '';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Claim →';
+        return;
+      }
+
+      DabbaClaims.submit({
+        listingId: listingId,
+        name:      name,
+        email:     u.email || '',
+        phone:     phone,
+        message:   (document.getElementById('c-message').value || '').trim()
+      }).then(function() {
+        showState('state-success');
+        document.getElementById('listing-info').style.display = '';
+      }).catch(function(err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Claim →';
+        errBox.textContent = (err && err.message) ? err.message : 'Could not submit claim. Please try again.';
+        errBox.style.display = '';
+      });
+    });
+  }
 });
 </script>
 <style>img.twemoji{width:1.2em;height:1.2em;vertical-align:-0.2em;display:inline-block}</style>
