@@ -544,7 +544,7 @@ const mcg = L.markerClusterGroup({
 
   iconCreateFunction: function (cluster) {
     const n = cluster.getChildCount();
-    const lg = n >= 10 ? ' dm-cluster-lg' : '';
+    const lg = ' dm-cluster-lg';
     return L.divIcon({
       html: `<div class="dm-cluster${lg}"><span class="c-count">${n}</span><span class="c-label">dabbas</span></div>`,
       iconSize:   [0, 0],
