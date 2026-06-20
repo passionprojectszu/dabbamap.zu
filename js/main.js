@@ -1,5 +1,10 @@
 /* DabbaMap — Main JS */
 
+// Reload when restored from browser back-forward cache so JS re-initialises cleanly
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) window.location.reload();
+});
+
 // ── Toast ──────────────────────────────────────────────────────────────────
 function showToast(msg, duration = 2800) {
   const old = document.querySelector('.toast');
