@@ -1048,11 +1048,18 @@ document.addEventListener('DOMContentLoaded', function() {
             next(i+1);
           });
         }
-        if (area && window.fetchIndiaPlaces) {
-          window.fetchIndiaPlaces(area, function(results) {
-            var r = results && results[0];
-            doInsert(r ? parseFloat(r.lat) : null, r ? parseFloat(r.lng) : null);
-          }, 1);
+        if (area) {
+          // Search with Mumbai MMR viewbox so "Bandra" finds Bandra, not a namesake elsewhere
+          var geoUrl = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in'
+            + '&viewbox=72.6,18.7,73.6,19.8&bounded=0'
+            + '&q=' + encodeURIComponent(area);
+          fetch(geoUrl, { headers: { 'Accept-Language': 'en' } })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+              var d = data && data[0];
+              doInsert(d ? parseFloat(d.lat) : null, d ? parseFloat(d.lon) : null);
+            })
+            .catch(function(){ doInsert(null, null); });
         } else {
           doInsert(null, null);
         }
