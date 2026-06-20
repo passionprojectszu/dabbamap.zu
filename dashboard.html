@@ -330,7 +330,7 @@ function adaptConv(c) {
   }).map(function(m){ return { from: m.from_role, text: m.body, timestamp: m.created_at }; });
   return {
     id: c.id, providerId: c.listing_id,
-    providerName: c.provider_name || 'Provider', providerArea: 'Mumbai', providerType: 'veg',
+    providerName: c.provider_name || 'Provider', providerArea: '', providerType: 'veg',
     userName: c.consumer_name || 'Customer',
     messages: msgs, consumerUnread: 0, providerUnread: 0
   };
@@ -478,7 +478,7 @@ function openConsumerConv(convId) {
       '<div class="c-avatar" style="background:' + color + ';width:36px;height:36px;font-size:14px">' + (c.providerName||'?')[0] + '</div>' +
       '<div style="flex:1">' +
         '<div class="ctitle">' + esc(c.providerName||'Provider') + '</div>' +
-        '<div class="csub">📍 ' + esc(c.providerArea||'Mumbai') + ' · <span style="color:#10b981;font-weight:700">● Active</span></div>' +
+        '<div class="csub">' + (c.providerArea ? '📍 ' + esc(c.providerArea) + ' · ' : '') + '<span style="color:#10b981;font-weight:700">● Active</span></div>' +
       '</div>' +
       '<a href="profile.html?id=' + esc(c.providerId||'') + '" class="btn btn-ghost btn-sm" target="_blank">View Profile</a>' +
     '</div>' +

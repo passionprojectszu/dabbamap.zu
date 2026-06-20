@@ -413,7 +413,7 @@ if (listing.communityPick) {
 
 // Name, area, listed
 document.getElementById('profile-name').textContent  = listing.name;
-document.getElementById('profile-area').textContent  = '📍 ' + listing.area + ', Mumbai — ' + listing.pincode;
+document.getElementById('profile-area').textContent  = '📍 ' + listing.area + (listing.pincode ? ' — ' + listing.pincode : '');
 document.getElementById('profile-listed').textContent = (listing.daysAgo === 0 ? 'Just listed' : listing.daysAgo === 1 ? 'Listed yesterday' : `Listed ${listing.daysAgo} days ago`) + ' · Last confirmed active today';
 
 // Price block

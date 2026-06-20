@@ -253,7 +253,7 @@
   <div class="map-topbar">
     <div class="map-search" style="position:relative">
       <span class="icon">📍</span>
-      <input type="text" id="hero-search-input" placeholder="Search Andheri, Bandra, Borivali…"
+      <input type="text" id="hero-search-input" placeholder="Search your city, area, or pincode…"
         onkeydown="if(event.key==='Enter')doHeroSearch()"
         oninput="heroSearchSuggest(this.value)"
         autocomplete="off" />
@@ -568,7 +568,7 @@ function addCloudMarker(s) {
     lat: lat, lng: lng,
     price: '₹' + (s.lunchPrice || s.dinnerPrice || '?'),
     type: s.type || 'veg', trial: !!s.trial,
-    name: s.name || 'Dabba', area: s.area || 'Mumbai',
+    name: s.name || 'Dabba', area: s.area || '',
     cuisine: (s.cuisines && s.cuisines[0]) || 'Other',
     id: s.id || null
   };
