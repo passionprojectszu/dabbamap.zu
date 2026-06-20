@@ -339,6 +339,7 @@ Sunita Home Food | Salt Lake, Kolkata
 Priya's Dabba | Anna Nagar, Chennai"></textarea>
           <div style="display:flex;align-items:center;gap:14px;margin-top:14px">
             <button class="btn btn-primary" id="stub-submit-btn">Add Listings</button>
+            <button class="btn btn-ghost" id="stub-delete-btn" style="color:#dc2626;border-color:#dc2626">Delete All Stubs</button>
             <span id="stub-status" style="font-size:13px;color:var(--text-muted)"></span>
           </div>
           <div id="stub-results" style="margin-top:16px;max-height:300px;overflow-y:auto"></div>
@@ -1065,6 +1066,42 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
       next(0);
+    });
+  }
+
+  /* ── Delete all stubs ── */
+  var stubDeleteBtn = document.getElementById('stub-delete-btn');
+  if (stubDeleteBtn) {
+    stubDeleteBtn.addEventListener('click', function() {
+      if (!confirm('Delete ALL stub listings? This cannot be undone.')) return;
+      var statusEl = document.getElementById('stub-status');
+      var resultsEl = document.getElementById('stub-results');
+      stubDeleteBtn.disabled = true;
+      statusEl.textContent = 'Deleting…';
+      window._sb = window._sb || (function(){
+        var s = window.supabase && window.supabase.createClient
+          ? window.supabase.createClient(
+              'https://yewydnzrtfxyyfiiyvzn.supabase.co',
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlld3lkbnpydGZ4eXlmaWl5dnpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjg2ODUsImV4cCI6MjA5NTkwNDY4NX0.sv32feVTxuTT_ExFw2F3QF1JQ3eIu40EsKfw66DhbYI'
+            )
+          : null;
+        return s;
+      })();
+      var client = window._sb;
+      if (!client) { statusEl.textContent = 'Supabase not ready'; stubDeleteBtn.disabled = false; return; }
+      client.from('listings').delete().eq('stub', true).then(function(res) {
+        stubDeleteBtn.disabled = false;
+        if (res.error) {
+          statusEl.textContent = 'Error: ' + res.error.message;
+          resultsEl.innerHTML = '<div style="color:#dc2626;padding:8px">Delete failed — check Supabase RLS allows owner to delete.</div>';
+        } else {
+          statusEl.textContent = 'All stubs deleted.';
+          resultsEl.innerHTML = '<div style="color:#059669;padding:8px">&#10003; All stub listings removed from database.</div>';
+        }
+      }).catch(function(e) {
+        stubDeleteBtn.disabled = false;
+        statusEl.textContent = 'Error: ' + ((e && e.message) || 'unknown');
+      });
     });
   }
 
