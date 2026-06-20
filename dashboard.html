@@ -1035,16 +1035,27 @@ document.addEventListener('DOMContentLoaded', function() {
         if (i >= lines.length) { stubSubmit.disabled = false; statusEl.textContent = done + '/' + lines.length + ' added.'; return; }
         var parts = lines[i].split('|').map(function(p){ return p.trim(); });
         var name = parts[0], area = parts[1] || '';
-        if (!name) { done++; next(i+1); return; }
-        window.DabbaListings.insertStub(name, area, null, null).then(function() {
-          done++; statusEl.textContent = 'Adding ' + done + '/' + lines.length + '…';
-          resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#059669">&#10003; ' + escHtml(name) + (area ? ' (' + escHtml(area) + ')' : '') + '</div>';
-          next(i+1);
-        }).catch(function(e) {
-          done++; statusEl.textContent = 'Adding ' + done + '/' + lines.length + '…';
-          resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#dc2626">&#10007; ' + escHtml(name) + ': ' + escHtml((e && e.message) || 'Error') + '</div>';
-          next(i+1);
-        });
+        if (!name) { next(i+1); return; }
+        function doInsert(lat, lng) {
+          window.DabbaListings.insertStub(name, area, lat, lng).then(function() {
+            done++; statusEl.textContent = 'Adding ' + done + '/' + lines.length + '…';
+            var coords = lat ? ' <span style="opacity:0.5">' + parseFloat(lat).toFixed(3) + ',' + parseFloat(lng).toFixed(3) + '</span>' : '';
+            resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#059669">&#10003; ' + escHtml(name) + (area ? ' (' + escHtml(area) + ')' : '') + coords + '</div>';
+            next(i+1);
+          }).catch(function(e) {
+            done++; statusEl.textContent = 'Adding ' + done + '/' + lines.length + '…';
+            resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#dc2626">&#10007; ' + escHtml(name) + ': ' + escHtml((e && e.message) || 'Error') + '</div>';
+            next(i+1);
+          });
+        }
+        if (area && window.fetchIndiaPlaces) {
+          window.fetchIndiaPlaces(area, function(results) {
+            var r = results && results[0];
+            doInsert(r ? parseFloat(r.lat) : null, r ? parseFloat(r.lng) : null);
+          }, 1);
+        } else {
+          doInsert(null, null);
+        }
       }
       next(0);
     });
