@@ -660,8 +660,9 @@ function initDiscoverMap() {
   el.style.height = '460px';
 
   discoverMapInst = L.map('leaflet-map', { zoomControl: true, minZoom: 5 }).setView([20.5937, 78.9629], 5);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', subdomains: 'abc', maxZoom: 19
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd', maxZoom: 19
   }).addTo(discoverMapInst);
 
   const PILL_CLASS = { veg:'dm-pill-veg', nonveg:'dm-pill-nonveg', jain:'dm-pill-jain', diet:'dm-pill-diet' };
