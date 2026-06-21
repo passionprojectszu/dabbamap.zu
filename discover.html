@@ -156,7 +156,7 @@
           <div class="results-header">
             <span class="t-body-sm t-muted" id="results-label">Showing 0 results</span>
             <select class="form-select" id="sort-select" style="width:auto;font-size:13px">
-              <option value="newest">Sort: Newest first</option>
+              <option value="newest">Sort: Claimed first, A–Z</option>
               <option value="price-asc">Sort: Price low–high</option>
               <option value="price-desc">Sort: Price high–low</option>
               <option value="near">Sort: Near me first</option>
@@ -532,8 +532,10 @@ function applyFilters() {
     results.forEach(l => { l._dist = distanceKm(userLat, userLng, l.lat||19.076, l.lng||72.877); });
     results.sort((a,b) => (a._dist||999) - (b._dist||999));
   } else {
-    results.sort((a,b) => a.daysAgo - b.daysAgo);
+    results.sort((a,b) => a.name.localeCompare(b.name));
   }
+  // Always: claimed / fully-listed first, unclaimed stubs last (stable secondary sort)
+  results.sort((a,b) => ((a.stub && !a.isClaimed) ? 1 : 0) - ((b.stub && !b.isClaimed) ? 1 : 0));
 
   const total = results.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
