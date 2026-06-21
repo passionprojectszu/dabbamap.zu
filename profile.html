@@ -123,9 +123,9 @@
 
         <!-- Claim Banner — shown only for unclaimed stub listings (injected by JS) -->
         <div id="claim-banner" style="display:none" class="sidebar-card">
-          <div style="font-size:28px;margin-bottom:8px"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f516.svg" alt="" style="width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block" /></div>
-          <h3 class="t-h3 mb-2">Is this your dabba?</h3>
-          <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px">This listing was added on your behalf. Claim it to update details, add prices, and start receiving customer messages.</p>
+          <div style="text-align:center;margin-bottom:12px"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f516.svg" alt="" style="width:36px;height:36px;display:inline-block" /></div>
+          <h3 class="t-h3 mb-2" style="text-align:center">Is this your dabba?</h3>
+          <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px;line-height:1.6">This listing was added on your behalf. Claim it to update details, add prices, and start receiving customer messages.</p>
           <a id="claim-cta-btn" href="#" class="btn btn-primary btn-lg" style="width:100%;display:block;text-align:center">Claim this Listing →</a>
         </div>
 
@@ -375,8 +375,8 @@ function getAllListings() {
           monthlyPrice: parseInt(s.monthlyPrice)||null,
           communityPick: false, capacity: s.capacity ? parseInt(s.capacity) : 10,
           description: s.description||'', daysAgo: 0,
-          lat: parseFloat(s.lat) || (19.095 + (Math.random()-0.5)*0.1),
-          lng: parseFloat(s.lng) || (72.870 + (Math.random()-0.5)*0.1),
+          lat: parseFloat(s.lat) || (19.095 + (((s.id||'').split('').reduce(function(h,c){return(h*31+c.charCodeAt(0))&0xFFFFFF;},0)/0x1000000)-0.5)*0.1),
+          lng: parseFloat(s.lng) || (72.870 + (((s.id||'x').split('').reduce(function(h,c){return(h*31+c.charCodeAt(0)+1)&0xFFFFFF;},0)/0x1000000)-0.5)*0.1),
         });
       }
     });

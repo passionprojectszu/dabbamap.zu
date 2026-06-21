@@ -464,11 +464,12 @@ const map = L.map('home-map', {
   zoomControl: false,
   scrollWheelZoom: true,
   attributionControl: true,
+  minZoom: 5,
 }).setView([20.5937, 78.9629], 5);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com">CARTO</a>',
-  subdomains: 'abcd',
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  subdomains: 'abc',
   maxZoom: 19,
 }).addTo(map);
 
@@ -553,13 +554,14 @@ markerObjects.forEach(m => mcg.addLayer(m.marker));
 map.addLayer(mcg);
 
 /* ── Add a cloud listing as a map marker ── */
+function idJitter(id, seed) {
+  var h = 0, str = (id || '') + seed;
+  for (var _j = 0; _j < str.length; _j++) h = (h * 31 + str.charCodeAt(_j)) & 0xFFFFFF;
+  return (h / 0x1000000) - 0.5;
+}
 function addCloudMarker(s) {
   var lat = parseFloat(s.lat), lng = parseFloat(s.lng);
-  if (!lat || !lng) {
-    var _cities = [[19.076,72.877],[28.613,77.209],[12.972,77.595],[13.083,80.271],[22.573,88.364],[17.385,78.487],[18.520,73.857],[23.023,72.571]];
-    var _c = _cities[Math.floor(Math.random()*_cities.length)];
-    lat = _c[0] + (Math.random()-0.5)*0.08; lng = _c[1] + (Math.random()-0.5)*0.08;
-  }
+  if (!lat || !lng) return; // no coordinates — skip rather than show in wrong location
   var d = {
     lat: lat, lng: lng,
     price: '₹' + (s.lunchPrice || s.dinnerPrice || '?'),

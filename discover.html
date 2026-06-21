@@ -657,9 +657,9 @@ function initDiscoverMap() {
   if (!el) return;
   el.style.height = '460px';
 
-  discoverMapInst = L.map('leaflet-map', { zoomControl: true }).setView([20.5937, 78.9629], 5);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap contributors © CARTO', subdomains: 'abcd', maxZoom: 19
+  discoverMapInst = L.map('leaflet-map', { zoomControl: true, minZoom: 5 }).setView([20.5937, 78.9629], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', subdomains: 'abc', maxZoom: 19
   }).addTo(discoverMapInst);
 
   const PILL_CLASS = { veg:'dm-pill-veg', nonveg:'dm-pill-nonveg', jain:'dm-pill-jain', diet:'dm-pill-diet' };
@@ -682,22 +682,25 @@ function initDiscoverMap() {
       iconSize:[0,0], iconAnchor:[0,0], className:'' })
   });
 
+  // Deterministic jitter so the same listing always appears at the same spot across page loads
+  function idJitter(id, seed) {
+    var h = 0, s = (id || '') + seed;
+    for (var _j = 0; _j < s.length; _j++) h = (h * 31 + s.charCodeAt(_j)) & 0xFFFFFF;
+    return (h / 0x1000000) - 0.5;
+  }
+
   getAllListings().forEach(l => {
     // Use stored lat/lng for user listings; fall back to AREA_COORDS for master listings
     let lat, lng;
     if (l.lat && l.lng) {
-      lat = l.lat + (Math.random()-.5)*.003;
-      lng = l.lng + (Math.random()-.5)*.003;
+      lat = l.lat + idJitter(l.id, 'a') * .003;
+      lng = l.lng + idJitter(l.id, 'b') * .003;
     } else {
+      // No geocoded coordinates — only use AREA_COORDS fallback, never scatter randomly
       const coords = AREA_COORDS[l.area];
-      if (!coords) {
-        // Unknown area — place somewhere in central Mumbai
-        lat = 19.076 + (Math.random()-.5)*.08;
-        lng = 72.877 + (Math.random()-.5)*.08;
-      } else {
-        lat = coords[0] + (Math.random()-.5)*.012;
-        lng = coords[1] + (Math.random()-.5)*.012;
-      }
+      if (!coords) return; // skip — better to not show than to show in wrong city
+      lat = coords[0] + idJitter(l.id, 'e') * .012;
+      lng = coords[1] + idJitter(l.id, 'f') * .012;
     }
     const emoji= TYPE_EMOJI[l.type]||'🥘';
     const bg   = l.type==='veg'?'#15803d':l.type==='nonveg'?'#b91c1c':l.type==='jain'?'#6d28d9':'#0369a1';

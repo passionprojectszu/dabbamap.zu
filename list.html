@@ -300,6 +300,24 @@
 <script src="js/main.js"></script>
 <script src="js/animations.js"></script>
 <script>
+/* ── Edit mode: detect ?edit=LISTING_ID and fetch existing listing ── */
+var EDIT_ID = new URLSearchParams(window.location.search).get('edit') || null;
+var EDIT_LISTING = null;
+if (EDIT_ID) {
+  try {
+    var _xr = new XMLHttpRequest();
+    var _anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlld3lkbnpydGZ4eXlmaWl5dnpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjg2ODUsImV4cCI6MjA5NTkwNDY4NX0.sv32feVTxuTT_ExFw2F3QF1JQ3eIu40EsKfw66DhbYI';
+    _xr.open('GET', 'https://yewydnzrtfxyyfiiyvzn.supabase.co/rest/v1/listings?id=eq.' + encodeURIComponent(EDIT_ID) + '&select=*', false);
+    _xr.setRequestHeader('apikey', _anonKey);
+    _xr.setRequestHeader('Authorization', 'Bearer ' + _anonKey);
+    _xr.send(null);
+    if (_xr.status === 200) {
+      var _ed = JSON.parse(_xr.responseText);
+      if (_ed && _ed[0]) EDIT_LISTING = _ed[0];
+    }
+  } catch(e) { console.warn('[list] edit fetch:', e); }
+}
+
 /* ── Form validation (intercepts data-next clicks before main.js) ── */
 document.addEventListener('click', function(e) {
   var btn = e.target.closest('[data-next]');
@@ -357,6 +375,49 @@ document.addEventListener('DOMContentLoaded', function () {
     listingLat = c.lat;
     listingLng = c.lng;
   });
+
+  /* ── Pre-fill form if editing an existing listing ── */
+  if (EDIT_LISTING) {
+    var _el = EDIT_LISTING;
+    document.title = 'Edit Listing — DabbaMap';
+    var _h1 = document.querySelector('#form-header h1');
+    if (_h1) _h1.textContent = 'Edit Your Listing';
+    var _subp = document.querySelector('#form-header p.t-body');
+    if (_subp) _subp.textContent = 'Update your dabba details — changes go live immediately.';
+
+    function _fill(id, v) { var e = document.getElementById(id); if (e && v != null) e.value = v; }
+    _fill('input-name', _el.name);
+    _fill('input-area', _el.area);
+    _fill('input-pincode', _el.pincode);
+    _fill('input-description', _el.description);
+
+    if (_el.lat != null && _el.lng != null) {
+      listingLat = parseFloat(_el.lat);
+      listingLng = parseFloat(_el.lng);
+      listingMap.setView([listingLat, listingLng], 15);
+    }
+
+    if (_el.type) {
+      var _tp = document.querySelector('#ft-pills [data-value="' + _el.type + '"]');
+      if (_tp) _tp.classList.add('active');
+    }
+    (_el.cuisines || []).forEach(function(c) {
+      var _cp = document.querySelector('#cuisine-pills [data-value="' + c + '"]');
+      if (_cp) _cp.classList.add('active');
+    });
+    (_el.meals || []).forEach(function(m) {
+      var _mp = document.querySelector('#meals-pills [data-value="' + m + '"]');
+      if (_mp) _mp.classList.add('active');
+    });
+    _fill('input-capacity', _el.capacity || '');
+    _fill('input-lunch-price', _el.lunch_price || '');
+    _fill('input-dinner-price', _el.dinner_price || '');
+    _fill('input-monthly-price', _el.monthly_price || '');
+    if (_el.trial) { var _trp = document.getElementById('trial-pill'); if (_trp) _trp.classList.add('active'); }
+
+    var _sbtn = document.getElementById('list-submit-btn');
+    if (_sbtn) _sbtn.innerHTML = 'Save Changes';
+  }
 
   /* Auto-geocode on pincode change */
   var geocodeTimer = null;
@@ -496,11 +557,17 @@ document.addEventListener('DOMContentLoaded', function () {
     var profileUrl = 'profile.html?id=' + listing.id;
     document.getElementById('public-url').textContent = profileUrl;
     document.getElementById('view-profile-btn').href = profileUrl;
+    if (EDIT_LISTING) {
+      var _sh2 = document.querySelector('#list-success h2');
+      var _sp  = document.querySelector('#list-success p');
+      if (_sh2) _sh2.textContent = 'Listing Updated!';
+      if (_sp)  _sp.textContent  = 'Your changes are now live on DabbaMap.';
+    }
     document.getElementById('list-form-wrap').style.display = 'none';
     document.getElementById('form-header').style.display = 'none';
     document.getElementById('list-success').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (window.showToast) showToast('🎉 Your dabba is now live!');
+    if (window.showToast) showToast(EDIT_LISTING ? 'Listing updated!' : '🎉 Your dabba is now live!');
   }
 
   /* ──── Populate review ──── */
@@ -525,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ──── Go Live button ──── */
+  /* ──── Go Live / Save button ──── */
   var submitBtn = document.getElementById('list-submit-btn');
   if (submitBtn) {
     submitBtn.addEventListener('click', function() {
@@ -534,22 +601,52 @@ document.addEventListener('DOMContentLoaded', function () {
       try { user = JSON.parse(localStorage.getItem('dabbamapUser') || 'null'); } catch(e) {}
 
       function finish(u) {
-        if (!u || !u.id) { if (window.showToast) showToast('Please log in to list your dabba.'); return; }
+        if (!u || !u.id) { if (window.showToast) showToast('Please log in to continue.'); return; }
         pendingListingSave.owner = u.id;
-        submitBtn.disabled = true; submitBtn.textContent = 'Publishing…';
-        window.DabbaListings.insert(pendingListingSave).then(function(saved) {
-          submitBtn.disabled = false; submitBtn.textContent = '🚀 Go Live!';
+        submitBtn.disabled = true;
+        submitBtn.textContent = EDIT_LISTING ? 'Saving…' : 'Publishing…';
+
+        var savePromise;
+        if (EDIT_LISTING) {
+          savePromise = window.DabbaListings.updateListing(EDIT_ID, {
+            name: pendingListingSave.name,
+            area: pendingListingSave.area,
+            pincode: pendingListingSave.pincode,
+            type: pendingListingSave.type,
+            cuisines: pendingListingSave.cuisines,
+            meals: pendingListingSave.meals,
+            capacity: pendingListingSave.capacity,
+            lunch_price: pendingListingSave.lunchPrice,
+            dinner_price: pendingListingSave.dinnerPrice,
+            monthly_price: pendingListingSave.monthlyPrice,
+            trial: pendingListingSave.trial,
+            description: pendingListingSave.description,
+            lat: pendingListingSave.lat,
+            lng: pendingListingSave.lng,
+            stub: false
+          }).then(function(saved) { return saved || { id: EDIT_ID }; });
+        } else {
+          savePromise = window.DabbaListings.insert(pendingListingSave);
+        }
+
+        savePromise.then(function(saved) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = EDIT_LISTING
+            ? 'Save Changes'
+            : '<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f680.svg" alt="" style="width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block" /> Go Live!';
           showSuccessScreen(saved || pendingListingSave);
         }).catch(function(err) {
-          submitBtn.disabled = false; submitBtn.textContent = '🚀 Go Live!';
-          if (window.showToast) showToast('Could not publish: ' + (err && err.message ? err.message : 'try again'));
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = EDIT_LISTING
+            ? 'Save Changes'
+            : '<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f680.svg" alt="" style="width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block" /> Go Live!';
+          if (window.showToast) showToast('Could not save: ' + (err && err.message ? err.message : 'try again'));
         });
       }
 
       if (user && user.loggedIn && user.id) {
         finish(user);
       } else {
-        // Require email + password login before listing
         if (window.openNavLoginModal) {
           openNavLoginModal(function(u) { finish(u); });
         } else {

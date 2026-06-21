@@ -329,7 +329,7 @@
       <div id="admin-panel-stubs" style="display:none">
         <div style="max-width:620px">
           <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px">
-            Paste one listing per line in the format <strong>Name | Area</strong><br>
+            Paste one listing per line: <strong>Name | Area</strong>. Listings are created instantly with a <strong>Claim this listing</strong> button — no geocoding needed. The owner claims it and fills in full details.<br>
             Example: <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px">Meena's Kitchen | Koramangala, Bengaluru</code>
           </p>
           <textarea id="stub-input" class="form-textarea" rows="12"
@@ -339,6 +339,7 @@ Sunita Home Food | Salt Lake, Kolkata
 Priya's Dabba | Anna Nagar, Chennai"></textarea>
           <div style="display:flex;align-items:center;gap:14px;margin-top:14px">
             <button class="btn btn-primary" id="stub-submit-btn">Add Listings</button>
+            <button class="btn btn-ghost" id="stub-regeo-btn" style="color:#0369a1;border-color:#0369a1">Fix Missing Coords</button>
             <button class="btn btn-ghost" id="stub-delete-btn" style="color:#dc2626;border-color:#dc2626">Delete All Stubs</button>
             <span id="stub-status" style="font-size:13px;color:var(--text-muted)"></span>
           </div>
@@ -819,6 +820,7 @@ function openProviderListing(listingId, listings) {
         '<div style="font-size:13px;color:var(--text-muted)">📍 ' + esc(listing.area) + ' · ' + esc(listing.pincode||'') + '</div>' +
       '</div>' +
       '<a href="profile.html?id=' + esc(listingId) + '" class="btn btn-ghost btn-sm" target="_blank">View Public Profile →</a>' +
+      '<a href="list.html?edit=' + esc(listingId) + '" class="btn btn-primary btn-sm">Edit Listing</a>' +
     '</div>' +
 
     '<div class="stat-mini-grid">' +
@@ -1020,53 +1022,45 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.addEventListener('click', function() { switchAdminTab(btn.dataset.adminTab); });
   });
 
-  /* ── Stub listing creator ── */
+  /* ── Stub listing creator — inserts directly, no geocoding ── */
   var stubSubmit = document.getElementById('stub-submit-btn');
   if (stubSubmit) {
     stubSubmit.addEventListener('click', function() {
       var raw = (document.getElementById('stub-input').value || '').trim();
       if (!raw) return;
-      var lines = raw.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
       var statusEl  = document.getElementById('stub-status');
       var resultsEl = document.getElementById('stub-results');
       stubSubmit.disabled = true;
-      statusEl.textContent = 'Adding 0/' + lines.length + '…';
       resultsEl.innerHTML = '';
+
+      var items = raw.split('\n').map(function(l) {
+        var p = l.trim().split('|').map(function(x){ return x.trim(); });
+        return { name: p[0], area: p[1] || '' };
+      }).filter(function(it){ return !!it.name; });
+
+      statusEl.textContent = 'Adding 0/' + items.length + '…';
       var done = 0;
-      function next(i) {
-        if (i >= lines.length) { stubSubmit.disabled = false; statusEl.textContent = done + '/' + lines.length + ' added.'; return; }
-        var parts = lines[i].split('|').map(function(p){ return p.trim(); });
-        var name = parts[0], area = parts[1] || '';
-        if (!name) { next(i+1); return; }
-        function doInsert(lat, lng) {
-          window.DabbaListings.insertStub(name, area, lat, lng).then(function() {
-            done++; statusEl.textContent = 'Adding ' + done + '/' + lines.length + '…';
-            var coords = lat ? ' <span style="opacity:0.5">' + parseFloat(lat).toFixed(3) + ',' + parseFloat(lng).toFixed(3) + '</span>' : '';
-            resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#059669">&#10003; ' + escHtml(name) + (area ? ' (' + escHtml(area) + ')' : '') + coords + '</div>';
-            next(i+1);
-          }).catch(function(e) {
-            done++; statusEl.textContent = 'Adding ' + done + '/' + lines.length + '…';
-            resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#dc2626">&#10007; ' + escHtml(name) + ': ' + escHtml((e && e.message) || 'Error') + '</div>';
-            next(i+1);
-          });
+
+      function insertNext(j) {
+        if (j >= items.length) {
+          stubSubmit.disabled = false;
+          statusEl.textContent = done + '/' + items.length + ' listings added.';
+          return;
         }
-        if (area) {
-          // Search with Mumbai MMR viewbox so "Bandra" finds Bandra, not a namesake elsewhere
-          var geoUrl = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in'
-            + '&viewbox=72.6,18.7,73.6,19.8&bounded=0'
-            + '&q=' + encodeURIComponent(area);
-          fetch(geoUrl, { headers: { 'Accept-Language': 'en' } })
-            .then(function(r){ return r.json(); })
-            .then(function(data){
-              var d = data && data[0];
-              doInsert(d ? parseFloat(d.lat) : null, d ? parseFloat(d.lon) : null);
-            })
-            .catch(function(){ doInsert(null, null); });
-        } else {
-          doInsert(null, null);
-        }
+        var it = items[j];
+        window.DabbaListings.insertStub(it.name, it.area, null, null).then(function() {
+          done++;
+          statusEl.textContent = 'Adding ' + done + '/' + items.length + '…';
+          resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#059669">&#10003; ' + escHtml(it.name) + (it.area ? ' (' + escHtml(it.area) + ')' : '') + '</div>';
+          insertNext(j + 1);
+        }).catch(function(e) {
+          done++;
+          resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#dc2626">&#10007; ' + escHtml(it.name) + ': ' + escHtml((e && e.message) || 'Error') + '</div>';
+          insertNext(j + 1);
+        });
       }
-      next(0);
+
+      insertNext(0);
     });
   }
 
@@ -1103,6 +1097,88 @@ document.addEventListener('DOMContentLoaded', function() {
         stubDeleteBtn.disabled = false;
         statusEl.textContent = 'Error: ' + ((e && e.message) || 'unknown');
       });
+    });
+  }
+
+  /* ── Fix missing coordinates on existing stubs ── */
+  var stubRegeoBtn = document.getElementById('stub-regeo-btn');
+  if (stubRegeoBtn) {
+    stubRegeoBtn.addEventListener('click', function() {
+      var statusEl  = document.getElementById('stub-status');
+      var resultsEl = document.getElementById('stub-results');
+      stubRegeoBtn.disabled = true;
+      resultsEl.innerHTML = '';
+      statusEl.textContent = 'Fetching stubs with no coordinates…';
+
+      var client = window.sbClient;
+      if (!client) { statusEl.textContent = 'Supabase not ready'; stubRegeoBtn.disabled = false; return; }
+
+      client.from('listings').select('id, name, area').eq('stub', true).is('lat', null)
+        .then(function(res) {
+          var stubs = res.data || [];
+          if (!stubs.length) {
+            statusEl.textContent = 'All stubs already have coordinates!';
+            stubRegeoBtn.disabled = false; return;
+          }
+          statusEl.textContent = stubs.length + ' stubs need coordinates. Geocoding…';
+
+          var uniqueAreas = [], seen = {};
+          stubs.forEach(function(s) {
+            if (s.area && !seen[s.area]) { seen[s.area] = true; uniqueAreas.push(s.area); }
+          });
+
+          var geoCache = {}, gi = 0;
+
+          function geocodeNext() {
+            if (gi >= uniqueAreas.length) { applyCoords(); return; }
+            var area = uniqueAreas[gi++];
+            statusEl.textContent = 'Geocoding ' + gi + '/' + uniqueAreas.length + ': ' + area + '…';
+            var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in&q=' + encodeURIComponent(area);
+            fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'DabbaMap/1.0' } })
+              .then(function(r){ return r.json(); })
+              .then(function(data){
+                var d = data && data[0];
+                if (d) geoCache[area] = [parseFloat(d.lat), parseFloat(d.lon)];
+                setTimeout(geocodeNext, 1100);
+              })
+              .catch(function(){ setTimeout(geocodeNext, 1100); });
+          }
+
+          function applyCoords() {
+            var toUpdate = stubs.filter(function(s){ return s.area && geoCache[s.area]; });
+            if (!toUpdate.length) {
+              statusEl.textContent = 'Geocoding returned no results — check area names.';
+              stubRegeoBtn.disabled = false; return;
+            }
+            statusEl.textContent = 'Saving coordinates for ' + toUpdate.length + ' stubs…';
+            var done = 0;
+
+            function updateNext(j) {
+              if (j >= toUpdate.length) {
+                statusEl.textContent = done + '/' + toUpdate.length + ' stubs updated.';
+                stubRegeoBtn.disabled = false; return;
+              }
+              var s = toUpdate[j];
+              var coords = geoCache[s.area];
+              client.from('listings').update({ lat: coords[0], lng: coords[1] }).eq('id', s.id)
+                .then(function() {
+                  done++;
+                  statusEl.textContent = 'Saving ' + done + '/' + toUpdate.length + '…';
+                  var cs = ' <span style="opacity:0.5">' + coords[0].toFixed(3) + ',' + coords[1].toFixed(3) + '</span>';
+                  resultsEl.innerHTML += '<div style="padding:3px 8px;font-size:13px;color:#059669">&#10003; ' + escHtml(s.name) + ' (' + escHtml(s.area) + ')' + cs + '</div>';
+                  updateNext(j + 1);
+                })
+                .catch(function() { updateNext(j + 1); });
+            }
+            updateNext(0);
+          }
+
+          geocodeNext();
+        })
+        .catch(function(e) {
+          statusEl.textContent = 'Error: ' + ((e && e.message) || 'unknown');
+          stubRegeoBtn.disabled = false;
+        });
     });
   }
 
