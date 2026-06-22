@@ -210,16 +210,20 @@ document.addEventListener('DOMContentLoaded', function() {
   document.title = 'Claim ' + (listing.name || 'Listing') + ' — DabbaMap';
   document.getElementById('listing-info').style.display = '';
 
-  /* If already logged in, pre-fill email and lock it */
-  var user = window.DabbaAuth && window.DabbaAuth.getUser();
-  if (user && user.email) {
-    var emailEl = document.getElementById('c-email');
-    emailEl.value = user.email;
-    emailEl.readOnly = true;
-    emailEl.style.cssText += ';background:var(--bg);color:var(--text-muted);cursor:not-allowed;border-color:var(--border)';
-    document.getElementById('c-email-note').style.display = '';
-    document.getElementById('c-email-tip').style.display = 'none';
+  /* Pre-fill email if logged in — also handles auth loading slightly after page render */
+  function prefillEmail() {
+    var u = window.DabbaAuth && window.DabbaAuth.getUser();
+    if (u && u.email) {
+      var emailEl = document.getElementById('c-email');
+      emailEl.value = u.email;
+      emailEl.readOnly = true;
+      emailEl.style.cssText += ';background:var(--bg);color:var(--text-muted);cursor:not-allowed;border-color:var(--border)';
+      document.getElementById('c-email-note').style.display = '';
+      document.getElementById('c-email-tip').style.display = 'none';
+    }
   }
+  prefillEmail();
+  document.addEventListener('dabbamapAuthChange', prefillEmail);
 
   showState('claim-form');
   document.getElementById('listing-info').style.display = '';
