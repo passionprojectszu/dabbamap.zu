@@ -439,7 +439,22 @@ if (!listing) {
   } catch(e) {}
 }
 var _syncFailed = !listing;
-listing = listing || MASTER_LISTINGS[0];
+var _isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lid);
+if (_syncFailed && _isUUID) {
+  // Don't show Sunita's Kitchen for a real cloud listing — show loading state
+  // The DOMContentLoaded async fetch will replace this with the real data
+  listing = {
+    id: lid, name: 'Loading…', initial: '…',
+    avatarBg: 'linear-gradient(135deg,#E8D5B7,#C8771A)',
+    area: '…', pincode: '', type: 'veg', cuisines: [], meals: [],
+    lunchPrice: null, dinnerPrice: null, monthlyPrice: null,
+    trial: false, description: 'Fetching listing details, please wait…',
+    daysAgo: 0, lat: 20.5937, lng: 78.9629, capacity: null,
+    communityPick: false, stub: false, owner: null,
+  };
+} else {
+  listing = listing || MASTER_LISTINGS[0];
+}
 
 /* ══════════════════════════════════════════════════════════
    POPULATE PAGE WITH LISTING DATA
@@ -523,19 +538,20 @@ document.getElementById('share-btn').addEventListener('click', function() {
    LEAFLET MAP
 ══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function() {
-  // If sync XHR failed (RLS or network), async-fetch with authenticated client
-  if (_syncFailed && lid && lid !== 'L001' && window.sbClient) {
+  // For UUID requests: always async-fetch with the authenticated client so the
+  // owner can see their own listing even when RLS blocks anonymous reads
+  if (_syncFailed && _isUUID && window.sbClient) {
     (window.DabbaAuthReady || Promise.resolve(null)).then(function() {
       return window.sbClient.from('listings').select('*').eq('id', lid).limit(1);
     }).then(function(res) {
       if (res && res.data && res.data[0] && window.rowToListing) {
         var real = window.rowToListing(res.data[0]);
-        // Re-populate text content with the correct listing
         document.title = real.name + ' — DabbaMap';
         var av = document.getElementById('profile-avatar');
         if (av) { av.textContent = real.initial; av.style.background = real.avatarBg || 'linear-gradient(135deg,#C8771A,#F5A623)'; }
         var nameEl = document.getElementById('profile-name'); if (nameEl) nameEl.textContent = real.name;
         var areaEl = document.getElementById('profile-area'); if (areaEl) areaEl.textContent = '📍 ' + real.area + (real.pincode ? ' — ' + real.pincode : '');
+        var listedEl = document.getElementById('profile-listed'); if (listedEl) listedEl.textContent = 'Just listed · Last confirmed active today';
         var descEl = document.getElementById('profile-desc'); if (descEl) descEl.textContent = real.description || '';
         var noteEl = document.getElementById('map-note'); if (noteEl) noteEl.textContent = '📍 Exact address shared directly after you connect · ' + real.area + ', ' + real.pincode;
         var subtextEl = document.getElementById('contact-subtext'); if (subtextEl) subtextEl.textContent = 'Send an anonymous message to ' + real.name + '. Your number stays private and completely anonymous.';
@@ -547,6 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var ph = ''; if (real.lunchPrice) ph += '<div class="price-item"><div class="amount">₹'+real.lunchPrice+'</div><div class="label">Lunch / meal</div></div>';
         if (real.lunchPrice && real.dinnerPrice) ph += '<div class="price-divider"></div>';
         if (real.dinnerPrice) ph += '<div class="price-item"><div class="amount">₹'+real.dinnerPrice+'</div><div class="label">Dinner / meal</div></div>';
+        if (real.monthlyPrice) { if (real.lunchPrice || real.dinnerPrice) ph += '<div class="price-divider"></div>'; ph += '<div class="price-item"><span class="badge badge-trial" style="font-size:13px">₹'+real.monthlyPrice.toLocaleString('en-IN')+' / month</span><div class="label" style="margin-top:4px">Monthly plan</div></div>'; }
         var pbEl = document.getElementById('price-block'); if (pbEl) pbEl.innerHTML = ph;
         listing = real;
       }
