@@ -557,17 +557,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var baseUrl = window.location.href.split('list.html')[0];
     var profileUrl = listingId ? baseUrl + 'profile.html?id=' + listingId : baseUrl + 'profile.html';
     document.getElementById('public-url').textContent = profileUrl;
-    // Always inject the View My Profile button (for both new and edit)
-    var _dashBtn = document.getElementById('goto-dashboard-btn');
+    // Remove View My Profile button if somehow present
     var _vpb = document.getElementById('view-profile-btn');
-    if (!_vpb && _dashBtn) {
-      _vpb = document.createElement('a');
-      _vpb.id = 'view-profile-btn';
-      _vpb.className = 'btn btn-secondary btn-lg';
-      _vpb.textContent = 'View My Profile';
-      _dashBtn.parentNode.insertBefore(_vpb, _dashBtn.nextSibling);
-    }
-    if (_vpb) _vpb.href = profileUrl;
+    if (_vpb) _vpb.parentNode.removeChild(_vpb);
     if (EDIT_ID) {
       var _sh2 = document.querySelector('#list-success h2');
       var _sp  = document.querySelector('#list-success p');
