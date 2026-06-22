@@ -469,11 +469,32 @@ const map = L.map('home-map', {
   maxBoundsViscosity: 1.0,
 }).setView([20.5937, 78.9629], 5);
 
+// Base tiles — no labels anywhere
 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
   subdomains: 'abcd',
   maxZoom: 19,
 }).addTo(map);
+
+// Label layer in a custom pane (z-index 250, below the mask at 300)
+map.createPane('labelPane');
+map.getPane('labelPane').style.zIndex = 250;
+map.getPane('labelPane').style.pointerEvents = 'none';
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
+  subdomains: 'abcd', maxZoom: 19, pane: 'labelPane',
+}).addTo(map);
+
+// Mask pane sits on top of labels (z-index 300) but below markers (600)
+map.createPane('maskPane');
+map.getPane('maskPane').style.zIndex = 300;
+map.getPane('maskPane').style.pointerEvents = 'none';
+// Inverted rectangle: covers the whole world EXCEPT India's bounding box,
+// so labels from the layer above only show through inside India
+L.polygon(
+  [ [[-90,-180],[90,-180],[90,180],[-90,180]], // world outer ring
+    [[6.0,67.0],[37.0,67.0],[37.0,98.5],[6.0,98.5]] ], // India hole
+  { fillColor: '#e8e4da', fillOpacity: 1.0, stroke: false, pane: 'maskPane' }
+).addTo(map);
 
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
