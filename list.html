@@ -571,6 +571,8 @@ document.addEventListener('DOMContentLoaded', function () {
       var _sp  = document.querySelector('#list-success p');
       if (_sh2) _sh2.textContent = 'Listing Updated!';
       if (_sp)  _sp.textContent  = 'Your changes are now live on DabbaMap.';
+      var _vpb = document.getElementById('view-profile-btn');
+      if (_vpb) _vpb.style.display = 'none';
     }
     document.getElementById('list-form-wrap').style.display = 'none';
     document.getElementById('form-header').style.display = 'none';
