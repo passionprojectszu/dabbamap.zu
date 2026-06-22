@@ -482,16 +482,18 @@
 <script src="js/main.js"></script>
 <script src="js/animations.js"></script>
 <script>
-/* Sync stat count with actual data */
+/* Sync stat count with live Supabase data */
 (function() {
   var base = (window.DABBA_DATA || []).length;
-  var extra = 0;
-  try { extra = JSON.parse(localStorage.getItem('dabbamapListings') || '[]').length; } catch(e) {}
-  var total = base + extra;
-  // Round DOWN to nearest 10 for display (e.g. 74 → "70+")
-  var display = Math.floor(total / 10) * 10;
   var el = document.getElementById('about-stat-count');
-  if (el) el.textContent = display + '+';
+  function setDisplay(total) {
+    var display = Math.floor(total / 10) * 10;
+    if (el) el.textContent = display + '+';
+  }
+  setDisplay(base);
+  if (window.DabbaListings && window.DabbaListings.count) {
+    DabbaListings.count().then(function(c) { setDisplay(base + (c || 0)); }).catch(function(){});
+  }
 })();
 </script>
 <style>img.twemoji{width:1.2em;height:1.2em;vertical-align:-0.2em;display:inline-block}</style>

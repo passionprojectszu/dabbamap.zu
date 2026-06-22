@@ -847,11 +847,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('map-view').style.display  = 'none';
   });
   document.getElementById('view-map').addEventListener('click', () => {
-    document.getElementById('view-map').classList.add('active');
-    document.getElementById('view-list').classList.remove('active');
-    document.getElementById('map-view').style.display  = '';
-    document.getElementById('list-view').style.display = 'none';
-    initDiscoverMap();
+    window.location.href = 'index.html';
   });
 
   // Read URL params from home page search or footer links
