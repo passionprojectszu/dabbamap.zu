@@ -401,6 +401,7 @@ if (!listing) {
     }
   } catch(e) {}
 }
+var _syncFailed = !listing;
 listing = listing || MASTER_LISTINGS[0];
 
 /* ══════════════════════════════════════════════════════════
@@ -485,6 +486,36 @@ document.getElementById('share-btn').addEventListener('click', function() {
    LEAFLET MAP
 ══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function() {
+  // If sync XHR failed (RLS or network), async-fetch with authenticated client
+  if (_syncFailed && lid && lid !== 'L001' && window.sbClient) {
+    (window.DabbaAuthReady || Promise.resolve(null)).then(function() {
+      return window.sbClient.from('listings').select('*').eq('id', lid).limit(1);
+    }).then(function(res) {
+      if (res && res.data && res.data[0] && window.rowToListing) {
+        var real = window.rowToListing(res.data[0]);
+        // Re-populate text content with the correct listing
+        document.title = real.name + ' — DabbaMap';
+        var av = document.getElementById('profile-avatar');
+        if (av) { av.textContent = real.initial; av.style.background = real.avatarBg || 'linear-gradient(135deg,#C8771A,#F5A623)'; }
+        var nameEl = document.getElementById('profile-name'); if (nameEl) nameEl.textContent = real.name;
+        var areaEl = document.getElementById('profile-area'); if (areaEl) areaEl.textContent = '📍 ' + real.area + (real.pincode ? ' — ' + real.pincode : '');
+        var descEl = document.getElementById('profile-desc'); if (descEl) descEl.textContent = real.description || '';
+        var noteEl = document.getElementById('map-note'); if (noteEl) noteEl.textContent = '📍 Exact address shared directly after you connect · ' + real.area + ', ' + real.pincode;
+        var subtextEl = document.getElementById('contact-subtext'); if (subtextEl) subtextEl.textContent = 'Send an anonymous message to ' + real.name + '. Your number stays private and completely anonymous.';
+        var capEl = document.getElementById('detail-capacity'); if (capEl) capEl.textContent = real.capacity ? real.capacity + ' meals/day' : '—';
+        var TYPE_BADGE_MAP = { veg:'<span class="badge badge-veg badge-dot">Veg</span>', nonveg:'<span class="badge badge-nonveg">Non-Veg</span>', jain:'<span class="badge badge-jain">Jain</span>', diet:'<span class="badge badge-diet">Diet</span>' };
+        var cuisineBadges = (real.cuisines||[]).map(function(c){return '<span class="badge badge-cuisine">'+c+'</span>';}).join('');
+        var mealBadges = (real.meals||[]).map(function(m){return '<span class="badge badge-meal">'+(m==='lunch'?'Lunch':'Dinner')+'</span>';}).join('');
+        var tagsEl = document.getElementById('profile-tags'); if (tagsEl) tagsEl.innerHTML = (TYPE_BADGE_MAP[real.type]||'') + cuisineBadges + mealBadges;
+        var ph = ''; if (real.lunchPrice) ph += '<div class="price-item"><div class="amount">₹'+real.lunchPrice+'</div><div class="label">Lunch / meal</div></div>';
+        if (real.lunchPrice && real.dinnerPrice) ph += '<div class="price-divider"></div>';
+        if (real.dinnerPrice) ph += '<div class="price-item"><div class="amount">₹'+real.dinnerPrice+'</div><div class="label">Dinner / meal</div></div>';
+        var pbEl = document.getElementById('price-block'); if (pbEl) pbEl.innerHTML = ph;
+        listing = real;
+      }
+    }).catch(function() {});
+  }
+
   var profileMap = L.map('profile-map', { zoomControl: true, scrollWheelZoom: false }).setView([listing.lat, listing.lng], 14);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '© OpenStreetMap contributors © CARTO', subdomains: 'abcd'

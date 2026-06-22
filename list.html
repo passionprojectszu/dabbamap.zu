@@ -554,10 +554,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function showSuccessScreen(listing) {
-    var profileUrl = 'profile.html?id=' + listing.id;
+    var listingId = (listing && listing.id && !String(listing.id).startsWith('U')) ? listing.id : EDIT_ID;
+    var profileUrl = listingId ? 'profile.html?id=' + listingId : 'profile.html';
     document.getElementById('public-url').textContent = profileUrl;
     document.getElementById('view-profile-btn').href = profileUrl;
-    if (EDIT_LISTING) {
+    if (EDIT_ID) {
       var _sh2 = document.querySelector('#list-success h2');
       var _sp  = document.querySelector('#list-success p');
       if (_sh2) _sh2.textContent = 'Listing Updated!';
@@ -567,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('form-header').style.display = 'none';
     document.getElementById('list-success').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (window.showToast) showToast(EDIT_LISTING ? 'Listing updated!' : '🎉 Your dabba is now live!');
+    if (window.showToast) showToast(EDIT_ID ? 'Listing updated!' : '🎉 Your dabba is now live!');
   }
 
   /* ──── Populate review ──── */
@@ -604,10 +605,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!u || !u.id) { if (window.showToast) showToast('Please log in to continue.'); return; }
         pendingListingSave.owner = u.id;
         submitBtn.disabled = true;
-        submitBtn.textContent = EDIT_LISTING ? 'Saving…' : 'Publishing…';
+        submitBtn.textContent = EDIT_ID ? 'Saving…' : 'Publishing…';
 
         var savePromise;
-        if (EDIT_LISTING) {
+        if (EDIT_ID) {
           savePromise = window.DabbaListings.updateListing(EDIT_ID, {
             name: pendingListingSave.name,
             area: pendingListingSave.area,
@@ -631,13 +632,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         savePromise.then(function(saved) {
           submitBtn.disabled = false;
-          submitBtn.innerHTML = EDIT_LISTING
+          submitBtn.innerHTML = EDIT_ID
             ? 'Save Changes'
             : '<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f680.svg" alt="" style="width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block" /> Go Live!';
           showSuccessScreen(saved || pendingListingSave);
         }).catch(function(err) {
           submitBtn.disabled = false;
-          submitBtn.innerHTML = EDIT_LISTING
+          submitBtn.innerHTML = EDIT_ID
             ? 'Save Changes'
             : '<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f680.svg" alt="" style="width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block" /> Go Live!';
           if (window.showToast) showToast('Could not save: ' + (err && err.message ? err.message : 'try again'));
