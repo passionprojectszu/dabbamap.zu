@@ -385,6 +385,43 @@ function getAllListings() {
 }
 
 let listing = getAllListings().find(l => l.id === lid);
+
+// Freshly-saved listing passed from list.html via sessionStorage (bypasses RLS/XHR)
+if (!listing && lid && lid !== 'L001') {
+  try {
+    var _sc = sessionStorage.getItem('_dmpl_' + lid);
+    if (_sc) {
+      var _sd = JSON.parse(_sc);
+      if (_sd && _sd.id) {
+        listing = {
+          id: _sd.id,
+          name: _sd.name || 'My Dabba',
+          initial: (_sd.name || 'M')[0].toUpperCase(),
+          avatarBg: 'linear-gradient(135deg,#C8771A,#F5A623)',
+          area: _sd.area || '',
+          pincode: _sd.pincode || '',
+          type: _sd.type || 'veg',
+          cuisines: _sd.cuisines || [],
+          meals: _sd.meals || [],
+          lunchPrice: _sd.lunchPrice ? parseInt(_sd.lunchPrice) : null,
+          dinnerPrice: _sd.dinnerPrice ? parseInt(_sd.dinnerPrice) : null,
+          monthlyPrice: _sd.monthlyPrice ? parseInt(_sd.monthlyPrice) : null,
+          trial: _sd.trial || false,
+          description: _sd.description || '',
+          daysAgo: 0,
+          lat: parseFloat(_sd.lat) || 19.0760,
+          lng: parseFloat(_sd.lng) || 72.8777,
+          capacity: _sd.capacity ? parseInt(_sd.capacity) : null,
+          communityPick: false,
+          stub: false,
+          owner: _sd.owner || null,
+        };
+      }
+      sessionStorage.removeItem('_dmpl_' + lid);
+    }
+  } catch(e) {}
+}
+
 // Cloud listing (created by another user / device) — fetch it from Supabase
 if (!listing) {
   try {

@@ -558,6 +558,14 @@ document.addEventListener('DOMContentLoaded', function () {
     var profileUrl = listingId ? 'profile.html?id=' + listingId : 'profile.html';
     document.getElementById('public-url').textContent = profileUrl;
     document.getElementById('view-profile-btn').href = profileUrl;
+    // Cache full listing data in sessionStorage so profile.html can render
+    // immediately without depending on Supabase RLS or the anon-key XHR
+    if (listingId) {
+      try {
+        var cache = Object.assign({}, pendingListingSave, { id: listingId });
+        sessionStorage.setItem('_dmpl_' + listingId, JSON.stringify(cache));
+      } catch(e) {}
+    }
     if (EDIT_ID) {
       var _sh2 = document.querySelector('#list-success h2');
       var _sp  = document.querySelector('#list-success p');
