@@ -96,7 +96,6 @@
 
           <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:24px">
             <a id="goto-dashboard-btn" href="dashboard.html?role=provider" class="btn btn-primary btn-lg">Go to My Dashboard →</a>
-            <a id="view-profile-btn" href="profile.html" class="btn btn-secondary btn-lg" style="display:none">View My Profile</a>
           </div>
 
           <div class="url-block mt-4" style="text-align:left">
@@ -558,17 +557,25 @@ document.addEventListener('DOMContentLoaded', function () {
     var baseUrl = window.location.href.split('list.html')[0];
     var profileUrl = listingId ? baseUrl + 'profile.html?id=' + listingId : baseUrl + 'profile.html';
     document.getElementById('public-url').textContent = profileUrl;
-    var _vpb = document.getElementById('view-profile-btn');
     if (EDIT_ID) {
-      // Edit mode: hide View My Profile button entirely
-      if (_vpb) _vpb.style.display = 'none';
+      // Edit mode: no View My Profile button — remove it if somehow present
+      var _vpb = document.getElementById('view-profile-btn');
+      if (_vpb) _vpb.parentNode.removeChild(_vpb);
       var _sh2 = document.querySelector('#list-success h2');
       var _sp  = document.querySelector('#list-success p');
       if (_sh2) _sh2.textContent = 'Listing Updated!';
       if (_sp)  _sp.textContent  = 'Your changes are now live on DabbaMap.';
     } else {
-      // New listing: show the button with full URL
-      if (_vpb) { _vpb.href = profileUrl; _vpb.style.display = ''; }
+      // New listing: create and inject the View My Profile button
+      var _dashBtn = document.getElementById('goto-dashboard-btn');
+      if (_dashBtn) {
+        var _vpb = document.createElement('a');
+        _vpb.id = 'view-profile-btn';
+        _vpb.className = 'btn btn-secondary btn-lg';
+        _vpb.href = profileUrl;
+        _vpb.textContent = 'View My Profile';
+        _dashBtn.parentNode.insertBefore(_vpb, _dashBtn.nextSibling);
+      }
     }
     // Cache full listing data in sessionStorage so profile.html can render
     // immediately without depending on Supabase RLS or the anon-key XHR
