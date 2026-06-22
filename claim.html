@@ -90,7 +90,7 @@
     <div id="state-success" style="display:none;text-align:center;padding:48px 24px">
       <div style="font-size:48px;margin-bottom:16px">&#127881;</div>
       <h2 style="font-family:var(--font-display);font-size:26px;font-weight:800;margin-bottom:8px">Claim Submitted!</h2>
-      <p style="color:var(--text-muted);font-size:15px;max-width:420px;margin:0 auto 24px">We&rsquo;ll review your claim within 24 hours and update your listing. You&rsquo;ll receive a confirmation at the email you provided.</p>
+      <p style="color:var(--text-muted);font-size:15px;max-width:420px;margin:0 auto 24px">We&rsquo;ll review your claim within 24 hours. Once approved, sign in (or create an account) with the same email you provided &mdash; your listing will be waiting for you to edit.</p>
       <a href="discover.html" class="btn btn-primary">Back to Discover &rarr;</a>
     </div>
 
@@ -106,10 +106,10 @@
           <input type="text" id="c-name" class="form-input" placeholder="Your full name" required autocomplete="name" />
         </div>
         <div class="form-group mb-4">
-          <label class="form-label">Email Address</label>
-          <input type="email" id="c-email" class="form-input" readonly
-            style="background:var(--bg);color:var(--text-muted);cursor:not-allowed;border-color:var(--border)" />
-          <p style="font-size:12px;color:var(--text-muted);margin-top:4px">This is your account email &mdash; it cannot be changed.</p>
+          <label class="form-label">Email Address <span style="color:#dc2626">*</span></label>
+          <input type="email" id="c-email" class="form-input" placeholder="your@email.com" required autocomplete="email" />
+          <p id="c-email-note" style="font-size:12px;color:var(--text-muted);margin-top:4px;display:none">This is your account email &mdash; it cannot be changed.</p>
+          <p id="c-email-tip" style="font-size:12px;color:var(--text-muted);margin-top:4px">Once your claim is approved, sign in with this email to manage and edit your listing.</p>
         </div>
         <div class="form-group mb-4">
           <label class="form-label">Phone Number <span style="color:#dc2626">*</span> <span style="font-weight:400;color:var(--text-muted)">(for confirmation purposes only)</span></label>
@@ -210,66 +210,61 @@ document.addEventListener('DOMContentLoaded', function() {
   document.title = 'Claim ' + (listing.name || 'Listing') + ' — DabbaMap';
   document.getElementById('listing-info').style.display = '';
 
-  /* Check login — require sign-in before showing the form */
+  /* If already logged in, pre-fill email and lock it */
   var user = window.DabbaAuth && window.DabbaAuth.getUser();
-  if (!user || !user.id) {
-    showState('state-login');
-    /* Re-check after auth state changes (user signs in on this tab) */
-    document.addEventListener('dabbamapAuthChange', function() {
-      user = window.DabbaAuth && window.DabbaAuth.getUser();
-      if (user && user.id) { mountForm(user); }
-    });
-    return;
+  if (user && user.email) {
+    var emailEl = document.getElementById('c-email');
+    emailEl.value = user.email;
+    emailEl.readOnly = true;
+    emailEl.style.cssText += ';background:var(--bg);color:var(--text-muted);cursor:not-allowed;border-color:var(--border)';
+    document.getElementById('c-email-note').style.display = '';
+    document.getElementById('c-email-tip').style.display = 'none';
   }
 
-  mountForm(user);
+  showState('claim-form');
+  document.getElementById('listing-info').style.display = '';
 
-  function mountForm(u) {
-    document.getElementById('c-email').value = u.email || '';
-    showState('claim-form');
-    document.getElementById('listing-info').style.display = '';
+  var form      = document.getElementById('claim-form');
+  var errBox    = document.getElementById('form-error');
+  var submitBtn = document.getElementById('claim-submit-btn');
 
-    var form      = document.getElementById('claim-form');
-    var errBox    = document.getElementById('form-error');
-    var submitBtn = document.getElementById('claim-submit-btn');
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var name  = (document.getElementById('c-name').value  || '').trim();
+    var email = (document.getElementById('c-email').value || '').trim();
+    var phone = (document.getElementById('c-phone').value || '').trim();
+    if (!name || !email || !phone) {
+      errBox.textContent = 'Please fill in your name, email, and phone number.';
+      errBox.style.display = ''; return;
+    }
+    errBox.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      var name  = (document.getElementById('c-name').value  || '').trim();
-      var phone = (document.getElementById('c-phone').value || '').trim();
-      if (!name || !phone) {
-        errBox.textContent = 'Please fill in your name and phone number.';
-        errBox.style.display = ''; return;
-      }
-      errBox.style.display = 'none';
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting…';
+    if (!window.DabbaClaims) {
+      errBox.textContent = 'Service not available. Please try again later.';
+      errBox.style.display = '';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Claim →';
+      return;
+    }
 
-      if (!window.DabbaClaims) {
-        errBox.textContent = 'Service not available. Please try again later.';
-        errBox.style.display = '';
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit Claim →';
-        return;
-      }
-
-      DabbaClaims.submit({
-        listingId: listingId,
-        name:      name,
-        email:     u.email || '',
-        phone:     phone,
-        message:   (document.getElementById('c-message').value || '').trim()
-      }).then(function() {
-        showState('state-success');
-        document.getElementById('listing-info').style.display = '';
-      }).catch(function(err) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit Claim →';
-        errBox.textContent = 'Something went wrong while submitting your claim. Please check your details and try again.';
-        errBox.style.display = '';
-      });
+    DabbaClaims.submit({
+      listingId: listingId,
+      name:      name,
+      email:     email,
+      phone:     phone,
+      message:   (document.getElementById('c-message').value || '').trim()
+    }).then(function() {
+      showState('state-success');
+      document.getElementById('listing-info').style.display = '';
+    }).catch(function(err) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Claim →';
+      errBox.textContent = 'Something went wrong while submitting your claim. Please check your details and try again.';
+      errBox.style.display = '';
     });
-  }
+  });
 });
 </script>
 <style>img.twemoji{width:1.2em;height:1.2em;vertical-align:-0.2em;display:inline-block}</style>
