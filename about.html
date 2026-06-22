@@ -232,7 +232,7 @@
   <div class="ab-story-panel after">
     <div class="story-label">With DabbaMap</div>
     <div class="story-contrast-list">
-      <div class="scl-item">Browse 70+ home cooks by area &amp; price</div>
+      <div class="scl-item">Browse <span id="browse-count">70+</span> home cooks by area &amp; price</div>
       <div class="scl-item">Anonymous messaging — no numbers until you choose</div>
       <div class="scl-item">100% free. Zero commission. Forever.</div>
       <div class="scl-item">Every provider pinned on a live map</div>
@@ -486,9 +486,11 @@
 (function() {
   var base = (window.DABBA_DATA || []).length;
   var el = document.getElementById('about-stat-count');
+  var browseEl = document.getElementById('browse-count');
   function setDisplay(total) {
     var display = Math.floor(total / 10) * 10;
     if (el) el.textContent = display + '+';
+    if (browseEl) browseEl.textContent = display + '+';
   }
   setDisplay(base);
   if (window.DabbaListings && window.DabbaListings.count) {

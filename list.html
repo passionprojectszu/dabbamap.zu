@@ -557,25 +557,22 @@ document.addEventListener('DOMContentLoaded', function () {
     var baseUrl = window.location.href.split('list.html')[0];
     var profileUrl = listingId ? baseUrl + 'profile.html?id=' + listingId : baseUrl + 'profile.html';
     document.getElementById('public-url').textContent = profileUrl;
+    // Always inject the View My Profile button (for both new and edit)
+    var _dashBtn = document.getElementById('goto-dashboard-btn');
+    var _vpb = document.getElementById('view-profile-btn');
+    if (!_vpb && _dashBtn) {
+      _vpb = document.createElement('a');
+      _vpb.id = 'view-profile-btn';
+      _vpb.className = 'btn btn-secondary btn-lg';
+      _vpb.textContent = 'View My Profile';
+      _dashBtn.parentNode.insertBefore(_vpb, _dashBtn.nextSibling);
+    }
+    if (_vpb) _vpb.href = profileUrl;
     if (EDIT_ID) {
-      // Edit mode: no View My Profile button — remove it if somehow present
-      var _vpb = document.getElementById('view-profile-btn');
-      if (_vpb) _vpb.parentNode.removeChild(_vpb);
       var _sh2 = document.querySelector('#list-success h2');
       var _sp  = document.querySelector('#list-success p');
       if (_sh2) _sh2.textContent = 'Listing Updated!';
       if (_sp)  _sp.textContent  = 'Your changes are now live on DabbaMap.';
-    } else {
-      // New listing: create and inject the View My Profile button
-      var _dashBtn = document.getElementById('goto-dashboard-btn');
-      if (_dashBtn) {
-        var _vpb = document.createElement('a');
-        _vpb.id = 'view-profile-btn';
-        _vpb.className = 'btn btn-secondary btn-lg';
-        _vpb.href = profileUrl;
-        _vpb.textContent = 'View My Profile';
-        _dashBtn.parentNode.insertBefore(_vpb, _dashBtn.nextSibling);
-      }
     }
     // Cache full listing data in sessionStorage so profile.html can render
     // immediately without depending on Supabase RLS or the anon-key XHR
