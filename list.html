@@ -96,7 +96,7 @@
 
           <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:24px">
             <a id="goto-dashboard-btn" href="dashboard.html?role=provider" class="btn btn-primary btn-lg">Go to My Dashboard →</a>
-            <a id="view-profile-btn" href="profile.html" class="btn btn-secondary btn-lg">View My Profile</a>
+            <a id="view-profile-btn" href="profile.html" class="btn btn-secondary btn-lg" style="display:none">View My Profile</a>
           </div>
 
           <div class="url-block mt-4" style="text-align:left">
@@ -555,9 +555,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function showSuccessScreen(listing) {
     var listingId = (listing && listing.id && !String(listing.id).startsWith('U')) ? listing.id : EDIT_ID;
-    var profileUrl = listingId ? 'profile.html?id=' + listingId : 'profile.html';
+    var baseUrl = window.location.href.split('list.html')[0];
+    var profileUrl = listingId ? baseUrl + 'profile.html?id=' + listingId : baseUrl + 'profile.html';
     document.getElementById('public-url').textContent = profileUrl;
-    document.getElementById('view-profile-btn').href = profileUrl;
+    var _vpb = document.getElementById('view-profile-btn');
+    if (EDIT_ID) {
+      // Edit mode: hide View My Profile button entirely
+      if (_vpb) _vpb.style.display = 'none';
+      var _sh2 = document.querySelector('#list-success h2');
+      var _sp  = document.querySelector('#list-success p');
+      if (_sh2) _sh2.textContent = 'Listing Updated!';
+      if (_sp)  _sp.textContent  = 'Your changes are now live on DabbaMap.';
+    } else {
+      // New listing: show the button with full URL
+      if (_vpb) { _vpb.href = profileUrl; _vpb.style.display = ''; }
+    }
     // Cache full listing data in sessionStorage so profile.html can render
     // immediately without depending on Supabase RLS or the anon-key XHR
     if (listingId) {
@@ -565,14 +577,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var cache = Object.assign({}, pendingListingSave, { id: listingId });
         sessionStorage.setItem('_dmpl_' + listingId, JSON.stringify(cache));
       } catch(e) {}
-    }
-    if (EDIT_ID) {
-      var _sh2 = document.querySelector('#list-success h2');
-      var _sp  = document.querySelector('#list-success p');
-      if (_sh2) _sh2.textContent = 'Listing Updated!';
-      if (_sp)  _sp.textContent  = 'Your changes are now live on DabbaMap.';
-      var _vpb = document.getElementById('view-profile-btn');
-      if (_vpb) _vpb.style.display = 'none';
     }
     document.getElementById('list-form-wrap').style.display = 'none';
     document.getElementById('form-header').style.display = 'none';
