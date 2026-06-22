@@ -821,6 +821,7 @@ function openProviderListing(listingId, listings) {
       '</div>' +
       '<a href="profile.html?id=' + esc(listingId) + '" class="btn btn-ghost btn-sm" target="_blank">View Public Profile →</a>' +
       '<a href="list.html?edit=' + esc(listingId) + '" class="btn btn-primary btn-sm">Edit Listing</a>' +
+      '<button id="delete-listing-btn" class="btn btn-sm" style="background:#fff1f0;color:#dc2626;border:1.5px solid #fca5a5;font-weight:700">Delete Listing</button>' +
     '</div>' +
 
     '<div class="stat-mini-grid">' +
@@ -856,6 +857,40 @@ function openProviderListing(listingId, listings) {
   if (convs.length > 0) {
     var firstEl = document.querySelector('#provider-conv-list .conv-item');
     if (firstEl) { firstEl.classList.add('active'); openProviderConv(convs[0].id, listingId, listings); }
+  }
+
+  // Delete listing handler
+  var deleteBtn = document.getElementById('delete-listing-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', function() {
+      if (!confirm('Permanently delete "' + listing.name + '"? This cannot be undone.')) return;
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = 'Deleting…';
+      var client = window._sb || window.sbClient;
+      if (!client) { alert('Not connected — please refresh and try again.'); deleteBtn.disabled = false; deleteBtn.textContent = 'Delete Listing'; return; }
+      client.from('listings').delete().eq('id', listingId).then(function(res) {
+        if (res.error) {
+          alert('Delete failed: ' + res.error.message);
+          deleteBtn.disabled = false;
+          deleteBtn.textContent = 'Delete Listing';
+        } else {
+          // Remove listing card from sidebar and clear detail panel
+          var card = document.querySelector('.listing-tile[data-lid="' + listingId + '"]');
+          if (card) card.remove();
+          document.getElementById('provider-detail').innerHTML =
+            '<div style="padding:40px;text-align:center;color:var(--text-muted)">' +
+            '<div style="font-size:32px;margin-bottom:12px">🗑️</div>' +
+            '<p style="font-weight:600">Listing deleted.</p>' +
+            '<p style="font-size:13px">Refresh the page to see your updated listings.</p>' +
+            '</div>';
+          if (window.showToast) showToast('Listing deleted permanently.');
+        }
+      }).catch(function(e) {
+        alert('Delete failed: ' + (e.message || e));
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = 'Delete Listing';
+      });
+    });
   }
 }
 

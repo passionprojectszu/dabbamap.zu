@@ -482,19 +482,48 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{
   subdomains: 'abcd', maxZoom: 19, pane: 'labelPane',
 }).addTo(map);
 
-// Clip the label pane to India's bounding box using CSS clip-path.
-// latLngToLayerPoint gives coordinates in the pane's own space (pre-transform),
-// which is what clip-path needs. Recalculate on every move/zoom.
-var INDIA_SW = L.latLng(6.0, 67.0);
-var INDIA_NE = L.latLng(37.0, 98.5);
+// Clip the label pane to a polygon that follows India's approximate outline.
+// Uses latLngToLayerPoint (pre-CSS-transform pane space) so clip-path coords match.
+// Recalculated on every move/zoom so it tracks correctly.
+var INDIA_BORDER = [
+  L.latLng(37.0, 74.5),  // NW Kashmir
+  L.latLng(35.0, 78.0),  // Ladakh N
+  L.latLng(32.0, 79.5),  // Himachal N
+  L.latLng(30.5, 80.0),  // Uttarakhand / Nepal W border
+  L.latLng(27.0, 80.0),  // Terai — south of Nepal W
+  L.latLng(27.0, 87.8),  // Terai — south of Nepal E, approaching Siliguri
+  L.latLng(27.2, 89.0),  // Siliguri Corridor into NE India
+  L.latLng(27.5, 91.0),  // Assam N
+  L.latLng(28.5, 96.5),  // Arunachal Pradesh
+  L.latLng(27.5, 97.5),  // Arunachal E
+  L.latLng(25.0, 95.0),  // Nagaland / Myanmar border
+  L.latLng(22.0, 93.0),  // Manipur / Myanmar
+  L.latLng(21.5, 92.5),  // Mizoram SE
+  L.latLng(20.5, 87.0),  // Odisha coast
+  L.latLng(15.5, 80.5),  // Andhra Pradesh coast
+  L.latLng(10.5, 80.0),  // Tamil Nadu coast
+  L.latLng(8.5,  77.5),  // Kanyakumari (southernmost tip)
+  L.latLng(9.0,  76.5),  // Kerala S coast
+  L.latLng(11.0, 75.5),  // Kerala N coast
+  L.latLng(14.5, 74.0),  // Karnataka coast
+  L.latLng(16.5, 73.5),  // Goa coast
+  L.latLng(20.0, 72.5),  // Maharashtra coast
+  L.latLng(22.5, 71.5),  // Gujarat S coast (Saurashtra)
+  L.latLng(23.5, 68.5),  // Kutch / Gujarat W
+  L.latLng(24.5, 68.0),  // Pakistan border S
+  L.latLng(27.0, 68.5),  // Rajasthan / Pakistan border
+  L.latLng(31.0, 71.5),  // Punjab / Pakistan border
+  L.latLng(33.5, 73.5),  // Kashmir LOC S
+  L.latLng(37.0, 74.5),  // back to NW Kashmir
+];
 function updateLabelClip() {
   var pane = map.getPane('labelPane');
   if (!pane) return;
-  var sw = map.latLngToLayerPoint(INDIA_SW);
-  var ne = map.latLngToLayerPoint(INDIA_NE);
-  pane.style.clipPath = 'polygon(' +
-    sw.x+'px '+ne.y+'px,'+ne.x+'px '+ne.y+'px,'+
-    ne.x+'px '+sw.y+'px,'+sw.x+'px '+sw.y+'px)';
+  var pts = INDIA_BORDER.map(function(ll) {
+    var p = map.latLngToLayerPoint(ll);
+    return p.x + 'px ' + p.y + 'px';
+  });
+  pane.style.clipPath = 'polygon(' + pts.join(',') + ')';
 }
 map.on('move zoom viewreset zoomend moveend', updateLabelClip);
 updateLabelClip();
