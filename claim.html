@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }).catch(function(err) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit Claim →';
-        errBox.textContent = (err && err.message) ? err.message : 'Could not submit claim. Please try again.';
+        errBox.textContent = 'Something went wrong while submitting your claim. Please check your details and try again.';
         errBox.style.display = '';
       });
     });
