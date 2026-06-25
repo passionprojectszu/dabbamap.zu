@@ -522,19 +522,21 @@ var INDIA_BORDER = [
   L.latLng(37.0, 74.5),  // back to NW Kashmir
 ];
 
-// ── Bangladesh hole (even-odd rule punches this out of the India clip) ──────
-// Slightly inset from actual border so Kolkata / West Bengal labels stay visible
+// ── Bangladesh hole ─────────────────────────────────────────────────────────
+// Vertices are listed in REVERSE (CCW in geo = CW on screen = winding -1).
+// India polygon winds +1; combined winding inside Bangladesh = 0 → outside clip
+// → Bangladesh labels hidden. Works with the default nonzero winding rule.
 var BANGLADESH_HOLE = [
-  L.latLng(26.6, 88.2),  // NW (Cooch Behar)
-  L.latLng(26.4, 89.8),  // N (Dhubri, south of Bhutan/Assam)
-  L.latLng(25.5, 91.2),  // NE (Meghalaya / Sylhet)
-  L.latLng(24.5, 92.0),  // E (Tripura border)
-  L.latLng(22.5, 92.2),  // SE (Chittagong / Cox's Bazar)
-  L.latLng(21.5, 92.0),  // S (Bay of Bengal edge)
-  L.latLng(21.2, 90.0),  // SW (Sundarbans south)
+  L.latLng(26.6, 88.2),  // NW (start)
+  L.latLng(25.2, 88.5),  // NW Malda / Jalpaiguri
+  L.latLng(23.0, 88.7),  // W (Murshidabad — east of Kolkata 88.4°E)
   L.latLng(21.8, 89.0),  // W-SW
-  L.latLng(23.0, 88.7),  // W (Murshidabad — kept east of Kolkata 88.4°E)
-  L.latLng(25.2, 88.5),  // NW (Malda / Jalpaiguri)
+  L.latLng(21.2, 90.0),  // SW (Sundarbans south)
+  L.latLng(21.5, 92.0),  // S (Bay of Bengal edge)
+  L.latLng(22.5, 92.2),  // SE (Chittagong / Cox's Bazar)
+  L.latLng(24.5, 92.0),  // E (Tripura border)
+  L.latLng(25.5, 91.2),  // NE (Meghalaya / Sylhet)
+  L.latLng(26.4, 89.8),  // N (Dhubri)
   L.latLng(26.6, 88.2),  // close
 ];
 
@@ -586,9 +588,9 @@ function updateLabelClip() {
   var pane   = map.getPane('labelPane');
   var pathEl = document.getElementById('india-clip-path');
   if (!pane || !pathEl) return;
-  // Expand India polygon 50px outward so city labels near any border show fully.
-  // Shrink Bangladesh hole 50px inward so it stays well inside India's expanded edge.
-  var BUF = 50;
+  // 20px outward on India lets border-city labels spill across without being cut.
+  // 20px inward on Bangladesh hole keeps it away from West Bengal / Siliguri labels.
+  var BUF = 20;
   pathEl.setAttribute('d',
     ptsToPath(offsetPoints(llsToPoints(INDIA_BORDER), BUF)) + ' ' +
     ptsToPath(offsetPoints(llsToPoints(BANGLADESH_HOLE), -BUF))
