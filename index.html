@@ -486,34 +486,48 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{
 // Uses latLngToLayerPoint (pre-CSS-transform pane space) so clip-path coords match.
 // Recalculated on every move/zoom so it tracks correctly.
 var INDIA_BORDER = [
-  L.latLng(37.0, 74.5),  // NW Kashmir
-  L.latLng(35.0, 78.0),  // Ladakh N
-  L.latLng(32.0, 79.5),  // Himachal N
-  L.latLng(30.5, 80.0),  // Uttarakhand / Nepal W border
-  L.latLng(27.0, 80.0),  // Terai — south of Nepal W
-  L.latLng(27.0, 87.8),  // Terai — south of Nepal E, approaching Siliguri
-  L.latLng(27.2, 89.0),  // Siliguri Corridor into NE India
-  L.latLng(27.5, 91.0),  // Assam N
-  L.latLng(28.5, 96.5),  // Arunachal Pradesh
-  L.latLng(27.5, 97.5),  // Arunachal E
-  L.latLng(25.0, 95.0),  // Nagaland / Myanmar border
-  L.latLng(22.0, 93.0),  // Manipur / Myanmar
-  L.latLng(21.5, 92.5),  // Mizoram SE
+  // ── North border (Himalayan LAC/LOC, west→east) ──
+  L.latLng(37.0, 74.5),  // NW Kashmir (Siachen)
+  L.latLng(35.5, 76.5),  // Ladakh W
+  L.latLng(34.5, 78.5),  // Ladakh E / Himachal N
+  L.latLng(32.5, 79.5),  // Himachal / Uttarakhand N
+  L.latLng(30.5, 80.0),  // Uttarakhand / Nepal W
+  // ── South of Nepal & Bhutan (Terai) ──
+  L.latLng(27.5, 80.0),  // south of Nepal W
+  L.latLng(27.5, 87.5),  // south of Nepal E
+  // ── Siliguri Corridor → NE India ──
+  L.latLng(27.0, 88.5),  // Siliguri Corridor
+  L.latLng(27.5, 91.5),  // Assam / Meghalaya N
+  L.latLng(28.0, 94.5),  // Arunachal W
+  L.latLng(28.5, 97.0),  // Arunachal NE
+  L.latLng(27.5, 97.5),  // Arunachal E tip
+  // ── East border (Myanmar) ──
+  L.latLng(25.5, 95.5),  // Nagaland / Myanmar
+  L.latLng(23.5, 93.5),  // Manipur / Myanmar
+  L.latLng(22.0, 92.5),  // Mizoram S
+  // ── Bay of Bengal coast ──
+  L.latLng(21.0, 92.5),  // Mizoram / Bangladesh coast
   L.latLng(20.5, 87.0),  // Odisha coast
-  L.latLng(15.5, 80.5),  // Andhra Pradesh coast
-  L.latLng(10.5, 80.0),  // Tamil Nadu coast
-  L.latLng(8.5,  77.5),  // Kanyakumari (southernmost tip)
-  L.latLng(9.0,  76.5),  // Kerala S coast
-  L.latLng(11.0, 75.5),  // Kerala N coast
+  L.latLng(16.5, 82.5),  // Andhra coast
+  L.latLng(13.5, 80.5),  // Tamil Nadu N coast
+  L.latLng(8.5,  78.0),  // Kanyakumari / southernmost tip
+  // ── West coast (south→north) ──
+  L.latLng(8.5,  76.8),  // Kerala tip
+  L.latLng(10.5, 75.8),  // Kerala N
   L.latLng(14.5, 74.0),  // Karnataka coast
-  L.latLng(16.5, 73.5),  // Goa coast
-  L.latLng(20.0, 72.5),  // Maharashtra coast
-  L.latLng(22.5, 71.5),  // Gujarat S coast (Saurashtra)
-  L.latLng(23.5, 68.5),  // Kutch / Gujarat W
-  L.latLng(24.5, 68.0),  // Pakistan border S
-  L.latLng(27.0, 68.5),  // Rajasthan / Pakistan border
-  L.latLng(31.0, 71.5),  // Punjab / Pakistan border
-  L.latLng(33.5, 73.5),  // Kashmir LOC S
+  L.latLng(17.0, 73.2),  // Goa / Maharashtra coast
+  L.latLng(20.5, 72.5),  // Maharashtra / Gujarat coast
+  L.latLng(22.5, 69.5),  // Saurashtra / Kathiawar
+  L.latLng(23.5, 68.5),  // Kutch W
+  // ── Pakistan border (south→north, at actual India-Pak border) ──
+  L.latLng(24.5, 70.0),  // Gujarat / Sindh border
+  L.latLng(26.5, 71.0),  // Rajasthan S (Barmer)
+  L.latLng(28.5, 71.5),  // Rajasthan C (Jaisalmer area)
+  L.latLng(30.0, 73.5),  // Rajasthan N (Bikaner)
+  L.latLng(31.0, 74.5),  // Punjab / Wagah area
+  L.latLng(32.5, 75.0),  // Jammu
+  L.latLng(33.5, 74.5),  // Kashmir LOC S
+  L.latLng(35.0, 75.5),  // Kashmir LOC N
   L.latLng(37.0, 74.5),  // back to NW Kashmir
 ];
 function updateLabelClip() {
