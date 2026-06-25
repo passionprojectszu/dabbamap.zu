@@ -559,20 +559,40 @@ var BANGLADESH_HOLE = [
   document.body.appendChild(svg);
 })();
 
-function toSvgPath(lls) {
-  var pts = lls.map(function(ll) {
-    var p = map.latLngToLayerPoint(ll);
-    return p.x + ',' + p.y;
+function llsToPoints(lls) {
+  return lls.map(function(ll) { return map.latLngToLayerPoint(ll); });
+}
+
+// Push every vertex away from the polygon centroid by |buf| px (negative = inward).
+// This lets border-city labels spill across political boundaries without being cut.
+function offsetPoints(pts, buf) {
+  var cx = 0, cy = 0, n = pts.length;
+  for (var i = 0; i < n; i++) { cx += pts[i].x; cy += pts[i].y; }
+  cx /= n; cy /= n;
+  return pts.map(function(p) {
+    var dx = p.x - cx, dy = p.y - cy;
+    var d = Math.sqrt(dx*dx + dy*dy);
+    if (d < 1) return p;
+    var s = (d + buf) / d;
+    return { x: cx + dx*s, y: cy + dy*s };
   });
-  return 'M' + pts.join('L') + 'Z';
+}
+
+function ptsToPath(pts) {
+  return 'M' + pts.map(function(p) { return p.x + ',' + p.y; }).join('L') + 'Z';
 }
 
 function updateLabelClip() {
   var pane   = map.getPane('labelPane');
   var pathEl = document.getElementById('india-clip-path');
   if (!pane || !pathEl) return;
-  // India outline + Bangladesh hole as two subpaths; evenodd makes the hole work
-  pathEl.setAttribute('d', toSvgPath(INDIA_BORDER) + ' ' + toSvgPath(BANGLADESH_HOLE));
+  // Expand India polygon 50px outward so city labels near any border show fully.
+  // Shrink Bangladesh hole 50px inward so it stays well inside India's expanded edge.
+  var BUF = 50;
+  pathEl.setAttribute('d',
+    ptsToPath(offsetPoints(llsToPoints(INDIA_BORDER), BUF)) + ' ' +
+    ptsToPath(offsetPoints(llsToPoints(BANGLADESH_HOLE), -BUF))
+  );
   pane.style.clipPath = 'url(#india-label-clip)';
 }
 map.on('move zoom viewreset zoomend moveend', updateLabelClip);
