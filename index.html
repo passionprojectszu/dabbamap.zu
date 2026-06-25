@@ -482,62 +482,98 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{
   subdomains: 'abcd', maxZoom: 19, pane: 'labelPane',
 }).addTo(map);
 
-// Clip the label pane to a polygon that follows India's approximate outline.
-// Uses latLngToLayerPoint (pre-CSS-transform pane space) so clip-path coords match.
-// Recalculated on every move/zoom so it tracks correctly.
+// ── India outline polygon (main body) ──────────────────────────────────────
 var INDIA_BORDER = [
-  // ── North border (Himalayan LAC/LOC, west→east) ──
-  L.latLng(37.0, 74.5),  // NW Kashmir (Siachen)
+  L.latLng(37.0, 74.5),  // NW Kashmir
   L.latLng(35.5, 76.5),  // Ladakh W
-  L.latLng(34.5, 78.5),  // Ladakh E / Himachal N
-  L.latLng(32.5, 79.5),  // Himachal / Uttarakhand N
+  L.latLng(34.5, 78.5),  // Ladakh E
+  L.latLng(32.5, 79.5),  // Himachal N
   L.latLng(30.5, 80.0),  // Uttarakhand / Nepal W
-  // ── South of Nepal & Bhutan (Terai) ──
-  L.latLng(27.5, 80.0),  // south of Nepal W
-  L.latLng(27.5, 87.5),  // south of Nepal E
-  // ── Siliguri Corridor → NE India ──
+  L.latLng(27.5, 80.0),  // Terai — south of Nepal W
+  L.latLng(27.5, 87.5),  // Terai — south of Nepal E
   L.latLng(27.0, 88.5),  // Siliguri Corridor
-  L.latLng(27.5, 91.5),  // Assam / Meghalaya N
+  L.latLng(27.5, 91.5),  // Assam N
   L.latLng(28.0, 94.5),  // Arunachal W
   L.latLng(28.5, 97.0),  // Arunachal NE
   L.latLng(27.5, 97.5),  // Arunachal E tip
-  // ── East border (Myanmar) ──
   L.latLng(25.5, 95.5),  // Nagaland / Myanmar
   L.latLng(23.5, 93.5),  // Manipur / Myanmar
   L.latLng(22.0, 92.5),  // Mizoram S
-  // ── Bay of Bengal coast ──
-  L.latLng(21.0, 92.5),  // Mizoram / Bangladesh coast
+  L.latLng(21.0, 92.5),  // SE coast (south of Bangladesh)
   L.latLng(20.5, 87.0),  // Odisha coast
   L.latLng(16.5, 82.5),  // Andhra coast
   L.latLng(13.5, 80.5),  // Tamil Nadu N coast
-  L.latLng(8.5,  78.0),  // Kanyakumari / southernmost tip
-  // ── West coast (south→north) ──
-  L.latLng(8.5,  76.8),  // Kerala tip
+  L.latLng(8.5,  78.0),  // Kanyakumari tip
+  L.latLng(8.5,  76.8),  // Kerala S
   L.latLng(10.5, 75.8),  // Kerala N
   L.latLng(14.5, 74.0),  // Karnataka coast
-  L.latLng(17.0, 73.2),  // Goa / Maharashtra coast
-  L.latLng(20.5, 72.5),  // Maharashtra / Gujarat coast
-  L.latLng(22.5, 69.5),  // Saurashtra / Kathiawar
+  L.latLng(17.0, 73.2),  // Goa coast
+  L.latLng(20.5, 72.5),  // Maharashtra coast
+  L.latLng(22.5, 69.5),  // Saurashtra
   L.latLng(23.5, 68.5),  // Kutch W
-  // ── Pakistan border (south→north, at actual India-Pak border) ──
   L.latLng(24.5, 70.0),  // Gujarat / Sindh border
   L.latLng(26.5, 71.0),  // Rajasthan S (Barmer)
-  L.latLng(28.5, 71.5),  // Rajasthan C (Jaisalmer area)
+  L.latLng(28.5, 71.5),  // Rajasthan C (Jaisalmer)
   L.latLng(30.0, 73.5),  // Rajasthan N (Bikaner)
-  L.latLng(31.0, 74.5),  // Punjab / Wagah area
+  L.latLng(31.0, 74.5),  // Punjab / Wagah
   L.latLng(32.5, 75.0),  // Jammu
   L.latLng(33.5, 74.5),  // Kashmir LOC S
   L.latLng(35.0, 75.5),  // Kashmir LOC N
   L.latLng(37.0, 74.5),  // back to NW Kashmir
 ];
-function updateLabelClip() {
-  var pane = map.getPane('labelPane');
-  if (!pane) return;
-  var pts = INDIA_BORDER.map(function(ll) {
+
+// ── Bangladesh hole (even-odd rule punches this out of the India clip) ──────
+// Slightly inset from actual border so Kolkata / West Bengal labels stay visible
+var BANGLADESH_HOLE = [
+  L.latLng(26.6, 88.2),  // NW (Cooch Behar)
+  L.latLng(26.4, 89.8),  // N (Dhubri, south of Bhutan/Assam)
+  L.latLng(25.5, 91.2),  // NE (Meghalaya / Sylhet)
+  L.latLng(24.5, 92.0),  // E (Tripura border)
+  L.latLng(22.5, 92.2),  // SE (Chittagong / Cox's Bazar)
+  L.latLng(21.5, 92.0),  // S (Bay of Bengal edge)
+  L.latLng(21.2, 90.0),  // SW (Sundarbans south)
+  L.latLng(21.8, 89.0),  // W-SW
+  L.latLng(23.0, 88.7),  // W (Murshidabad — kept east of Kolkata 88.4°E)
+  L.latLng(25.2, 88.5),  // NW (Malda / Jalpaiguri)
+  L.latLng(26.6, 88.2),  // close
+];
+
+// ── SVG clip using even-odd fill rule ───────────────────────────────────────
+// Even-odd means anywhere inside an ODD number of subpaths = visible (India);
+// inside both India AND Bangladesh = even count = hidden.
+(function() {
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('xmlns', NS);
+  svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+  var defs = document.createElementNS(NS, 'defs');
+  var cp   = document.createElementNS(NS, 'clipPath');
+  cp.id    = 'india-label-clip';
+  cp.setAttribute('clipPathUnits', 'userSpaceOnUse');
+  var pathEl = document.createElementNS(NS, 'path');
+  pathEl.id  = 'india-clip-path';
+  pathEl.setAttribute('fill-rule', 'evenodd');
+  cp.appendChild(pathEl);
+  defs.appendChild(cp);
+  svg.appendChild(defs);
+  document.body.appendChild(svg);
+})();
+
+function toSvgPath(lls) {
+  var pts = lls.map(function(ll) {
     var p = map.latLngToLayerPoint(ll);
-    return p.x + 'px ' + p.y + 'px';
+    return p.x + ',' + p.y;
   });
-  pane.style.clipPath = 'polygon(' + pts.join(',') + ')';
+  return 'M' + pts.join('L') + 'Z';
+}
+
+function updateLabelClip() {
+  var pane   = map.getPane('labelPane');
+  var pathEl = document.getElementById('india-clip-path');
+  if (!pane || !pathEl) return;
+  // India outline + Bangladesh hole as two subpaths; evenodd makes the hole work
+  pathEl.setAttribute('d', toSvgPath(INDIA_BORDER) + ' ' + toSvgPath(BANGLADESH_HOLE));
+  pane.style.clipPath = 'url(#india-label-clip)';
 }
 map.on('move zoom viewreset zoomend moveend', updateLabelClip);
 updateLabelClip();
