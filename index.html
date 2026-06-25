@@ -189,6 +189,25 @@
     .dm-pill-jain   { background: #6d28d9; color: #fff; }
     .dm-pill-diet   { background: #0369a1; color: #fff; }
 
+    /* Indian place labels rendered by JS — no tile clipping needed */
+    .dm-place-state {
+      font: 600 10px/1 'Inter', system-ui, sans-serif;
+      letter-spacing: .07em;
+      color: #999;
+      text-shadow: 0 0 4px #fff, 0 0 4px #fff, 0 0 4px #fff, 0 0 4px #fff;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+    }
+    .dm-place-city {
+      font: 500 12px/1 'Inter', system-ui, sans-serif;
+      color: #3a3a3a;
+      text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+    }
+
     /* Navbar translucent-warm over map */
     .navbar-map {
       background: rgba(253,248,240,0.92) !important;
@@ -474,131 +493,148 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/
   maxZoom: 19,
 }).addTo(map);
 
-// Label-only layer in a custom pane — clipped to India via CSS clip-path
-map.createPane('labelPane');
-map.getPane('labelPane').style.zIndex = 250;
-map.getPane('labelPane').style.pointerEvents = 'none';
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
-  subdomains: 'abcd', maxZoom: 19, pane: 'labelPane',
-}).addTo(map);
+// ── Indian place labels — JS-rendered, never tile-clipped ───────────────────
+// The base tile has NO text labels (voyager_nolabels). All place names come
+// from this layer so only Indian places appear, names are never cut by borders,
+// and foreign country labels never show.
+// Format: [lat, lng, displayName, type, minZoom]  type: 's'=state, 'c'=city
 
-// ── India outline polygon (main body) ──────────────────────────────────────
-var INDIA_BORDER = [
-  L.latLng(37.0, 74.5),  // NW Kashmir
-  L.latLng(35.5, 76.5),  // Ladakh W
-  L.latLng(34.5, 78.5),  // Ladakh E
-  L.latLng(32.5, 79.5),  // Himachal N
-  L.latLng(30.5, 80.0),  // Uttarakhand / Nepal W
-  L.latLng(27.5, 80.0),  // Terai — south of Nepal W
-  L.latLng(27.5, 87.5),  // Terai — south of Nepal E
-  L.latLng(27.0, 88.5),  // Siliguri Corridor
-  L.latLng(27.5, 91.5),  // Assam N
-  L.latLng(28.0, 94.5),  // Arunachal W
-  L.latLng(28.5, 97.0),  // Arunachal NE
-  L.latLng(27.5, 97.5),  // Arunachal E tip
-  L.latLng(25.5, 95.5),  // Nagaland / Myanmar
-  L.latLng(23.5, 94.5),  // Manipur / Myanmar
-  L.latLng(22.0, 92.5),  // Mizoram S
-  L.latLng(21.0, 92.5),  // SE coast (south of Bangladesh)
-  L.latLng(20.5, 87.0),  // Odisha coast
-  L.latLng(16.5, 82.5),  // Andhra coast
-  L.latLng(13.5, 80.5),  // Tamil Nadu N coast
-  L.latLng(8.5,  78.0),  // Kanyakumari tip
-  L.latLng(8.5,  76.8),  // Kerala S
-  L.latLng(10.5, 75.8),  // Kerala N
-  L.latLng(14.5, 74.0),  // Karnataka coast
-  L.latLng(17.0, 73.2),  // Goa coast
-  L.latLng(20.5, 72.5),  // Maharashtra coast
-  L.latLng(22.5, 69.5),  // Saurashtra
-  L.latLng(23.5, 68.5),  // Kutch W
-  L.latLng(24.5, 70.0),  // Gujarat / Sindh border
-  L.latLng(26.5, 71.0),  // Rajasthan S (Barmer)
-  L.latLng(28.5, 71.5),  // Rajasthan C (Jaisalmer)
-  L.latLng(30.0, 73.5),  // Rajasthan N (Bikaner)
-  L.latLng(31.0, 74.5),  // Punjab / Wagah
-  L.latLng(32.5, 75.0),  // Jammu
-  L.latLng(33.5, 74.5),  // Kashmir LOC S
-  L.latLng(35.0, 75.5),  // Kashmir LOC N
-  L.latLng(37.0, 74.5),  // back to NW Kashmir
+var _PL = [
+  // States & UTs (zoom 5+)
+  [15.9,79.7,'ANDHRA PRADESH','s',5],[27.5,93.5,'ARUNACHAL PRADESH','s',5],
+  [26.2,92.0,'ASSAM','s',5],[25.1,85.3,'BIHAR','s',5],[21.3,81.9,'CHHATTISGARH','s',5],
+  [15.5,74.1,'GOA','s',6],[22.3,71.2,'GUJARAT','s',5],[29.1,76.2,'HARYANA','s',5],
+  [31.5,77.2,'HIMACHAL PRADESH','s',5],[23.6,85.3,'JHARKHAND','s',5],
+  [15.3,75.7,'KARNATAKA','s',5],[10.8,76.3,'KERALA','s',5],
+  [23.5,77.7,'MADHYA PRADESH','s',5],[19.0,75.7,'MAHARASHTRA','s',5],
+  [24.8,93.9,'MANIPUR','s',5],[25.5,91.4,'MEGHALAYA','s',5],
+  [23.2,92.9,'MIZORAM','s',5],[26.2,94.6,'NAGALAND','s',5],
+  [20.3,84.8,'ODISHA','s',5],[31.1,75.3,'PUNJAB','s',5],
+  [26.5,73.5,'RAJASTHAN','s',5],[27.6,88.5,'SIKKIM','s',6],
+  [11.1,78.7,'TAMIL NADU','s',5],[18.0,79.6,'TELANGANA','s',5],
+  [23.8,91.9,'TRIPURA','s',6],[30.1,79.5,'UTTARAKHAND','s',5],
+  [27.0,80.5,'UTTAR PRADESH','s',5],[22.5,87.5,'WEST BENGAL','s',5],
+  [28.6,77.2,'DELHI','s',5],[34.1,77.6,'LADAKH','s',5],
+  [33.7,75.0,'JAMMU & KASHMIR','s',5],[11.9,79.8,'PUDUCHERRY','s',7],
+  [11.7,92.7,'ANDAMAN & NICOBAR','s',6],[30.7,76.8,'CHANDIGARH','s',7],
+
+  // Metro cities (zoom 5)
+  [19.08,72.88,'Mumbai','c',5],[28.61,77.21,'New Delhi','c',5],
+  [12.97,77.59,'Bengaluru','c',5],[17.39,78.48,'Hyderabad','c',5],
+  [23.02,72.57,'Ahmedabad','c',5],[13.08,80.27,'Chennai','c',5],
+  [22.57,88.36,'Kolkata','c',5],[21.17,72.83,'Surat','c',5],
+  [18.52,73.85,'Pune','c',5],[26.91,75.79,'Jaipur','c',5],
+
+  // Major cities (zoom 6)
+  [26.85,80.95,'Lucknow','c',6],[26.45,80.33,'Kanpur','c',6],
+  [21.14,79.08,'Nagpur','c',6],[22.71,75.86,'Indore','c',6],
+  [23.26,77.40,'Bhopal','c',6],[17.69,83.22,'Visakhapatnam','c',6],
+  [25.60,85.14,'Patna','c',6],[22.30,73.20,'Vadodara','c',6],
+  [30.90,75.85,'Ludhiana','c',6],[27.18,78.01,'Agra','c',6],
+  [20.01,73.79,'Nashik','c',6],[25.32,83.00,'Varanasi','c',6],
+  [34.09,74.80,'Srinagar','c',6],[23.79,86.43,'Dhanbad','c',6],
+  [31.63,74.87,'Amritsar','c',6],[25.45,81.84,'Prayagraj','c',6],
+  [23.34,85.31,'Ranchi','c',6],[11.00,76.97,'Coimbatore','c',6],
+  [23.18,79.94,'Jabalpur','c',6],[26.21,78.18,'Gwalior','c',6],
+  [16.51,80.62,'Vijayawada','c',6],[26.30,73.02,'Jodhpur','c',6],
+  [9.93,78.12,'Madurai','c',6],[21.25,81.63,'Raipur','c',6],
+  [25.18,75.86,'Kota','c',6],[26.18,91.74,'Guwahati','c',6],
+  [20.29,85.82,'Bhubaneswar','c',6],[9.94,76.26,'Kochi','c',6],
+  [30.32,78.03,'Dehradun','c',6],[22.80,86.20,'Jamshedpur','c',6],
+  [12.30,76.65,'Mysuru','c',6],[28.47,77.03,'Gurugram','c',6],
+  [12.87,74.88,'Mangaluru','c',6],[8.52,76.93,'Thiruvananthapuram','c',6],
+  [22.30,70.80,'Rajkot','c',6],[28.98,77.71,'Meerut','c',6],
+  [28.41,77.31,'Faridabad','c',6],[23.68,87.07,'Asansol','c',6],
+  [26.72,88.43,'Siliguri','c',6],[26.45,74.64,'Ajmer','c',6],
+  [19.87,75.34,'Aurangabad','c',6],[21.77,72.15,'Bhavnagar','c',6],
+  [28.37,79.43,'Bareilly','c',6],[28.83,78.77,'Moradabad','c',6],
+  [27.88,78.08,'Aligarh','c',6],[31.33,75.58,'Jalandhar','c',6],
+  [10.82,78.69,'Tiruchirappalli','c',6],[11.66,78.15,'Salem','c',6],
+  [17.68,75.91,'Solapur','c',6],[26.76,83.37,'Gorakhpur','c',6],
+  [16.30,80.44,'Guntur','c',6],[28.02,73.31,'Bikaner','c',6],
+  [28.54,77.39,'Noida','c',6],[21.21,81.37,'Bhilai','c',6],
+  [20.46,85.88,'Cuttack','c',6],[14.43,79.99,'Nellore','c',6],
+  [23.48,87.32,'Durgapur','c',6],[24.58,73.69,'Udaipur','c',6],
+  [22.47,70.06,'Jamnagar','c',6],[23.17,75.78,'Ujjain','c',6],
+  [15.85,74.50,'Belagavi','c',6],[11.11,77.34,'Tiruppur','c',6],
+  [17.33,76.82,'Kalaburagi','c',6],[15.36,75.12,'Hubli','c',6],
+  [25.45,78.57,'Jhansi','c',6],[17.00,81.78,'Rajahmundry','c',6],
+  [13.62,79.42,'Tirupati','c',6],[22.09,82.14,'Bilaspur','c',6],
+  [28.67,77.44,'Ghaziabad','c',6],[27.50,77.67,'Mathura','c',6],
+  [25.60,85.14,'Muzaffarpur','c',6],[24.78,84.99,'Gaya','c',6],
+  [25.25,87.00,'Bhagalpur','c',6],
+
+  // Medium cities (zoom 7)
+  [11.25,75.78,'Kozhikode','c',7],[8.89,76.61,'Kollam','c',7],
+  [10.52,76.21,'Thrissur','c',7],[10.79,79.14,'Thanjavur','c',7],
+  [11.34,77.73,'Erode','c',7],[15.14,76.92,'Ballari','c',7],
+  [14.46,75.92,'Davanagere','c',7],[18.00,79.58,'Warangal','c',7],
+  [15.82,78.04,'Kurnool','c',7],[22.59,88.31,'Howrah','c',7],
+  [26.15,85.90,'Darbhanga','c',7],[22.26,84.86,'Rourkela','c',7],
+  [21.47,83.97,'Sambalpur','c',7],[24.83,92.79,'Silchar','c',7],
+  [25.58,91.89,'Shillong','c',7],[27.33,88.62,'Gangtok','c',7],
+  [34.17,77.58,'Leh','c',7],[32.73,74.87,'Jammu','c',7],
+  [31.10,77.17,'Shimla','c',7],[32.22,76.32,'Dharamsala','c',7],
+  [15.50,73.83,'Panaji','c',7],[11.94,79.83,'Puducherry','c',7],
+  [23.83,91.28,'Agartala','c',7],[23.73,92.72,'Aizawl','c',7],
+  [24.81,93.94,'Imphal','c',7],[25.67,94.11,'Kohima','c',7],
+  [27.08,93.61,'Itanagar','c',7],[26.64,92.79,'Tezpur','c',7],
+  [27.48,94.91,'Dibrugarh','c',7],[26.76,94.21,'Jorhat','c',7],
+  [11.87,75.37,'Kannur','c',7],[9.50,76.35,'Alappuzha','c',7],
+  [9.59,76.52,'Kottayam','c',7],[22.33,87.32,'Kharagpur','c',7],
+  [19.16,77.31,'Nanded','c',7],[18.40,76.56,'Latur','c',7],
+  [20.70,77.02,'Akola','c',7],[20.93,77.75,'Amravati','c',7],
+  [16.70,74.24,'Kolhapur','c',7],[12.92,79.13,'Vellore','c',7],
+  [23.99,85.36,'Hazaribagh','c',7],[23.69,85.99,'Bokaro','c',7],
+  [29.97,77.55,'Saharanpur','c',7],[29.47,77.70,'Muzaffarnagar','c',7],
+  [30.38,76.78,'Ambala','c',7],[29.69,77.00,'Karnal','c',7],
+  [29.39,76.97,'Panipat','c',7],[28.89,76.59,'Rohtak','c',7],
+  [29.15,75.72,'Hisar','c',7],[30.21,74.95,'Bathinda','c',7],
+  [32.27,75.65,'Pathankot','c',7],[30.93,74.61,'Firozpur','c',7],
+  [27.55,76.61,'Alwar','c',7],[27.22,77.49,'Bharatpur','c',7],
+  [26.91,70.91,'Jaisalmer','c',7],[25.75,71.39,'Barmer','c',7],
+  [25.35,74.63,'Bhilwara','c',7],[24.53,81.30,'Rewa','c',7],
+  [23.84,78.74,'Sagar','c',7],[23.33,75.04,'Ratlam','c',7],
+  [21.52,70.46,'Junagadh','c',7],[23.07,70.13,'Gandhidham','c',7],
+  [25.91,93.72,'Dimapur','c',7],[27.61,75.14,'Sikar','c',7],
+  [25.77,73.33,'Pali','c',7],[19.31,84.80,'Berhampur','c',7],
+  [21.49,86.93,'Balasore','c',7],[26.07,83.18,'Azamgarh','c',7],
+  [30.13,77.27,'Yamunanagar','c',7],[29.15,75.72,'Hisar','c',7],
+  [10.78,76.65,'Palakkad','c',7],[27.15,78.40,'Firozabad','c',7],
+  [26.78,82.14,'Ayodhya','c',7],[25.19,85.52,'Bihar Sharif','c',7],
+  [25.77,87.47,'Purnia','c',7],[22.09,73.56,'Anand','c',7],
 ];
 
-// ── Bangladesh hole ─────────────────────────────────────────────────────────
-// Vertices are listed in REVERSE (CCW in geo = CW on screen = winding -1).
-// India polygon winds +1; combined winding inside Bangladesh = 0 → outside clip
-// → Bangladesh labels hidden. Works with the default nonzero winding rule.
-var BANGLADESH_HOLE = [
-  L.latLng(26.6, 88.2),  // NW (start)
-  L.latLng(25.2, 88.5),  // NW Malda / Jalpaiguri
-  L.latLng(23.0, 88.7),  // W (Murshidabad — east of Kolkata 88.4°E)
-  L.latLng(21.8, 89.0),  // W-SW
-  L.latLng(21.2, 90.0),  // SW (Sundarbans south)
-  L.latLng(21.5, 92.0),  // S (Bay of Bengal edge)
-  L.latLng(22.5, 92.2),  // SE (Chittagong / Cox's Bazar)
-  L.latLng(24.5, 92.0),  // E (Tripura border)
-  L.latLng(25.5, 91.2),  // NE (Meghalaya / Sylhet)
-  L.latLng(26.4, 89.8),  // N (Dhubri)
-  L.latLng(26.6, 88.2),  // close
-];
+map.createPane('placeLabels');
+map.getPane('placeLabels').style.zIndex = 250;
+map.getPane('placeLabels').style.pointerEvents = 'none';
 
-// ── SVG clip using even-odd fill rule ───────────────────────────────────────
-// Even-odd means anywhere inside an ODD number of subpaths = visible (India);
-// inside both India AND Bangladesh = even count = hidden.
-(function() {
-  var NS = 'http://www.w3.org/2000/svg';
-  var svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('xmlns', NS);
-  svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
-  var defs = document.createElementNS(NS, 'defs');
-  var cp   = document.createElementNS(NS, 'clipPath');
-  cp.id    = 'india-label-clip';
-  cp.setAttribute('clipPathUnits', 'userSpaceOnUse');
-  var pathEl = document.createElementNS(NS, 'path');
-  pathEl.id  = 'india-clip-path';
-  pathEl.setAttribute('clip-rule', 'evenodd');
-  cp.appendChild(pathEl);
-  defs.appendChild(cp);
-  svg.appendChild(defs);
-  document.body.appendChild(svg);
-})();
+var _labelItems = _PL.map(function(p) {
+  return {
+    minZoom: p[4],
+    marker: L.marker([p[0], p[1]], {
+      icon: L.divIcon({
+        className: p[3] === 's' ? 'dm-place-state' : 'dm-place-city',
+        html: p[2],
+        iconSize: null,
+        iconAnchor: [0, 8],
+      }),
+      pane: 'placeLabels',
+      interactive: false,
+    })
+  };
+});
 
-function llsToPoints(lls) {
-  return lls.map(function(ll) { return map.latLngToLayerPoint(ll); });
-}
-
-// Push every vertex away from the polygon centroid by |buf| px (negative = inward).
-// This lets border-city labels spill across political boundaries without being cut.
-function offsetPoints(pts, buf) {
-  var cx = 0, cy = 0, n = pts.length;
-  for (var i = 0; i < n; i++) { cx += pts[i].x; cy += pts[i].y; }
-  cx /= n; cy /= n;
-  return pts.map(function(p) {
-    var dx = p.x - cx, dy = p.y - cy;
-    var d = Math.sqrt(dx*dx + dy*dy);
-    if (d < 1) return p;
-    var s = (d + buf) / d;
-    return { x: cx + dx*s, y: cy + dy*s };
+function _syncPlaceLabels() {
+  var z = map.getZoom();
+  _labelItems.forEach(function(item) {
+    var on = map.hasLayer(item.marker);
+    if (z >= item.minZoom && !on) item.marker.addTo(map);
+    else if (z < item.minZoom && on) map.removeLayer(item.marker);
   });
 }
-
-function ptsToPath(pts) {
-  return 'M' + pts.map(function(p) { return p.x + ',' + p.y; }).join('L') + 'Z';
-}
-
-function updateLabelClip() {
-  var pane   = map.getPane('labelPane');
-  var pathEl = document.getElementById('india-clip-path');
-  if (!pane || !pathEl) return;
-  // 20px outward on India lets border-city labels spill across without being cut.
-  // 20px inward on Bangladesh hole keeps it away from West Bengal / Siliguri labels.
-  var BUF = 20;
-  pathEl.setAttribute('d',
-    ptsToPath(offsetPoints(llsToPoints(INDIA_BORDER), BUF)) + ' ' +
-    ptsToPath(offsetPoints(llsToPoints(BANGLADESH_HOLE), -BUF))
-  );
-  pane.style.clipPath = 'url(#india-label-clip)';
-}
-map.on('move zoom viewreset zoomend moveend', updateLabelClip);
-updateLabelClip();
+map.on('zoomend', _syncPlaceLabels);
+_syncPlaceLabels();
 
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
