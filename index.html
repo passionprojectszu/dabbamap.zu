@@ -497,7 +497,7 @@ var INDIA_BORDER = [
   L.latLng(28.5, 97.0),  // Arunachal NE
   L.latLng(27.5, 97.5),  // Arunachal E tip
   L.latLng(25.5, 95.5),  // Nagaland / Myanmar
-  L.latLng(23.5, 93.5),  // Manipur / Myanmar
+  L.latLng(23.5, 94.5),  // Manipur / Myanmar
   L.latLng(22.0, 92.5),  // Mizoram S
   L.latLng(21.0, 92.5),  // SE coast (south of Bangladesh)
   L.latLng(20.5, 87.0),  // Odisha coast
@@ -552,7 +552,7 @@ var BANGLADESH_HOLE = [
   cp.setAttribute('clipPathUnits', 'userSpaceOnUse');
   var pathEl = document.createElementNS(NS, 'path');
   pathEl.id  = 'india-clip-path';
-  pathEl.setAttribute('fill-rule', 'evenodd');
+  pathEl.setAttribute('clip-rule', 'evenodd');
   cp.appendChild(pathEl);
   defs.appendChild(cp);
   svg.appendChild(defs);
