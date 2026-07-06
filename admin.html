@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-B1YD266J9V"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-B1YD266J9V');</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin — DabbaMap</title>
+  <link rel="stylesheet" href="css/design-system.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    body { background: #f7f3ee; }
+
+    /* ── Gate ── */
+    #gate { display:flex; align-items:center; justify-content:center; min-height:100vh; flex-direction:column; gap:16px; }
+    #gate h2 { font-family:var(--font-display); font-size:22px; color:var(--text); }
+    #gate p  { font-size:14px; color:var(--text-muted); }
+
+    /* ── Header ── */
+    .admin-header { background:#1a0f08; color:#fff; padding:16px 24px; display:flex; align-items:center; justify-content:space-between; }
+    .admin-header .logo { font-family:var(--font-display); font-size:20px; font-weight:900; color:#fff; }
+    .admin-header .logo em { color:#F5A623; }
+    .admin-badge { background:#F5A623; color:#1a0f08; font-size:11px; font-weight:800; border-radius:100px; padding:3px 10px; margin-left:8px; letter-spacing:.06em; }
+    .admin-header .out-btn { background:rgba(255,255,255,0.12); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-body); }
+    .admin-header .out-btn:hover { background:rgba(255,255,255,0.2); }
+
+    /* ── Layout ── */
+    .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px 80px; }
+
+    /* ── Stat cards ── */
+    .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
+    @media(max-width:700px){ .stat-row { grid-template-columns:1fr 1fr; } }
+    .stat-card { background:#fff; border:1px solid var(--border); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow-card); }
+    .stat-card .num { font-family:var(--font-display); font-size:32px; font-weight:900; color:var(--primary); line-height:1; margin-bottom:4px; }
+    .stat-card .lbl { font-size:12px; color:var(--text-muted); font-weight:600; }
+    .stat-card.red .num { color:#dc2626; }
+    .stat-card.green .num { color:#16a34a; }
+
+    /* ── Section ── */
+    .admin-section { background:#fff; border:1px solid var(--border); border-radius:16px; margin-bottom:24px; overflow:hidden; box-shadow:var(--shadow-card); }
+    .admin-section-hdr { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:#fafaf9; }
+    .admin-section-hdr h2 { font-family:var(--font-display); font-size:17px; font-weight:800; color:var(--text); margin:0; }
+    .section-count { font-size:12px; font-weight:700; background:var(--primary-pale); color:var(--primary); border-radius:100px; padding:3px 10px; }
+
+    /* ── Table ── */
+    .admin-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .admin-table th { background:#f5f0eb; color:#7a6554; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:10px 14px; text-align:left; }
+    .admin-table td { padding:12px 14px; border-bottom:1px solid #f0e8e0; vertical-align:middle; color:var(--text); }
+    .admin-table tr:last-child td { border-bottom:none; }
+    .admin-table tr:hover td { background:#fdf8f2; }
+    .tbl-wrap { overflow-x:auto; }
+
+    /* ── Badges ── */
+    .type-pill { display:inline-block; font-size:10px; font-weight:800; border-radius:100px; padding:2px 8px; }
+    .type-pill.veg    { background:#dcfce7; color:#15803d; }
+    .type-pill.nonveg { background:#fee2e2; color:#dc2626; }
+    .type-pill.jain   { background:#ede9fe; color:#6d28d9; }
+    .type-pill.diet   { background:#e0f2fe; color:#0369a1; }
+    .status-pill { display:inline-block; font-size:10px; font-weight:800; border-radius:100px; padding:2px 8px; }
+    .status-pill.live   { background:#dcfce7; color:#15803d; }
+    .status-pill.stub   { background:#fef3c7; color:#b45309; }
+    .status-pill.new    { background:#fde68a; color:#92400e; font-size:9px; animation: pulse 2s infinite; }
+
+    /* ── Actions ── */
+    .btn-del { background:#fee2e2; color:#dc2626; border:none; border-radius:7px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font-body); transition:all .15s; }
+    .btn-del:hover { background:#dc2626; color:#fff; }
+    .btn-approve { background:#dcfce7; color:#15803d; border:none; border-radius:7px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font-body); transition:all .15s; }
+    .btn-approve:hover { background:#15803d; color:#fff; }
+    .btn-reject { background:#fee2e2; color:#dc2626; border:none; border-radius:7px; padding:5px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font-body); transition:all .15s; margin-left:6px; }
+    .btn-reject:hover { background:#dc2626; color:#fff; }
+
+    /* ── Empty state ── */
+    .empty-row td { text-align:center; color:var(--text-muted); padding:28px; font-size:13px; }
+
+    /* ── Real-time pulse ── */
+    .live-dot { display:inline-block; width:7px; height:7px; background:#16a34a; border-radius:50%; margin-right:5px; animation:pulse 1.5s infinite; }
+
+    /* ── Tabs ── */
+    .tab-row { display:flex; gap:0; border-bottom:2px solid var(--border); padding:0 20px; background:#fafaf9; }
+    .tab-btn { padding:11px 18px; font-size:13px; font-weight:700; font-family:var(--font-body); border:none; background:none; cursor:pointer; color:var(--text-muted); border-bottom:3px solid transparent; margin-bottom:-2px; transition:all .15s; }
+    .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+    /* Scrollable table */
+    .tbl-wrap { max-height:520px; overflow-y:auto; overflow-x:auto; }
+  </style>
+</head>
+<body>
+
+<!-- Gate: shown while checking auth -->
+<div id="gate">
+  <div style="font-size:36px">🍱</div>
+  <h2>Checking access…</h2>
+  <p>Only the DabbaMap admin can view this page.</p>
+</div>
+
+<!-- Admin shell: hidden until auth confirmed -->
+<div id="admin-shell" style="display:none">
+
+  <div class="admin-header">
+    <div>
+      <span class="logo">Dabba<em>Map</em></span>
+      <span class="admin-badge">ADMIN</span>
+    </div>
+    <button class="out-btn" id="sign-out-btn">Sign out</button>
+  </div>
+
+  <div class="admin-wrap">
+
+    <!-- Stats -->
+    <div class="stat-row" id="stat-row">
+      <div class="stat-card"><div class="num" id="s-total">—</div><div class="lbl">Total listings</div></div>
+      <div class="stat-card green"><div class="num" id="s-week">—</div><div class="lbl">Listed this week</div></div>
+      <div class="stat-card"><div class="num" id="s-claimed">—</div><div class="lbl">Claimed listings</div></div>
+      <div class="stat-card red"><div class="num" id="s-claims">—</div><div class="lbl">Pending claims</div></div>
+    </div>
+
+    <!-- Listings section -->
+    <div class="admin-section">
+      <div class="admin-section-hdr">
+        <h2><span class="live-dot"></span>All Listings <span style="font-size:12px;font-weight:500;color:var(--text-muted)">(newest first)</span></h2>
+        <span class="section-count" id="listing-count">loading…</span>
+      </div>
+      <div style="padding:10px 20px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;background:#fafaf9">
+        <input id="search-listings" type="text" placeholder="Search by name, area, cuisine…"
+          style="flex:1;min-width:200px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;font-family:var(--font-body);outline:none"
+          oninput="filterListings()" />
+        <select id="filter-type" onchange="filterListings()"
+          style="border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;font-family:var(--font-body)">
+          <option value="">All types</option>
+          <option value="veg">Veg</option>
+          <option value="nonveg">Non-veg</option>
+          <option value="jain">Jain</option>
+          <option value="diet">Diet</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Area / Pincode</th>
+              <th>Type</th>
+              <th>Cuisine</th>
+              <th>Price (lunch / monthly)</th>
+              <th>Status</th>
+              <th>Listed</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="listings-tbody">
+            <tr class="empty-row"><td colspan="8">Loading listings…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Claims section -->
+    <div class="admin-section">
+      <div class="admin-section-hdr">
+        <h2>Claim Requests</h2>
+        <span class="section-count" id="claims-count">loading…</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Listing</th>
+              <th>Area</th>
+              <th>Claimant</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Message</th>
+              <th>Submitted</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="claims-tbody">
+            <tr class="empty-row"><td colspan="8">Loading claims…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+var ADMIN_EMAIL = 'passionprojects.zu@gmail.com';
+var _allListings = [];
+
+// ── Auth gate ──────────────────────────────────────────────
+window.DabbaAuthReady.then(function(session) {
+  if (!session || session.user.email !== ADMIN_EMAIL) {
+    document.getElementById('gate').innerHTML =
+      '<div style="font-size:40px">🔒</div>' +
+      '<h2 style="font-family:var(--font-display);font-size:22px">Access Denied</h2>' +
+      '<p style="font-size:14px;color:var(--text-muted)">This page is only accessible to the DabbaMap admin.</p>' +
+      '<a href="index.html" style="margin-top:8px;color:var(--primary);font-weight:700;font-size:14px">Go to homepage</a>';
+    return;
+  }
+
+  // Auth confirmed — show admin shell
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('admin-shell').style.display = 'block';
+  loadAll();
+});
+
+// ── Sign out ──────────────────────────────────────────────
+document.getElementById('sign-out-btn').addEventListener('click', function() {
+  window.DabbaAuth.signOut().then(function() { window.location.href = 'index.html'; });
+});
+
+// ── Load everything ───────────────────────────────────────
+function loadAll() {
+  loadListings();
+  loadClaims();
+}
+
+// ── Listings ──────────────────────────────────────────────
+function loadListings() {
+  window.sbClient.from('listings').select('*').order('created_at', { ascending: false })
+    .then(function(res) {
+      _allListings = res.data || [];
+      renderListings(_allListings);
+      updateStats(_allListings);
+    });
+}
+
+function renderListings(rows) {
+  document.getElementById('listing-count').textContent = rows.length + ' listings';
+  var tbody = document.getElementById('listings-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No listings found.</td></tr>';
+    return;
+  }
+  var now = Date.now();
+  tbody.innerHTML = rows.map(function(r) {
+    var daysAgo = r.created_at ? Math.floor((now - new Date(r.created_at).getTime()) / 86400000) : '?';
+    var isNew = daysAgo <= 3;
+    var dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : '—';
+    var cuisines = (r.cuisines || []).join(', ') || '—';
+    var lunchP = r.lunch_price ? '₹' + r.lunch_price : '—';
+    var monthP = r.monthly_price ? '₹' + r.monthly_price + '/mo' : '—';
+    var statusLabel = r.stub ? 'Unclaimed stub' : (r.is_claimed ? 'Claimed' : 'Live');
+    var statusClass = r.stub ? 'stub' : 'live';
+    return '<tr>' +
+      '<td><strong>' + esc(r.name || 'Unnamed') + '</strong>' + (isNew ? ' <span class="status-pill new">NEW</span>' : '') + '</td>' +
+      '<td>' + esc(r.area || '—') + (r.pincode ? '<br><span style="font-size:11px;color:var(--text-muted)">' + r.pincode + '</span>' : '') + '</td>' +
+      '<td><span class="type-pill ' + (r.type||'veg') + '">' + (r.type||'veg') + '</span></td>' +
+      '<td style="max-width:140px;white-space:normal">' + esc(cuisines) + '</td>' +
+      '<td>' + lunchP + '<br><span style="font-size:11px;color:var(--text-muted)">' + monthP + '</span></td>' +
+      '<td><span class="status-pill ' + statusClass + '">' + statusLabel + '</span></td>' +
+      '<td style="white-space:nowrap">' + dateStr + '<br><span style="font-size:11px;color:var(--text-muted)">' + daysAgo + 'd ago</span></td>' +
+      '<td><button class="btn-del" onclick="deleteListing(\'' + r.id + '\', this)">Delete</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function filterListings() {
+  var q   = document.getElementById('search-listings').value.toLowerCase();
+  var typ = document.getElementById('filter-type').value;
+  var filtered = _allListings.filter(function(r) {
+    var matchQ = !q || (r.name||'').toLowerCase().includes(q) || (r.area||'').toLowerCase().includes(q) || ((r.cuisines||[]).join(' ')).toLowerCase().includes(q);
+    var matchT = !typ || r.type === typ;
+    return matchQ && matchT;
+  });
+  renderListings(filtered);
+}
+
+function deleteListing(id, btn) {
+  if (!confirm('Permanently delete this listing? This cannot be undone.')) return;
+  btn.disabled = true; btn.textContent = '…';
+  window.DabbaListings.remove(id).then(function() {
+    _allListings = _allListings.filter(function(r) { return r.id !== id; });
+    filterListings();
+    updateStats(_allListings);
+  }).catch(function(e) {
+    alert('Delete failed: ' + e.message);
+    btn.disabled = false; btn.textContent = 'Delete';
+  });
+}
+
+// ── Stats ─────────────────────────────────────────────────
+function updateStats(rows) {
+  var weekAgo = Date.now() - 7 * 86400000;
+  document.getElementById('s-total').textContent   = rows.length;
+  document.getElementById('s-week').textContent    = rows.filter(function(r){ return r.created_at && new Date(r.created_at).getTime() > weekAgo; }).length;
+  document.getElementById('s-claimed').textContent = rows.filter(function(r){ return r.is_claimed; }).length;
+}
+
+// ── Claims ─────────────────────────────────────────────────
+function loadClaims() {
+  window.DabbaClaims.all().then(function(rows) {
+    var pending = rows.filter(function(r){ return r.status === 'pending'; });
+    document.getElementById('s-claims').textContent = pending.length;
+    document.getElementById('claims-count').textContent = rows.length + ' total · ' + pending.length + ' pending';
+    renderClaims(rows);
+  }).catch(function() {
+    document.getElementById('claims-count').textContent = 'error';
+  });
+}
+
+function renderClaims(rows) {
+  var tbody = document.getElementById('claims-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No claim requests yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(function(r) {
+    var listingName = (r.listings && r.listings.name) || r.listing_id || '—';
+    var listingArea = (r.listings && r.listings.area) || '—';
+    var dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : '—';
+    var actionBtns = r.status === 'pending'
+      ? '<button class="btn-approve" onclick="approveClaim(\'' + r.id + '\',\'' + r.listing_id + '\', this, ' + JSON.stringify(JSON.stringify(r)) + ')">Approve</button>' +
+        '<button class="btn-reject" onclick="rejectClaim(\'' + r.id + '\', this)">Reject</button>'
+      : '<span style="font-size:11px;font-weight:700;color:' + (r.status==='approved'?'#15803d':'#dc2626') + '">' + r.status.toUpperCase() + '</span>';
+    return '<tr>' +
+      '<td><strong>' + esc(listingName) + '</strong></td>' +
+      '<td>' + esc(listingArea) + '</td>' +
+      '<td>' + esc(r.claimant_name || '—') + '</td>' +
+      '<td>' + esc(r.claimant_email || '—') + '</td>' +
+      '<td>' + esc(r.claimant_phone || '—') + '</td>' +
+      '<td style="max-width:200px;white-space:normal;font-size:12px">' + esc(r.claim_message || '—') + '</td>' +
+      '<td style="white-space:nowrap">' + dateStr + '</td>' +
+      '<td style="white-space:nowrap">' + actionBtns + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function approveClaim(claimId, listingId, btn, rawJson) {
+  if (!confirm('Approve this claim? The cook will gain ownership of the listing.')) return;
+  var claimData = JSON.parse(rawJson);
+  btn.disabled = true; btn.textContent = '…';
+  window.DabbaClaims.approve(claimId, listingId, claimData).then(function() {
+    loadClaims(); loadListings();
+  }).catch(function(e) { alert('Error: ' + e.message); btn.disabled = false; btn.textContent = 'Approve'; });
+}
+
+function rejectClaim(claimId, btn) {
+  if (!confirm('Reject this claim request?')) return;
+  btn.disabled = true; btn.textContent = '…';
+  window.DabbaClaims.reject(claimId).then(function() {
+    loadClaims();
+  }).catch(function(e) { alert('Error: ' + e.message); btn.disabled = false; btn.textContent = 'Reject'; });
+}
+
+// ── Real-time: new listing → reload ───────────────────────
+window.DabbaListings.subscribe(function(row, event) {
+  loadListings();
+});
+
+// ── Helpers ───────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
