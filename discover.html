@@ -48,7 +48,7 @@
       <div>
         <h1 class="t-h1" style="font-size:38px">Find a Dabba</h1>
         <p class="t-body" style="color:var(--text-muted);margin-top:4px">
-          <span id="result-count">0</span> home cooks found near <strong>you</strong>
+          <span id="discover-total-count">—</span> home cooks found near <strong>you</strong>
         </p>
       </div>
       <div class="view-toggle">
@@ -357,7 +357,6 @@ function applyFilters() {
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageResults = results.slice(start, start + PAGE_SIZE);
 
-  document.getElementById('result-count').textContent = total;
   if (total === 0) {
     document.getElementById('results-label').textContent = 'No results found';
   } else {
@@ -696,14 +695,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector(`#ft-pills [data-value="${typeParam}"]`)?.classList.add('active');
   }
 
+  function updateHeroCount() {
+    var el = document.getElementById('discover-total-count');
+    if (el) el.textContent = getAllListings().length;
+  }
+
   // Initial render (master listings show instantly)
   applyFilters();
+  updateHeroCount();
 
   // Load cloud listings from Supabase, then re-render; subscribe for live updates
   if (window.DabbaListings) {
     DabbaListings.fetchAll().then(function(rows) {
       cloudListings = rows || [];
       applyFilters();
+      updateHeroCount();
       if (discoverMapInst) { discoverMapInst.remove(); discoverMapInst = null;
         if (document.getElementById('map-view').style.display !== 'none') initDiscoverMap(); }
     });
@@ -711,6 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!cloudListings.some(function(l){ return l.id === newListing.id; })) {
         cloudListings.unshift(newListing);
         applyFilters();
+        updateHeroCount();
         if (window.showToast) showToast('🍱 New dabba just listed: ' + newListing.name);
       }
     });
