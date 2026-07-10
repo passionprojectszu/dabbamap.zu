@@ -260,7 +260,6 @@ function renderCard(l) {
 
   const cuisineBadges = (l.cuisines||[]).map(c => `<span class="badge badge-cuisine">${hEsc(c)}</span>`).join('');
   const mealBadges    = (l.meals||[]).map(m => `<span class="badge badge-meal">${m==='lunch'?'Lunch':'Dinner'}</span>`).join('');
-  const pickBadge     = l.communityPick ? '<span class="badge badge-pick">⭐ Community Pick</span>' : '';
   const typeBadge     = TYPE_BADGE[l.type] || '';
   const dateStr       = l.daysAgo === 0 ? 'Just listed' : l.daysAgo === 1 ? '1 day ago' : `${l.daysAgo} days ago`;
   const safeId        = encodeURIComponent(l.id || '');
@@ -275,7 +274,7 @@ function renderCard(l) {
             <div class="dabba-area">📍 ${hEsc(l.area)}${l.pincode ? ' · ' + hEsc(l.pincode) : ''}</div>
           </div>
         </div>
-        <div class="tags-row">${typeBadge}${cuisineBadges}${mealBadges}${pickBadge}</div>
+        <div class="tags-row">${typeBadge}${cuisineBadges}${mealBadges}</div>
         <div class="dabba-price">${priceDisplay}<span style="font-size:13px;color:var(--text-muted);font-weight:400">/meal</span></div>
         ${l.description ? `<div class="dabba-desc">${hEsc(l.description)}</div>` : ''}
         ${l._dist != null ? `<div style="font-size:12px;color:var(--primary);font-weight:700;margin-bottom:6px">📍 ${l._dist < 1 ? Math.round(l._dist*1000)+'m away' : l._dist.toFixed(1)+'km away'}</div>` : ''}

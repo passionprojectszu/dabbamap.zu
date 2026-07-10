@@ -99,11 +99,6 @@
 
         <!-- Profile Hero Card -->
         <div class="card" id="profile-hero-card">
-          <!-- Community Pick badge — shown/hidden by JS -->
-          <div id="community-pick-banner" style="display:none;background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:10px 24px;align-items:center;gap:8px">
-            <span style="font-size:13px;font-weight:700;color:#fff"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2b50.svg" alt="" style="width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block" /> Community Pick — recommended by neighbours</span>
-          </div>
-
           <div class="card-body">
             <!-- Header -->
             <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
@@ -415,12 +410,6 @@ const avatarEl = document.getElementById('profile-avatar');
 avatarEl.textContent   = listing.initial;
 avatarEl.style.background = listing.avatarBg;
 
-// Community pick
-if (listing.communityPick) {
-  const banner = document.getElementById('community-pick-banner');
-  banner.style.display = 'flex';
-}
-
 // Name, area, listed
 document.getElementById('profile-name').textContent  = listing.name;
 document.getElementById('profile-area').textContent  = '📍 ' + listing.area + (listing.pincode ? ' — ' + listing.pincode : '');
@@ -447,8 +436,7 @@ document.getElementById('price-block').innerHTML = priceHtml;
 // Tags
 const cuisineBadges = (listing.cuisines||[]).map(c => `<span class="badge badge-cuisine">${c}</span>`).join('');
 const mealBadges    = (listing.meals||[]).map(m => `<span class="badge badge-meal">${m==='lunch'?'Lunch':'Dinner'}</span>`).join('');
-const pickBadge     = listing.communityPick ? '<span class="badge badge-pick">⭐ Community Pick</span>' : '';
-document.getElementById('profile-tags').innerHTML = (TYPE_BADGE_MAP[listing.type]||'') + cuisineBadges + mealBadges + pickBadge;
+document.getElementById('profile-tags').innerHTML = (TYPE_BADGE_MAP[listing.type]||'') + cuisineBadges + mealBadges;
 
 // Description
 document.getElementById('profile-desc').textContent = listing.description || '';
