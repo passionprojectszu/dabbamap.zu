@@ -233,6 +233,27 @@ function distanceKm(lat1, lng1, lat2, lng2) {
    GET ALL LISTINGS (cloud listings from Supabase + built-in master set)
 ══════════════════════════════════════════════════════════ */
 var cloudListings = [];   // populated from Supabase on load + realtime
+var _ratingMap   = {};   // { providerId: { avg, count } } — batch-loaded once
+
+function loadRatingMap() {
+  if (!window.sbClient) return Promise.resolve();
+  return window.sbClient
+    .from('provider_reviews')
+    .select('provider_id,rating')
+    .then(function(res) {
+      if (res.error || !res.data) return;
+      var tmp = {};
+      res.data.forEach(function(r) {
+        if (!tmp[r.provider_id]) tmp[r.provider_id] = { sum: 0, count: 0 };
+        tmp[r.provider_id].sum   += r.rating;
+        tmp[r.provider_id].count += 1;
+      });
+      Object.keys(tmp).forEach(function(id) {
+        _ratingMap[id] = { avg: tmp[id].sum / tmp[id].count, count: tmp[id].count };
+      });
+    });
+}
+
 function getAllListings() {
   // Exclude cloud listings with no coordinates — same rule as the home map
   return [...cloudListings.filter(l => l.lat && l.lng), ...MASTER_LISTINGS];
@@ -253,6 +274,13 @@ function hEsc(s) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function renderStars(avg) {
+  var full = Math.round(avg);
+  var s = '';
+  for (var i = 1; i <= 5; i++) s += i <= full ? '★' : '☆';
+  return s;
+}
+
 function renderCard(l) {
   const priceParts = [];
   if (l.lunchPrice)  priceParts.push(`₹${l.lunchPrice}`);
@@ -264,6 +292,10 @@ function renderCard(l) {
   const typeBadge     = TYPE_BADGE[l.type] || '';
   const dateStr       = l.daysAgo === 0 ? 'Just listed' : l.daysAgo === 1 ? '1 day ago' : `${l.daysAgo} days ago`;
   const safeId        = encodeURIComponent(l.id || '');
+  const rv            = _ratingMap[l.id];
+  const ratingHtml    = rv
+    ? `<div class="dabba-rating"><span class="dabba-stars">${renderStars(rv.avg)}</span><span class="dabba-avg">${rv.avg.toFixed(1)}</span><span class="dabba-rcount">(${rv.count})</span></div>`
+    : '';
 
   return `
     <div class="card card-hover card-anim">
@@ -278,6 +310,7 @@ function renderCard(l) {
         <div class="tags-row">${typeBadge}${cuisineBadges}${mealBadges}</div>
         <div class="dabba-price">${priceDisplay}<span style="font-size:13px;color:var(--text-muted);font-weight:400">/meal</span></div>
         ${l.description ? `<div class="dabba-desc">${hEsc(l.description)}</div>` : ''}
+        ${ratingHtml}
         ${l._dist != null ? `<div style="font-size:12px;color:var(--primary);font-weight:700;margin-bottom:6px">📍 ${l._dist < 1 ? Math.round(l._dist*1000)+'m away' : l._dist.toFixed(1)+'km away'}</div>` : ''}
         <div class="dabba-footer">
           <span class="dabba-date">${(l.stub && !l.isClaimed) ? '<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;border:1px solid #fde68a">UNCLAIMED</span>' : dateStr}</span>
@@ -701,9 +734,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el) el.textContent = getAllListings().length;
   }
 
-  // Initial render (master listings show instantly)
+  // Initial render (master listings show instantly, ratings fill in shortly after)
   applyFilters();
   updateHeroCount();
+
+  // Batch-load ratings map then re-render cards with stars
+  loadRatingMap().then(function() { applyFilters(); });
 
   // Load cloud listings from Supabase, then re-render; subscribe for live updates
   if (window.DabbaListings) {
@@ -727,6 +763,15 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <style>
+  /* Rating row on discover cards */
+  .dabba-rating {
+    display: flex; align-items: center; gap: 5px;
+    margin: 4px 0 8px;
+  }
+  .dabba-stars { color: #e6960c; font-size: 14px; letter-spacing: 1px; line-height: 1; }
+  .dabba-avg   { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+  .dabba-rcount{ font-size: 12px; color: var(--text-muted); }
+
   /* Discover-specific pill style without leaflet-cluster-default override */
   .dm-pill-veg    { background:#15803d; color:#fff; }
   .dm-pill-nonveg { background:#b91c1c; color:#fff; }
