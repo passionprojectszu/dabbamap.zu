@@ -798,9 +798,17 @@ function idJitter(id, seed) {
   for (var _j = 0; _j < str.length; _j++) h = (h * 31 + str.charCodeAt(_j)) & 0xFFFFFF;
   return (h / 0x1000000) - 0.5;
 }
+let activeFilter = 'all';
+
+function matchesFilter(m) {
+  if (activeFilter === 'all')   return true;
+  if (activeFilter === 'trial') return !!m.trial;
+  return m.type === activeFilter;
+}
+
 function addCloudMarker(s) {
   var lat = parseFloat(s.lat), lng = parseFloat(s.lng);
-  if (!lat || !lng) return; // no coordinates — skip rather than show in wrong location
+  if (!lat || !lng) return;
   var d = {
     lat: lat, lng: lng,
     price: '₹' + (s.lunchPrice || s.dinnerPrice || '?'),
@@ -810,17 +818,16 @@ function addCloudMarker(s) {
     id: s.id || null
   };
   var m = makeMarker(d);
-  markerObjects.push({ marker: m, type: d.type, trial: d.trial });
-  mcg.addLayer(m);
+  var mo = { marker: m, type: d.type, trial: d.trial };
+  markerObjects.push(mo);
+  if (matchesFilter(mo)) mcg.addLayer(m); // only show if it passes the active filter
 }
 
-/* ── Stat count (always reflects the real cloud count) ── */
 function updateStat(n) { document.getElementById('stat-count').textContent = n; }
 updateStat(ALL_DABBAS.length);
 
 function refreshStat() {
-  if (!window.DabbaListings) return;
-  DabbaListings.count().then(function(c) { updateStat(ALL_DABBAS.length + c); });
+  updateStat(markerObjects.filter(matchesFilter).length);
 }
 
 /* ── Load cloud listings (shared across all devices) + live updates ── */
@@ -828,14 +835,14 @@ if (window.DabbaListings) {
   DabbaListings.fetchAll().then(function(rows) {
     rows = rows || [];
     rows.forEach(addCloudMarker);
-    updateStat(ALL_DABBAS.length + rows.length);
+    refreshStat(); // count only markers visible under the active filter
   });
   DabbaListings.subscribe(function(listing, eventType) {
-    refreshStat(); // recount from the database so it's always accurate
     if (eventType === 'INSERT') {
       addCloudMarker(listing);
       if (window.showToast) showToast('🍱 New dabba listed: ' + listing.name);
     }
+    refreshStat();
   });
 }
 
@@ -938,21 +945,12 @@ window.doHeroSearch = function () {
 
 /* ── Quick filter ── */
 window.applyFilter = function (btn, type) {
-  // toggle off all
-  document.querySelectorAll('.map-qfilter').forEach(b => {
-    const f = b.dataset.f;
-    b.classList.remove('on');
-  });
+  document.querySelectorAll('.map-qfilter').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
+  activeFilter = type;
 
   mcg.clearLayers();
-
-  const filtered = markerObjects.filter(m => {
-    if (type === 'all')   return true;
-    if (type === 'trial') return m.trial;
-    return m.type === type;
-  });
-
+  const filtered = markerObjects.filter(matchesFilter);
   filtered.forEach(m => mcg.addLayer(m.marker));
   updateStat(filtered.length);
 };
