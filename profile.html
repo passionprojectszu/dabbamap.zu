@@ -826,17 +826,14 @@ function submitReview() {
   var rvTa = document.getElementById('rv-textarea');
   var text = rvTa ? rvTa.value.trim() : '';
   btn.disabled = true; btn.textContent = 'Submitting…';
-  var uMeta    = _rvCurrentUser.user_metadata || {};
-  var userName = uMeta.name || uMeta.full_name || (_rvCurrentUser.email ? _rvCurrentUser.email.split('@')[0] : 'Anonymous');
-
-  DabbaReviews.submit(_rvProviderId, listing.name, _rvCurrentUser.id, userName, _rvSelectedRating, text || null, false)
+  DabbaReviews.submit(_rvProviderId, listing.name, _rvCurrentUser.id, 'Anonymous', _rvSelectedRating, text || null, false)
     .then(function(saved) {
       if (window.showToast) showToast('Review submitted — thank you!');
       var newRev = saved || {
         id:          'tmp-' + Date.now(),
         provider_id: _rvProviderId,
         user_id:     _rvCurrentUser.id,
-        user_name:   userName,
+        user_name:   'Anonymous',
         rating:      _rvSelectedRating,
         review_text: text || null,
         is_edited:   false,
