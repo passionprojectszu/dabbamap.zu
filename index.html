@@ -718,6 +718,11 @@ function normEntry(d) {
   return Object.assign({}, d, { price, cuisine });
 }
 
+function hEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 /* ── Build popup HTML ── */
 function popup(raw) {
   const d = normEntry(raw);
@@ -728,17 +733,20 @@ function popup(raw) {
     jain:   'background:#ede9fe;color:#7c3aed',
     diet:   'background:#e0f2fe;color:#0284c7',
   }[d.type] || 'background:#f3f4f6;color:#374151';
+  const profileHref = d.id
+    ? 'profile.html?id=' + encodeURIComponent(d.id)
+    : 'discover.html?q=' + encodeURIComponent(d.name);
   return `
     <div style="font-family:'DM Sans',sans-serif;padding:16px 18px;min-width:220px">
-      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:800;color:#2C1810;margin-bottom:4px">${d.name}</div>
-      <div style="font-size:12px;color:#7C6B5A;margin-bottom:10px">📍 ${d.area}${d.cuisine ? ' · ' + d.cuisine : ''}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:800;color:#2C1810;margin-bottom:4px">${hEsc(d.name)}</div>
+      <div style="font-size:12px;color:#7C6B5A;margin-bottom:10px">📍 ${hEsc(d.area)}${d.cuisine ? ' · ' + hEsc(d.cuisine) : ''}</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
         <span style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#C8771A">${d.price}</span>
         <span style="font-size:12px;color:#7C6B5A">/meal</span>
-        <span style="margin-left:auto;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;${badgeStyle}">${typeLabel}</span>
+        <span style="margin-left:auto;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;${badgeStyle}">${hEsc(typeLabel)}</span>
       </div>
       ${d.trial ? '<div style="font-size:12px;color:#92400e;background:#fef9c3;padding:4px 10px;border-radius:6px;margin-bottom:12px;display:inline-block">✓ Trial meal available</div>' : ''}
-      <a href="${d.id ? 'profile.html?id='+d.id : 'discover.html?q='+encodeURIComponent(d.name)}" style="display:block;text-align:center;padding:9px 0;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none">View Profile →</a>
+      <a href="${hEsc(profileHref)}" style="display:block;text-align:center;padding:9px 0;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none">View Profile →</a>
     </div>`;
 }
 

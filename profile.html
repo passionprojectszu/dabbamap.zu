@@ -14,6 +14,48 @@
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/js/twemoji.min.js" crossorigin="anonymous"></script>
+<style>
+/* ── Reviews Section ── */
+.rv-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.rv-section-hdr h3{font-family:var(--font-display);font-size:19px;font-weight:800;color:var(--text);margin:0}
+.rv-count-badge{font-size:12px;font-weight:700;background:var(--primary-pale);color:var(--primary);border-radius:100px;padding:3px 10px}
+.rv-summary-wrap{display:flex;gap:20px;align-items:flex-start;margin-bottom:18px}
+.rv-avg-block{text-align:center;flex-shrink:0;min-width:76px}
+.rv-avg-num{font-family:var(--font-display);font-size:48px;font-weight:900;color:var(--text);line-height:1}
+.rv-avg-count{font-size:12px;color:var(--text-muted);margin-top:4px}
+.rv-dist{flex:1}
+.rv-dist-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.rv-dist-label{font-size:12px;font-weight:600;color:var(--text-muted);white-space:nowrap;width:28px;text-align:right;flex-shrink:0}
+.rv-dist-bar-bg{flex:1;height:7px;background:#f0e8dc;border-radius:4px;overflow:hidden}
+.rv-dist-bar-fill{height:100%;background:var(--primary);border-radius:4px;transition:width .5s ease}
+.rv-dist-pct{font-size:11px;color:var(--text-muted);width:30px;text-align:right;flex-shrink:0}
+.rv-form-section-inner{padding-top:18px;border-top:1px solid var(--border)}
+.rv-form-label{font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px}
+.star-picker{display:flex;gap:2px;margin-bottom:10px;cursor:pointer;user-select:none}
+.star-btn{font-size:28px;color:#e0d5c8;transition:color .1s,transform .1s;line-height:1}
+.star-btn.selected,.star-btn.hovered{color:#F5A623}
+.star-btn:hover{transform:scale(1.12)}
+.rv-submit-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rv-char-count{font-size:12px;color:var(--text-muted)}
+.rv-validation-err{color:#dc2626;font-size:13px;font-weight:600;display:none;margin-top:6px}
+.rv-list-hdr{display:flex;align-items:center;justify-content:space-between;padding-top:18px;border-top:1px solid var(--border);margin-top:18px;margin-bottom:12px}
+.rv-sort-select{border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;font-family:var(--font-body);background:#fff;cursor:pointer}
+.rv-card{padding:14px 0;border-bottom:1px solid #f0e8e0}
+.rv-card:last-child{border-bottom:none}
+.rv-card-header{display:flex;gap:12px;align-items:flex-start;margin-bottom:8px}
+.rv-card-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#C8771A,#F5A623);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.rv-card-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.rv-card-date{font-size:11px;color:var(--text-muted)}
+.rv-edited{font-size:10px;color:var(--text-muted);font-weight:400;margin-left:4px}
+.rv-card-text{font-size:14px;color:#3d3027;line-height:1.7;margin:0;padding-left:46px}
+.rv-empty{text-align:center;padding:28px 12px}
+.rv-empty .rv-empty-icon{font-size:30px;margin-bottom:8px}
+.rv-empty p{font-size:14px;color:var(--text-muted);margin:0}
+.rv-empty strong{display:block;font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px}
+.rv-login-prompt{background:var(--primary-pale);border:1px solid rgba(200,119,26,.15);border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.rv-login-prompt p{font-size:14px;color:var(--text-muted);margin:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
 </head>
 <body>
 
@@ -32,7 +74,7 @@
         </button>
         <div class="nav-profile-drop" id="nav-profile-drop"></div>
       </div>
-      <button class="nav-hamburger" aria-label="Menu">☰</button>
+      <button class="nav-hamburger" aria-label="Menu" aria-expanded="false">☰</button>
     </div>
   </div>
   <div class="nav-mobile-menu">
@@ -58,7 +100,7 @@
         <!-- Profile Hero Card -->
         <div class="card" id="profile-hero-card">
           <!-- Community Pick badge — shown/hidden by JS -->
-          <div id="community-pick-banner" style="display:none;background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:10px 24px;display:none;align-items:center;gap:8px">
+          <div id="community-pick-banner" style="display:none;background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:10px 24px;align-items:center;gap:8px">
             <span style="font-size:13px;font-weight:700;color:#fff"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2b50.svg" alt="" style="width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block" /> Community Pick — recommended by neighbours</span>
           </div>
 
@@ -72,6 +114,7 @@
                 </div>
                 <div id="profile-area" style="color:var(--text-muted);font-size:14px;margin-bottom:4px"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4cd.svg" alt="" style="width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block" /> —</div>
                 <div id="profile-listed" style="color:var(--text-muted);font-size:12px">—</div>
+                <div id="hero-rating" style="display:none;align-items:center;gap:4px;margin-top:5px"></div>
               </div>
             </div>
 
@@ -117,6 +160,25 @@
           <h3 class="t-h3 mb-4">Approximate Location</h3>
           <div id="profile-map" style="height:280px;border-radius:10px;overflow:hidden;border:1px solid var(--border)"></div>
           <div class="map-note mt-2" id="map-note"><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f4cd.svg" alt="" style="width:1.1em;height:1.1em;vertical-align:-0.15em;display:inline-block" /> Exact address shared directly after you connect</div>
+        </div>
+
+        <!-- ── REVIEWS ── -->
+        <div class="card card-body" id="reviews-section">
+          <div class="rv-section-hdr">
+            <h3>Ratings &amp; Reviews</h3>
+            <span class="rv-count-badge" id="rv-count-badge"></span>
+          </div>
+          <div id="rv-summary-area"></div>
+          <div id="rv-form-section"></div>
+          <div class="rv-list-hdr" id="rv-list-hdr" style="display:none">
+            <span style="font-size:13px;font-weight:700;color:var(--text)" id="rv-list-count">0 reviews</span>
+            <select class="rv-sort-select" id="rv-sort" onchange="sortReviews()">
+              <option value="newest">Most Recent</option>
+              <option value="highest">Highest Rated</option>
+              <option value="lowest">Lowest Rated</option>
+            </select>
+          </div>
+          <div id="rv-list"></div>
         </div>
 
       </div>
@@ -204,6 +266,7 @@
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
 <script src="js/supabase.js"></script>
+<script src="js/reviews.js"></script>
 <script src="js/main.js"></script>
 <script src="js/animations.js"></script>
 <script>
@@ -237,124 +300,7 @@ const MASTER_LISTINGS = (window.DABBA_DATA || []).map(l => {
   return Object.assign({}, l, details, { capacity: details.capacity || l.capacity || 10 });
 });
 
-/* Old array removed — data now comes from js/data.js */
-const _OLD_LISTINGS = [
-  { id:'L001', name:"Sunita's Kitchen",         initial:'S', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Andheri West',  pincode:'400058', type:'veg',    cuisines:['Gujarati'],       meals:['lunch','dinner'],
-    lunchPrice:80,  dinnerPrice:90,  monthlyPrice:1800, communityPick:true, capacity:10,
-    description:"Fresh, homestyle Gujarati meals cooked with love. I use seasonal vegetables, homemade rotis with pure ghee, and never take shortcuts. Everything from dal to farsan is made from scratch every morning. My cooking follows my nani's recipes — nothing fancy, just real ghar ka khana.", daysAgo:2,
-    lat:19.1274, lng:72.8271 },
 
-  { id:'L002', name:"Ramesh Tiffins",           initial:'R', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Andheri East',  pincode:'400069', type:'nonveg', cuisines:['Punjabi'],        meals:['lunch','dinner'],
-    lunchPrice:90,  dinnerPrice:100, monthlyPrice:2200, communityPick:true, capacity:15,
-    description:'Authentic Punjabi home cooking. Dal makhani, butter chicken, and freshly made parathas every evening. More than a decade of feeding neighbours, now opening to more customers.', daysAgo:5,
-    lat:19.1215, lng:72.8493 },
-
-  { id:'L003', name:"Priya's Jain Dabba",       initial:'P', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    area:'Malad West',    pincode:'400064', type:'jain',   cuisines:['Rajasthani'],     meals:['lunch','dinner'],
-    lunchPrice:100, dinnerPrice:110, monthlyPrice:2500, communityPick:false, capacity:8,
-    description:"100% Jain-friendly cooking — no root vegetables, no onion, no garlic. Strictly traditional Rajasthani preparation with panchkutas and seasonal greens. Paryushana specials available.", daysAgo:7,
-    lat:19.1882, lng:72.8502 },
-
-  { id:'L004', name:"Meena's South Indian",     initial:'M', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
-    area:'Goregaon',      pincode:'400063', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
-    lunchPrice:70,  dinnerPrice:null, monthlyPrice:1600, communityPick:false, capacity:12,
-    description:'Fresh sambar, rasam, rice, and South Indian sides every day. Pure home cooking from Chennai. Idli and dosa available on weekends. Coconut chutney freshly ground each morning.', daysAgo:3,
-    lat:19.1682, lng:72.8552 },
-
-  { id:'L005', name:"Anita Home Meals",         initial:'A', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Borivali West', pincode:'400092', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch','dinner'],
-    lunchPrice:65,  dinnerPrice:70,  monthlyPrice:1500, communityPick:false, capacity:10,
-    description:'Traditional Maharashtrian thali with bhakri, amti, and sabzi. Homemade masalas. The most affordable home food in Borivali without compromising on quality.', daysAgo:4,
-    lat:19.2332, lng:72.8582 },
-
-  { id:'L006', name:"Kumar's Bengali Dabba",    initial:'K', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
-    area:'Chembur',       pincode:'400071', type:'nonveg', cuisines:['Bengali'],        meals:['lunch','dinner'],
-    lunchPrice:85,  dinnerPrice:95,  monthlyPrice:2000, communityPick:false, capacity:8,
-    description:'Authentic Bengali home cooking. Fish curry, shukto, dal, rice, and seasonal vegetables. Fresh hilsa when in season. Chingri malai curry on Sundays.', daysAgo:14,
-    lat:19.0542, lng:72.9012 },
-
-  { id:'L007', name:"Geeta Tiffins",            initial:'G', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Dadar',         pincode:'400014', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch'],
-    lunchPrice:75,  dinnerPrice:null, monthlyPrice:1700, communityPick:false, capacity:12,
-    description:'Classic Maharashtrian dal-chawal with bhaji, papad, and achaar. Cooked fresh every morning. Pithla-bhakri on Fridays. Over 200 regular customers in Dadar.', daysAgo:6,
-    lat:19.0202, lng:72.8492 },
-
-  { id:'L008', name:"Jain Bhoj Andheri",        initial:'J', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    area:'Andheri West',  pincode:'400058', type:'jain',   cuisines:['Gujarati'],       meals:['lunch','dinner'],
-    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, communityPick:false, capacity:10,
-    description:'Strict Jain preparation. No onion, garlic, potato, or any root vegetables. Gujarati style. Rotating 15-item menu. Festival specials for all Jain observances.', daysAgo:8,
-    lat:19.1341, lng:72.8314 },
-
-  { id:'L009', name:"Fit & Fresh Tiffin",       initial:'F', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
-    area:'Andheri West',  pincode:'400058', type:'diet',   cuisines:['Multi'],          meals:['lunch','dinner'],
-    lunchPrice:110, dinnerPrice:120, monthlyPrice:2800, communityPick:false, capacity:15,
-    description:'Low-oil, high-protein, calorie-counted meals. Macros on request. Diabetic-friendly options available. Keto variants on Tuesdays and Thursdays.', daysAgo:1,
-    lat:19.1310, lng:72.8265 },
-
-  { id:'L010', name:"Fernandes Tiffin",         initial:'F', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Bandra West',   pincode:'400050', type:'nonveg', cuisines:['Goan'],           meals:['lunch','dinner'],
-    lunchPrice:100, dinnerPrice:110, monthlyPrice:2400, communityPick:false, capacity:10,
-    description:"Goan fish curry, pork vindaloo, sorpotel. Authentic recipes passed down through generations. Fresh fish sourced daily from Bandra market.", daysAgo:10,
-    lat:19.0622, lng:72.8312 },
-
-  { id:'L011', name:"Asha's Gujarati Thali",    initial:'A', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Bandra West',   pincode:'400050', type:'veg',    cuisines:['Gujarati'],       meals:['lunch'],
-    lunchPrice:85,  dinnerPrice:null, monthlyPrice:1900, communityPick:true, capacity:12,
-    description:'Full Gujarati thali — dal, kadhi, sabzi, rotli, rice, and mithai. Seasonal and fresh. Undhiyu in winter, aam ras in summer. No compromise on quality.', daysAgo:2,
-    lat:19.0582, lng:72.8278 },
-
-  { id:'L012', name:"Lakshmi Tiffin Ghatkopar", initial:'L', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Ghatkopar',     pincode:'400077', type:'veg',    cuisines:['Gujarati'],       meals:['lunch','dinner'],
-    lunchPrice:70,  dinnerPrice:75,  monthlyPrice:1600, communityPick:false, capacity:10,
-    description:"Simple, homely Gujarati meals. Nothing fancy — just the food your maa would make. Dal dhokli on Mondays, sev tameta on Wednesdays.", daysAgo:5,
-    lat:19.0782, lng:72.8802 },
-
-  { id:'L013', name:"Powai Home Kitchen",       initial:'P', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
-    area:'Powai',         pincode:'400076', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
-    lunchPrice:95,  dinnerPrice:null, monthlyPrice:2100, communityPick:false, capacity:8,
-    description:'Rice plates, sambar, chutneys, and a rotating sabzi every day. South Indian comfort food. Freshly ground masalas, no packet masalas ever.', daysAgo:12,
-    lat:19.1562, lng:72.9022 },
-
-  { id:'L014', name:"Soni Jain Meals",          initial:'S', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    area:'Goregaon',      pincode:'400063', type:'jain',   cuisines:['Jain'],           meals:['lunch','dinner'],
-    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, communityPick:false, capacity:8,
-    description:'Goregaon-based Jain cook. Pure Jain recipes with no compromises. Paryushana specials available. 15-year experience in Jain cooking.', daysAgo:9,
-    lat:19.1712, lng:72.8558 },
-
-  { id:'L015', name:"Malabar Dabba",            initial:'M', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
-    area:'Malad West',    pincode:'400064', type:'nonveg', cuisines:['Kerala'],         meals:['lunch','dinner'],
-    lunchPrice:85,  dinnerPrice:95,  monthlyPrice:2000, communityPick:false, capacity:10,
-    description:'Kerala fish curry, appam, stew. Authentic Malabar coast cooking from a home in Malad. Fish pollichathu and prawn curry are customer favourites.', daysAgo:15,
-    lat:19.1842, lng:72.8462 },
-
-  { id:'L016', name:"Santacruz Punjabi Dabba",  initial:'S', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Santacruz',     pincode:'400054', type:'nonveg', cuisines:['Punjabi'],        meals:['dinner'],
-    lunchPrice:null,dinnerPrice:95,  monthlyPrice:2100, communityPick:false, capacity:10,
-    description:'Hearty Punjabi dinners — rajma, chole, paneer makhani for veg guests on request. Dal tadka, jeera rice, freshly made naan on Fridays.', daysAgo:11,
-    lat:19.0832, lng:72.8432 },
-
-  { id:'L017', name:"Sheila's Kitchen Sion",    initial:'S', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Sion',          pincode:'400022', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch'],
-    lunchPrice:60,  dinnerPrice:null, monthlyPrice:1350, communityPick:false, capacity:15,
-    description:'Budget-friendly Maharashtrian lunch. Dal, bhaji, chawal, roti — reliable and filling. The most affordable home food near Sion station.', daysAgo:20,
-    lat:19.0352, lng:72.8722 },
-
-  { id:'L018', name:"Clean Eats by Riya",       initial:'C', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
-    area:'Bandra West',   pincode:'400050', type:'diet',   cuisines:['Multi'],          meals:['lunch','dinner'],
-    lunchPrice:120, dinnerPrice:130, monthlyPrice:3000, communityPick:false, capacity:12,
-    description:'Macro-balanced, low-sodium, portion-controlled meals. Ideal for weight-watchers and diabetics. Nutritionist-approved recipes. Calorie count on every meal.', daysAgo:3,
-    lat:19.0612, lng:72.8248 },
-
-  { id:'L019', name:"Kabir's Kitchen",          initial:'K', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
-    area:'Andheri East',  pincode:'400069', type:'nonveg', cuisines:['Mughlai'],        meals:['lunch','dinner'],
-    lunchPrice:95,  dinnerPrice:105, monthlyPrice:2300, communityPick:false, capacity:12,
-    description:'Mughlai home food — biryani, qorma, haleem. Slow-cooked and spiced just right. Dum biryani available for pre-order. Lucknowi nawabi style.', daysAgo:6,
-    lat:19.1243, lng:72.8462 },
-
-  { id:'_placeholder' }
-]; /* old array unused — data comes from DABBA_DATA via js/data.js */
 
 /* ══════════════════════════════════════════════════════════
    LOAD LISTING FROM URL PARAM
@@ -713,5 +659,343 @@ document.addEventListener('DOMContentLoaded', function() {
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',_t);}else{_t();}
   setTimeout(_t,900);setTimeout(_t,2200);
 })();
-</script></body>
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   REVIEWS — UI layer (API is in js/reviews.js)
+   Policy: users submit once; only admin can edit/delete.
+══════════════════════════════════════════════════════════ */
+var _rvProviderId     = lid;
+var _rvAllReviews     = [];   // canonical fetch order (newest first)
+var _rvSortedReviews  = [];   // current display order (after sort)
+var _rvMyReview       = null;
+var _rvCurrentUser    = null;
+var _rvCurrentSort    = 'newest';
+var _rvSelectedRating = 0;
+var _rvPage           = 1;
+var RV_PER_PAGE       = 5;
+
+function rvEsc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  /* Show loading state immediately so section doesn't look empty */
+  var badge = document.getElementById('rv-count-badge');
+  if (badge) badge.textContent = 'Loading…';
+  var listEl = document.getElementById('rv-list');
+  if (listEl) listEl.innerHTML =
+    '<div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px">' +
+    '<div style="display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:8px"></div>' +
+    '<br>Loading reviews…</div>';
+  if (window.DabbaReviews && window.sbClient) initReviews();
+});
+
+function initReviews() {
+  DabbaReviews.fetchForProvider(_rvProviderId, 'newest').then(function(reviews) {
+    _rvAllReviews    = reviews;
+    _rvSortedReviews = reviews.slice();  /* newest first initially */
+    _rvPage          = 1;
+    var s = DabbaReviews.computeSummary(reviews);
+    renderReviewSummary(s);
+    renderReviewList(_rvSortedReviews);
+    updateHeroRating(s);
+    injectSchemaOrg(listing, s, reviews);
+    return window.DabbaAuthReady || Promise.resolve(null);
+  }).then(function(session) {
+    _rvCurrentUser = session ? session.user : null;
+    if (_rvCurrentUser) {
+      return DabbaReviews.fetchMyReview(_rvProviderId, _rvCurrentUser.id).then(function(myRev) {
+        _rvMyReview = myRev;
+        renderReviewForm(_rvCurrentUser, myRev);
+      });
+    }
+    renderReviewForm(null, null);
+  }).catch(function() {
+    renderReviewSummary(DabbaReviews.computeSummary([]));
+    renderReviewForm(null, null);
+    renderReviewList([]);
+  });
+}
+
+/* ── Hero card rating badge ── */
+function updateHeroRating(s) {
+  var el = document.getElementById('hero-rating');
+  if (!el) return;
+  if (s.count === 0) { el.style.display = 'none'; return; }
+  var stars = '';
+  for (var i = 1; i <= 5; i++) {
+    stars += '<span style="color:' + (i <= Math.round(s.avg) ? '#F5A623' : '#ddd') + ';font-size:14px">&#9733;</span>';
+  }
+  el.innerHTML = stars +
+    '<span style="font-size:13px;font-weight:700;color:var(--text);margin-left:4px">' + s.avg.toFixed(1) + '</span>' +
+    '<span style="font-size:12px;color:var(--text-muted);margin-left:3px">(' + s.count + ' review' + (s.count !== 1 ? 's' : '') + ')</span>';
+  el.style.display = 'flex';
+}
+
+/* ── Summary block ── */
+function renderReviewSummary(s) {
+  var badge = document.getElementById('rv-count-badge');
+  if (badge) badge.textContent = s.count === 0 ? 'No reviews yet' : s.count + (s.count === 1 ? ' review' : ' reviews');
+  var area = document.getElementById('rv-summary-area');
+  if (!area) return;
+  if (s.count === 0) { area.innerHTML = ''; return; }
+  var starsHtml = '';
+  for (var i = 1; i <= 5; i++) starsHtml += '<span style="color:' + (i <= Math.round(s.avg) ? '#F5A623' : '#ddd') + ';font-size:20px">&#9733;</span>';
+  var distRows = '';
+  for (var n = 5; n >= 1; n--) {
+    var cnt = s.dist[n] || 0;
+    var pct = Math.round((cnt / s.count) * 100);
+    distRows += '<div class="rv-dist-row"><span class="rv-dist-label">' + n + ' &#9733;</span>' +
+      '<div class="rv-dist-bar-bg"><div class="rv-dist-bar-fill" style="width:' + pct + '%"></div></div>' +
+      '<span class="rv-dist-pct">' + pct + '%</span></div>';
+  }
+  area.innerHTML = '<div class="rv-summary-wrap">' +
+    '<div class="rv-avg-block">' +
+      '<div class="rv-avg-num">' + s.avg.toFixed(1) + '</div>' +
+      '<div>' + starsHtml + '</div>' +
+      '<div class="rv-avg-count">' + s.count + ' rating' + (s.count !== 1 ? 's' : '') + '</div>' +
+    '</div>' +
+    '<div class="rv-dist">' + distRows + '</div>' +
+  '</div>';
+}
+
+/* ── Write-review form ── */
+function renderReviewForm(user, myReview) {
+  var sec = document.getElementById('rv-form-section');
+  if (!sec) return;
+
+  if (!user) {
+    sec.innerHTML = '<div class="rv-form-section-inner"><div class="rv-login-prompt">' +
+      '<p>Log in to rate and review this provider.</p>' +
+      '<button class="btn btn-primary btn-sm" onclick="if(window.openNavLoginModal){openNavLoginModal(function(){window.location.reload();})}">Log in to Review</button>' +
+      '</div></div>';
+    return;
+  }
+
+  if (myReview) {
+    sec.innerHTML = '<div class="rv-form-section-inner" style="text-align:center;padding:6px 0">' +
+      '<span style="font-size:13px;color:var(--text-muted);font-weight:600">&#10003;&nbsp;You\'ve already reviewed this provider.</span></div>';
+    return;
+  }
+
+  _rvSelectedRating = 0;
+  sec.innerHTML = '<div class="rv-form-section-inner">' +
+    '<div class="rv-form-label">Rate this provider</div>' +
+    '<div class="star-picker" id="rv-star-picker">' +
+      '<span class="star-btn" data-v="1">&#9733;</span>' +
+      '<span class="star-btn" data-v="2">&#9733;</span>' +
+      '<span class="star-btn" data-v="3">&#9733;</span>' +
+      '<span class="star-btn" data-v="4">&#9733;</span>' +
+      '<span class="star-btn" data-v="5">&#9733;</span>' +
+    '</div>' +
+    '<textarea id="rv-textarea" class="form-textarea" rows="3" ' +
+      'placeholder="Share your experience — optional, max 1000 characters" ' +
+      'style="margin-bottom:0" maxlength="1000"></textarea>' +
+    '<div class="rv-submit-row">' +
+      '<span class="rv-char-count" id="rv-char-count">0 / 1000</span>' +
+      '<div style="flex:1"></div>' +
+      '<button class="btn btn-primary" id="rv-submit-btn" onclick="submitReview()">Submit Review</button>' +
+    '</div>' +
+    '<div class="rv-validation-err" id="rv-val-err">Please select a star rating first.</div>' +
+  '</div>';
+  initStarPicker();
+  var rvTa = document.getElementById('rv-textarea');
+  var rvCc = document.getElementById('rv-char-count');
+  if (rvTa && rvCc) rvTa.addEventListener('input', function() { rvCc.textContent = rvTa.value.length + ' / 1000'; });
+}
+
+function initStarPicker() {
+  _rvSelectedRating = 0;
+  var picker = document.getElementById('rv-star-picker');
+  if (!picker) return;
+  var btns = Array.prototype.slice.call(picker.querySelectorAll('.star-btn'));
+  function paint(hov) {
+    btns.forEach(function(b, i) {
+      b.classList.toggle('selected', hov === 0 && i < _rvSelectedRating);
+      b.classList.toggle('hovered', hov > 0 && i < hov);
+    });
+  }
+  paint(0);
+  btns.forEach(function(b, i) {
+    b.addEventListener('mouseenter', function() { paint(i + 1); });
+    b.addEventListener('mouseleave', function() { paint(0); });
+    b.addEventListener('click', function() { _rvSelectedRating = i + 1; paint(0); });
+  });
+  picker.addEventListener('mouseleave', function() { paint(0); });
+}
+
+/* ── Submit new review ── */
+function submitReview() {
+  if (_rvSelectedRating < 1) {
+    var ev = document.getElementById('rv-val-err');
+    if (ev) ev.style.display = 'block';
+    return;
+  }
+  var ev = document.getElementById('rv-val-err'); if (ev) ev.style.display = 'none';
+  if (!_rvCurrentUser) { if (window.showToast) showToast('Please log in first.'); return; }
+  var btn  = document.getElementById('rv-submit-btn');
+  var rvTa = document.getElementById('rv-textarea');
+  var text = rvTa ? rvTa.value.trim() : '';
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  var uMeta    = _rvCurrentUser.user_metadata || {};
+  var userName = uMeta.name || uMeta.full_name || (_rvCurrentUser.email ? _rvCurrentUser.email.split('@')[0] : 'Anonymous');
+
+  DabbaReviews.submit(_rvProviderId, listing.name, _rvCurrentUser.id, userName, _rvSelectedRating, text || null, false)
+    .then(function(saved) {
+      if (window.showToast) showToast('Review submitted — thank you!');
+      var newRev = saved || {
+        id:          'tmp-' + Date.now(),
+        provider_id: _rvProviderId,
+        user_id:     _rvCurrentUser.id,
+        user_name:   userName,
+        rating:      _rvSelectedRating,
+        review_text: text || null,
+        is_edited:   false,
+        is_flagged:  false,
+        updated_at:  new Date().toISOString(),
+        created_at:  new Date().toISOString()
+      };
+      _rvAllReviews.unshift(newRev);
+      _rvMyReview = newRev;
+      /* Re-sort and reset page */
+      _rvPage = 1;
+      applySortToAll();
+      var s = DabbaReviews.computeSummary(_rvAllReviews);
+      renderReviewSummary(s);
+      updateHeroRating(s);
+      /* Replace form with confirmation — users cannot edit/delete */
+      var sec = document.getElementById('rv-form-section');
+      if (sec) sec.innerHTML = '<div class="rv-form-section-inner" style="text-align:center;padding:6px 0">' +
+        '<span style="font-size:13px;color:var(--text-muted);font-weight:600">&#10003;&nbsp;Review submitted. Thank you!</span></div>';
+      renderReviewList(_rvSortedReviews);
+      injectSchemaOrg(listing, s, _rvAllReviews);
+    }).catch(function(err) {
+      btn.disabled = false; btn.textContent = 'Submit Review';
+      if (window.showToast) showToast('Error: ' + ((err && err.message) || 'Could not submit review'));
+    });
+}
+
+/* ── Review list (paginated) ── */
+function renderReviewList(reviews) {
+  var listHdr = document.getElementById('rv-list-hdr');
+  var listEl  = document.getElementById('rv-list');
+  if (!listEl) return;
+
+  if (!reviews.length) {
+    if (listHdr) listHdr.style.display = 'none';
+    listEl.innerHTML = '<div class="rv-empty">' +
+      '<div class="rv-empty-icon">&#127857;</div>' +
+      '<strong>No reviews yet</strong>' +
+      '<p>Be the first to share your experience with this provider.</p>' +
+    '</div>';
+    return;
+  }
+
+  if (listHdr) {
+    listHdr.style.display = 'flex';
+    var lc = document.getElementById('rv-list-count');
+    if (lc) lc.textContent = reviews.length + (reviews.length === 1 ? ' review' : ' reviews');
+  }
+
+  var toShow    = reviews.slice(0, _rvPage * RV_PER_PAGE);
+  var remaining = reviews.length - toShow.length;
+  var cardsHtml = toShow.map(renderReviewCard).join('');
+  var loadMore  = remaining > 0
+    ? '<button class="btn btn-secondary" id="rv-load-more" style="width:100%;margin-top:16px" onclick="loadMoreReviews()">' +
+        'Show ' + Math.min(remaining, RV_PER_PAGE) + ' more' +
+        (remaining > RV_PER_PAGE ? ' of ' + remaining : '') + ' reviews' +
+      '</button>'
+    : '';
+  listEl.innerHTML = cardsHtml + loadMore;
+}
+
+function renderReviewCard(r) {
+  var init  = (r.user_name || 'A')[0].toUpperCase();
+  var dt    = new Date(r.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+  var stars = '';
+  for (var i = 1; i <= 5; i++) {
+    stars += '<span style="color:' + (i <= r.rating ? '#F5A623' : '#ddd') + ';font-size:14px">&#9733;</span>';
+  }
+  var edited = r.is_edited ? '<span class="rv-edited">(edited)</span>' : '';
+  return '<div class="rv-card">' +
+    '<div class="rv-card-header">' +
+      '<div class="rv-card-avatar">' + rvEsc(init) + '</div>' +
+      '<div style="flex:1">' +
+        '<div class="rv-card-name">' + rvEsc(r.user_name || 'Anonymous') + edited + '</div>' +
+        '<div class="rv-card-stars">' + stars + '</div>' +
+        '<div class="rv-card-date">' + dt + '</div>' +
+      '</div>' +
+    '</div>' +
+    (r.review_text ? '<p class="rv-card-text">' + rvEsc(r.review_text) + '</p>' : '') +
+  '</div>';
+}
+
+function loadMoreReviews() {
+  _rvPage++;
+  renderReviewList(_rvSortedReviews);
+  /* Scroll newly revealed cards into view */
+  var el = document.getElementById('rv-load-more');
+  if (el) el.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+/* ── Sorting ── */
+function applySortToAll() {
+  _rvSortedReviews = _rvAllReviews.slice();
+  if (_rvCurrentSort === 'highest') {
+    _rvSortedReviews.sort(function(a, b) { return b.rating - a.rating || new Date(b.created_at) - new Date(a.created_at); });
+  } else if (_rvCurrentSort === 'lowest') {
+    _rvSortedReviews.sort(function(a, b) { return a.rating - b.rating || new Date(b.created_at) - new Date(a.created_at); });
+  } else {
+    _rvSortedReviews.sort(function(a, b) { return new Date(b.created_at) - new Date(a.created_at); });
+  }
+}
+
+function sortReviews() {
+  var sel = document.getElementById('rv-sort');
+  _rvCurrentSort = sel ? sel.value : 'newest';
+  _rvPage = 1;  /* reset to first page on sort change */
+  applySortToAll();
+  renderReviewList(_rvSortedReviews);
+}
+
+/* ── Schema.org structured data ── */
+function injectSchemaOrg(l, s, reviews) {
+  var el = document.getElementById('schema-reviews');
+  if (!el) {
+    el = document.createElement('script');
+    el.id = 'schema-reviews'; el.type = 'application/ld+json';
+    document.head.appendChild(el);
+  }
+  var schema = {
+    '@context': 'https://schema.org',
+    '@type': 'FoodEstablishment',
+    'name': l.name || '',
+    'description': l.description || '',
+    'servesCuisine': (l.cuisines || []).join(', ')
+  };
+  if (s.count > 0) {
+    schema.aggregateRating = {
+      '@type': 'AggregateRating',
+      'ratingValue': String(s.avg),
+      'reviewCount': String(s.count),
+      'bestRating': '5',
+      'worstRating': '1'
+    };
+  }
+  if (reviews.length > 0) {
+    schema.review = reviews.slice(0, 10).map(function(r) {
+      return {
+        '@type': 'Review',
+        'reviewRating': { '@type': 'Rating', 'ratingValue': String(r.rating), 'bestRating': '5' },
+        'author': { '@type': 'Person', 'name': r.user_name || 'Anonymous' },
+        'reviewBody': r.review_text || '',
+        'datePublished': r.created_at.split('T')[0]
+      };
+    });
+  }
+  el.textContent = JSON.stringify(schema);
+}
+</script>
+</body>
 </html>

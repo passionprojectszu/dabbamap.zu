@@ -6,6 +6,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Discover Dabbas — DabbaMap</title>
+  <meta name="description" content="Browse home-cooked tiffin providers near you. Filter by area, cuisine, food type, and price across Mumbai, Delhi, Bengaluru, and more." />
   <meta name="google-adsense-account" content="ca-pub-3509151153558200" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3509151153558200" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="css/design-system.css" />
@@ -203,201 +204,6 @@
 /* Use shared data — same 70 listings as home page map */
 const MASTER_LISTINGS = window.DABBA_DATA || [];
 
-/* Data loaded from js/data.js — legacy array below is unused */
-const _LEGACY_PLACEHOLDER = [
-  { id:'_placeholder' },
-
-  { id:'L002', name:"Ramesh Tiffins",           initial:'R', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Andheri East',  pincode:'400069', type:'nonveg', cuisines:['Punjabi'],        meals:['lunch','dinner'],
-    lunchPrice:90,  dinnerPrice:100, monthlyPrice:2200, trial:false, communityPick:true,
-    description:'Authentic Punjabi home cooking. Dal makhani, butter chicken, and freshly made parathas every evening.', daysAgo:5, lat:19.1215, lng:72.8493 },
-
-  { id:'L003', name:"Priya's Jain Dabba",       initial:'P', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    area:'Malad West',    pincode:'400064', type:'jain',   cuisines:['Rajasthani'],     meals:['lunch','dinner'],
-    lunchPrice:100, dinnerPrice:110, monthlyPrice:2500, trial:false, communityPick:false,
-    description:'100% Jain-friendly cooking — no root vegetables, no onion, no garlic. Strictly traditional preparation.', daysAgo:7, lat:19.1882, lng:72.8502 },
-
-  { id:'L004', name:"Meena's South Indian",     initial:'M', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
-    area:'Goregaon',      pincode:'400063', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
-    lunchPrice:70,  dinnerPrice:null, monthlyPrice:1600, trial:true,  communityPick:false,
-    description:'Fresh sambar, rasam, rice, and South Indian sides every day. Pure home cooking from Chennai.', daysAgo:3, lat:19.1682, lng:72.8552 },
-
-  { id:'L005', name:"Anita Home Meals",         initial:'A', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Borivali West', pincode:'400092', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch','dinner'],
-    lunchPrice:65,  dinnerPrice:70,  monthlyPrice:1500, trial:true,  communityPick:false,
-    description:'Traditional Maharashtrian thali with bhakri, amti, and sabzi. Homemade masalas.', daysAgo:4, lat:19.2332, lng:72.8582 },
-
-  { id:'L006', name:"Kumar's Bengali Dabba",    initial:'K', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
-    area:'Chembur',       pincode:'400071', type:'nonveg', cuisines:['Bengali'],        meals:['lunch','dinner'],
-    lunchPrice:85,  dinnerPrice:95,  monthlyPrice:2000, trial:false, communityPick:false,
-    description:'Authentic Bengali home cooking. Fish curry, dal, rice, and seasonal vegetables.', daysAgo:14, lat:19.0542, lng:72.9012 },
-
-  { id:'L007', name:"Geeta Tiffins",            initial:'G', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Dadar',         pincode:'400014', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch'],
-    lunchPrice:75,  dinnerPrice:null, monthlyPrice:1700, trial:true,  communityPick:false,
-    description:'Classic Maharashtrian dal-chawal with bhaji, papad, and achaar. Cooked fresh every morning.', daysAgo:6, lat:19.0202, lng:72.8492 },
-
-  { id:'L008', name:"Jain Bhoj Andheri",        initial:'J', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    area:'Andheri West',  pincode:'400058', type:'jain',   cuisines:['Gujarati'],       meals:['lunch','dinner'],
-    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, trial:true,  communityPick:false,
-    description:'Strict Jain preparation. No onion, garlic, potato, or any root vegetables. Gujarati style.', daysAgo:8, lat:19.1341, lng:72.8314 },
-
-  { id:'L009', name:"Fit & Fresh Tiffin",       initial:'F', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
-    area:'Andheri West',  pincode:'400058', type:'diet',   cuisines:['Multi'],          meals:['lunch','dinner'],
-    lunchPrice:110, dinnerPrice:120, monthlyPrice:2800, trial:true,  communityPick:false,
-    description:'Low-oil, high-protein, calorie-counted meals. Macros on request. Diabetic-friendly options.', daysAgo:1, lat:19.1310, lng:72.8265 },
-
-  { id:'L010', name:"Fernandes Tiffin",         initial:'F', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Bandra West',   pincode:'400050', type:'nonveg', cuisines:['Goan'],           meals:['lunch','dinner'],
-    lunchPrice:100, dinnerPrice:110, monthlyPrice:2400, trial:false, communityPick:false,
-    description:"Goan fish curry, pork vindaloo, sorpotel. Authentic recipes passed down through generations.", daysAgo:10, lat:19.0622, lng:72.8312 },
-
-  { id:'L011', name:"Asha's Gujarati Thali",    initial:'A', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Bandra West',   pincode:'400050', type:'veg',    cuisines:['Gujarati'],       meals:['lunch'],
-    lunchPrice:85,  dinnerPrice:null, monthlyPrice:1900, trial:true,  communityPick:true,
-    description:'Full Gujarati thali — dal, kadhi, sabzi, rotli, rice, and mithai. Seasonal and fresh.', daysAgo:2, lat:19.0582, lng:72.8278 },
-
-  { id:'L012', name:"Lakshmi Tiffin Ghatkopar", initial:'L', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Ghatkopar',     pincode:'400077', type:'veg',    cuisines:['Gujarati'],       meals:['lunch','dinner'],
-    lunchPrice:70,  dinnerPrice:75,  monthlyPrice:1600, trial:true,  communityPick:false,
-    description:"Simple, homely Gujarati meals. Nothing fancy — just the food your maa would make.", daysAgo:5, lat:19.0782, lng:72.8802 },
-
-  { id:'L013', name:"Powai Home Kitchen",       initial:'P', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
-    area:'Powai',         pincode:'400076', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
-    lunchPrice:95,  dinnerPrice:null, monthlyPrice:2100, trial:false, communityPick:false,
-    description:'Rice plates, sambar, chutneys, and a rotating sabzi every day. South Indian comfort food.', daysAgo:12, lat:19.1562, lng:72.9022 },
-
-  { id:'L014', name:"Soni Jain Meals",          initial:'S', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    area:'Goregaon',      pincode:'400063', type:'jain',   cuisines:['Jain'],           meals:['lunch','dinner'],
-    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, trial:true,  communityPick:false,
-    description:'Goregaon-based Jain cook. Pure Jain recipes with no compromises. Paryushana specials available.', daysAgo:9, lat:19.1712, lng:72.8558 },
-
-  { id:'L015', name:"Malabar Dabba",            initial:'M', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
-    area:'Malad West',    pincode:'400064', type:'nonveg', cuisines:['Kerala'],         meals:['lunch','dinner'],
-    lunchPrice:85,  dinnerPrice:95,  monthlyPrice:2000, trial:true,  communityPick:false,
-    description:'Kerala fish curry, appam, stew. Authentic Malabar coast cooking from a home in Malad.', daysAgo:15, lat:19.1842, lng:72.8462 },
-
-  { id:'L016', name:"Santacruz Punjabi Dabba",  initial:'S', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Santacruz',     pincode:'400054', type:'nonveg', cuisines:['Punjabi'],        meals:['dinner'],
-    lunchPrice:null,dinnerPrice:95,  monthlyPrice:2100, trial:false, communityPick:false,
-    description:'Hearty Punjabi dinners — rajma, chole, paneer makhani for veg guests on request.', daysAgo:11, lat:19.0832, lng:72.8432 },
-
-  { id:'L017', name:"Sheila's Kitchen Sion",    initial:'S', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Sion',          pincode:'400022', type:'veg',    cuisines:['Maharashtrian'],  meals:['lunch'],
-    lunchPrice:60,  dinnerPrice:null, monthlyPrice:1350, trial:true,  communityPick:false,
-    description:'Budget-friendly Maharashtrian lunch. Dal, bhaji, chawal, roti — reliable and filling.', daysAgo:20, lat:19.0352, lng:72.8722 },
-
-  { id:'L018', name:"Clean Eats by Riya",       initial:'C', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
-    area:'Bandra West',   pincode:'400050', type:'diet',   cuisines:['Multi'],          meals:['lunch','dinner'],
-    lunchPrice:120, dinnerPrice:130, monthlyPrice:3000, trial:true,  communityPick:false,
-    description:'Macro-balanced, low-sodium, portion-controlled meals. Ideal for weight-watchers and diabetics.', daysAgo:3, lat:19.0612, lng:72.8248 },
-
-  { id:'L019', name:"Kabir's Kitchen",          initial:'K', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
-    area:'Andheri East',  pincode:'400069', type:'nonveg', cuisines:['Mughlai'],        meals:['lunch','dinner'],
-    lunchPrice:95,  dinnerPrice:105, monthlyPrice:2300, trial:true,  communityPick:false,
-    description:'Mughlai home food — biryani, qorma, haleem. Slow-cooked and spiced just right.', daysAgo:6, lat:19.1243, lng:72.8462 },
-
-  { id:'L020', name:"Kavita Coastal Versova",   initial:'K', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Versova',       pincode:'400061', type:'veg',    cuisines:['South Indian'],   meals:['lunch'],
-    lunchPrice:90,  dinnerPrice:null, monthlyPrice:2000, trial:false, communityPick:true,
-    description:'Coastal veg fare — coconut curries, rice, solkadhi, and fried vegetables.', daysAgo:13, lat:19.1372, lng:72.8132 },
-
-  { id:'L021', name:"Rekha's Rajasthani Dabba", initial:'R', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Kandivali West', pincode:'400067', type:'veg',   cuisines:['Rajasthani'],     meals:['lunch','dinner'],
-    lunchPrice:75,  dinnerPrice:80,  monthlyPrice:1700, trial:true,  communityPick:false,
-    description:'Dal baati churma, ker sangri, gatte ki sabzi. Authentic Marwari home cooking in Kandivali.', daysAgo:4, lat:19.2082, lng:72.8312 },
-
-  { id:'L022', name:"Tara's Tiffin Juhu",       initial:'T', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
-    area:'Juhu',           pincode:'400049', type:'veg',   cuisines:['North Indian'],   meals:['lunch'],
-    lunchPrice:90,  dinnerPrice:null, monthlyPrice:2000, trial:true,  communityPick:false,
-    description:'North Indian home meals — dal tadka, sabzi, roti, and rice. Cooked with mustard oil and real spices.', daysAgo:3, lat:19.1082, lng:72.8262 },
-
-  { id:'L023', name:"Vile Parle Veg Kitchen",   initial:'V', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Vile Parle East',pincode:'400057', type:'veg',   cuisines:['Gujarati'],       meals:['lunch','dinner'],
-    lunchPrice:70,  dinnerPrice:75,  monthlyPrice:1600, trial:true,  communityPick:false,
-    description:'Simple Gujarati home meals. Seasonal sabzi, dal, rotli, and rice. Fresh every day.', daysAgo:6, lat:19.0992, lng:72.8442 },
-
-  { id:'L024', name:"Mulund Maharashtrian Mess", initial:'M', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
-    area:'Mulund West',    pincode:'400080', type:'veg',   cuisines:['Maharashtrian'],  meals:['lunch','dinner'],
-    lunchPrice:65,  dinnerPrice:70,  monthlyPrice:1450, trial:true,  communityPick:false,
-    description:'Traditional Maharashtrian thali with pitla, bhakri, pithla, and sol kadhi. Budget-friendly.', daysAgo:8, lat:19.1732, lng:72.9562 },
-
-  { id:'L025', name:"Thane Home Kitchen",        initial:'T', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    area:'Thane',          pincode:'400601', type:'nonveg',cuisines:['Mughlai'],        meals:['lunch','dinner'],
-    lunchPrice:95,  dinnerPrice:100, monthlyPrice:2200, trial:false, communityPick:false,
-    description:'Mughlai home food from Thane. Biryani, korma, and slow-cooked gravies made fresh daily.', daysAgo:5, lat:19.2183, lng:72.9781 },
-
-  { id:'L026', name:"Wadala Sindhi Dabba",       initial:'W', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Wadala',         pincode:'400031', type:'veg',   cuisines:['North Indian'],   meals:['lunch'],
-    lunchPrice:80,  dinnerPrice:null, monthlyPrice:1800, trial:true,  communityPick:false,
-    description:'Sindhi dal, sai bhaji, kadhi chawal. Comforting home food from a Sindhi household.', daysAgo:9, lat:19.0202, lng:72.8672 },
-
-  { id:'L027', name:"Kurla Non-Veg Tiffin",      initial:'K', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
-    area:'Kurla East',     pincode:'400024', type:'nonveg',cuisines:['Mughlai'],        meals:['lunch','dinner'],
-    lunchPrice:85,  dinnerPrice:90,  monthlyPrice:2000, trial:true,  communityPick:false,
-    description:'Chicken curry, keema, and egg dishes. Hearty Muslim home cooking from Kurla.', daysAgo:2, lat:19.0702, lng:72.8842 },
-
-  { id:'L028', name:"Lower Parel Diet Meals",    initial:'L', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
-    area:'Lower Parel',    pincode:'400013', type:'diet',  cuisines:['Multi'],          meals:['lunch','dinner'],
-    lunchPrice:130, dinnerPrice:140, monthlyPrice:3200, trial:true,  communityPick:true,
-    description:'Corporate-area diet meals. Calorie-counted, macro-tracked, and customisable for fitness goals.', daysAgo:1, lat:19.0022, lng:72.8322 },
-
-  { id:'L029', name:"Worli Punjabi Home",        initial:'W', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Worli',          pincode:'400018', type:'veg',   cuisines:['Punjabi'],        meals:['dinner'],
-    lunchPrice:null,dinnerPrice:100, monthlyPrice:2200, trial:false, communityPick:false,
-    description:'Evening Punjabi dinners — chole bhature, paneer tikka masala, and warm rotis.', daysAgo:7, lat:19.0132, lng:72.8182 },
-
-  { id:'L030', name:"Matunga South Indian",      initial:'M', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Matunga',        pincode:'400019', type:'veg',   cuisines:['South Indian'],   meals:['lunch'],
-    lunchPrice:65,  dinnerPrice:null, monthlyPrice:1450, trial:true,  communityPick:true,
-    description:'Matunga is Mumbai\'s South Indian heart. Fresh sambar, filter coffee on order, and real home cooking.', daysAgo:3, lat:19.0232, lng:72.8582 },
-
-  { id:'L031', name:"Jogeshwari Jain Tiffin",    initial:'J', avatarBg:'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    area:'Jogeshwari West',pincode:'400102', type:'jain',  cuisines:['Gujarati'],       meals:['lunch','dinner'],
-    lunchPrice:90,  dinnerPrice:95,  monthlyPrice:2100, trial:true,  communityPick:false,
-    description:'Jain-certified kitchen. No root vegetables, no onion-garlic. Pure and traditional.', daysAgo:11, lat:19.1432, lng:72.8432 },
-
-  { id:'L032', name:"Malad East Home Meals",     initial:'M', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
-    area:'Malad East',     pincode:'400097', type:'nonveg',cuisines:['Punjabi'],        meals:['lunch','dinner'],
-    lunchPrice:80,  dinnerPrice:85,  monthlyPrice:1900, trial:true,  communityPick:false,
-    description:'Chicken, mutton, and egg curries with proper Punjabi tadka. Home delivery in Malad East.', daysAgo:4, lat:19.1882, lng:72.8682 },
-
-  { id:'L033', name:"Oshiwara Veg Tiffin",       initial:'O', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Oshiwara',       pincode:'400102', type:'veg',   cuisines:['North Indian'],   meals:['lunch'],
-    lunchPrice:85,  dinnerPrice:null, monthlyPrice:1900, trial:true,  communityPick:false,
-    description:'North Indian veg meals made fresh. Dal, paneer, roti, and rice. Ideal for film industry workers.', daysAgo:6, lat:19.1382, lng:72.8352 },
-
-  { id:'L034', name:"Dahisar Gujarati Kitchen",  initial:'D', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Dahisar',        pincode:'400068', type:'veg',   cuisines:['Gujarati'],       meals:['lunch','dinner'],
-    lunchPrice:65,  dinnerPrice:70,  monthlyPrice:1450, trial:true,  communityPick:false,
-    description:'Authentic Gujarati meals from a Dahisar household. Undhiyu on weekends. No compromise on taste.', daysAgo:10, lat:19.2482, lng:72.8582 },
-
-  { id:'L035', name:"Borivali East Dabba",       initial:'B', avatarBg:'linear-gradient(135deg,#dc2626,#f87171)',
-    area:'Borivali East',  pincode:'400066', type:'nonveg',cuisines:['Maharashtrian'],  meals:['lunch','dinner'],
-    lunchPrice:75,  dinnerPrice:80,  monthlyPrice:1700, trial:true,  communityPick:false,
-    description:'Non-veg Maharashtrian home food. Kombdi vade, mutton sukka, and sol kadhi. Hearty and filling.', daysAgo:14, lat:19.2322, lng:72.8692 },
-
-  { id:'L036', name:"Santacruz West Meals",      initial:'S', avatarBg:'linear-gradient(135deg,#4A7C59,#6DAF82)',
-    area:'Santacruz West', pincode:'400054', type:'veg',   cuisines:['North Indian'],   meals:['lunch'],
-    lunchPrice:80,  dinnerPrice:null, monthlyPrice:1800, trial:true,  communityPick:false,
-    description:'Simple North Indian veg lunch. Dal, roti, sabzi, and rice — the kind of food that feels like home.', daysAgo:5, lat:19.0862, lng:72.8392 },
-
-  { id:'L037', name:"Parel Bengali Kitchen",     initial:'P', avatarBg:'linear-gradient(135deg,#0284c7,#38bdf8)',
-    area:'Parel',          pincode:'400012', type:'nonveg',cuisines:['Bengali'],        meals:['lunch','dinner'],
-    lunchPrice:90,  dinnerPrice:100, monthlyPrice:2100, trial:false, communityPick:false,
-    description:'Authentic Bengali cooking — ilish maach, chingri malai curry, and mishti doi. Comfort food.', daysAgo:8, lat:19.0042, lng:72.8432 },
-
-  { id:'L038', name:"Andheri West Diet Co.",     initial:'A', avatarBg:'linear-gradient(135deg,#0369a1,#38bdf8)',
-    area:'Andheri West',   pincode:'400058', type:'diet',  cuisines:['Multi'],          meals:['lunch','dinner'],
-    lunchPrice:115, dinnerPrice:125, monthlyPrice:2900, trial:true,  communityPick:false,
-    description:'Fitness-focused meal prep. Low-carb, high-protein, gluten-free options. Macros provided on request.', daysAgo:2, lat:19.1312, lng:72.8202 },
-
-  { id:'L039', name:"Colaba Parsi Dabba",        initial:'C', avatarBg:'linear-gradient(135deg,#C8771A,#F5A623)',
-    area:'Colaba',         pincode:'400005', type:'nonveg',cuisines:['Multi'],          meals:['lunch'],
-    lunchPrice:120, dinnerPrice:null, monthlyPrice:2700, trial:false, communityPick:true,
-    description:'Rare Parsi home cooking — dhansak, patra ni macchi, sali boti. A taste you won\'t find in restaurants.', daysAgo:6, lat:18.9222, lng:72.8322 },
-
-];
 
 /* ══════════════════════════════════════════════════════════
    FILTER STATE
@@ -441,37 +247,43 @@ const TYPE_BADGE = {
   diet:   '<span class="badge badge-diet">Diet</span>',
 };
 
+function hEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function renderCard(l) {
   const priceParts = [];
   if (l.lunchPrice)  priceParts.push(`₹${l.lunchPrice}`);
   if (l.dinnerPrice) priceParts.push(`₹${l.dinnerPrice}`);
   const priceDisplay = priceParts[0] || '—';
 
-  const cuisineBadges = (l.cuisines||[]).map(c => `<span class="badge badge-cuisine">${c}</span>`).join('');
+  const cuisineBadges = (l.cuisines||[]).map(c => `<span class="badge badge-cuisine">${hEsc(c)}</span>`).join('');
   const mealBadges    = (l.meals||[]).map(m => `<span class="badge badge-meal">${m==='lunch'?'Lunch':'Dinner'}</span>`).join('');
   const pickBadge     = l.communityPick ? '<span class="badge badge-pick">⭐ Community Pick</span>' : '';
   const typeBadge     = TYPE_BADGE[l.type] || '';
   const dateStr       = l.daysAgo === 0 ? 'Just listed' : l.daysAgo === 1 ? '1 day ago' : `${l.daysAgo} days ago`;
+  const safeId        = encodeURIComponent(l.id || '');
 
   return `
     <div class="card card-hover card-anim">
       <div class="card-body dabba-card">
         <div class="dabba-card-header">
-          <div class="dabba-avatar" style="background:${l.avatarBg}">${l.initial}</div>
+          <div class="dabba-avatar" style="background:${hEsc(l.avatarBg)}">${hEsc(l.initial)}</div>
           <div>
-            <div class="dabba-name">${l.name}</div>
-            <div class="dabba-area">📍 ${l.area}${l.pincode ? ' · ' + l.pincode : ''}</div>
+            <div class="dabba-name">${hEsc(l.name)}</div>
+            <div class="dabba-area">📍 ${hEsc(l.area)}${l.pincode ? ' · ' + hEsc(l.pincode) : ''}</div>
           </div>
         </div>
         <div class="tags-row">${typeBadge}${cuisineBadges}${mealBadges}${pickBadge}</div>
         <div class="dabba-price">${priceDisplay}<span style="font-size:13px;color:var(--text-muted);font-weight:400">/meal</span></div>
-        ${l.description ? `<div class="dabba-desc">${l.description}</div>` : ''}
+        ${l.description ? `<div class="dabba-desc">${hEsc(l.description)}</div>` : ''}
         ${l._dist != null ? `<div style="font-size:12px;color:var(--primary);font-weight:700;margin-bottom:6px">📍 ${l._dist < 1 ? Math.round(l._dist*1000)+'m away' : l._dist.toFixed(1)+'km away'}</div>` : ''}
         <div class="dabba-footer">
           <span class="dabba-date">${(l.stub && !l.isClaimed) ? '<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;border:1px solid #fde68a">UNCLAIMED</span>' : dateStr}</span>
           ${(l.cloud && l.stub && !l.isClaimed)
-            ? `<div style="display:flex;gap:5px"><a href="claim.html?id=${l.id}" class="btn btn-primary btn-sm">Claim →</a><a href="profile.html?id=${l.id}" class="btn btn-ghost btn-sm" style="font-size:11px">View</a></div>`
-            : `<a href="profile.html?id=${l.id}" class="btn btn-primary btn-sm">View →</a>`
+            ? `<div style="display:flex;gap:5px"><a href="claim.html?id=${safeId}" class="btn btn-primary btn-sm">Claim →</a><a href="profile.html?id=${safeId}" class="btn btn-ghost btn-sm" style="font-size:11px">View</a></div>`
+            : `<a href="profile.html?id=${safeId}" class="btn btn-primary btn-sm">View →</a>`
           }
         </div>
       </div>
@@ -547,8 +359,12 @@ function applyFilters() {
   const pageResults = results.slice(start, start + PAGE_SIZE);
 
   document.getElementById('result-count').textContent = total;
-  document.getElementById('results-label').textContent =
-    `Showing ${start+1}–${Math.min(start+PAGE_SIZE, total)} of ${total} result${total !== 1 ? 's' : ''}`;
+  if (total === 0) {
+    document.getElementById('results-label').textContent = 'No results found';
+  } else {
+    document.getElementById('results-label').textContent =
+      `Showing ${start+1}–${Math.min(start+PAGE_SIZE, total)} of ${total} result${total !== 1 ? 's' : ''}`;
+  }
 
   const grid = document.getElementById('results-grid');
   if (total === 0) {
@@ -713,12 +529,13 @@ function initDiscoverMap() {
       html:`<div style="display:inline-flex;align-items:center;gap:4px;border-radius:100px;padding:5px 11px;font-size:12px;font-weight:700;font-family:DM Sans,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.45);white-space:nowrap;cursor:pointer;background:${bg};color:#fff;transform:translate(-50%,-50%)">${emoji} ₹${l.lunchPrice||l.dinnerPrice||'?'}</div>`,
       iconSize:[0,0], iconAnchor:[0,0], className:''
     });
+    const safeMapId = encodeURIComponent(l.id || '');
     const popupClaimBtn = (l.cloud && l.stub && !l.isClaimed)
-      ? `<a href="claim.html?id=${l.id}" style="display:block;text-align:center;padding:8px;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:6px">Claim this listing →</a><a href="profile.html?id=${l.id}" style="display:block;text-align:center;padding:7px;background:transparent;color:#C8771A;border-radius:100px;font-size:12px;font-weight:700;text-decoration:none;border:1.5px solid #C8771A">View →</a>`
-      : `<a href="profile.html?id=${l.id}" style="display:block;text-align:center;padding:8px;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none">View Profile →</a>`;
+      ? `<a href="claim.html?id=${safeMapId}" style="display:block;text-align:center;padding:8px;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:6px">Claim this listing →</a><a href="profile.html?id=${safeMapId}" style="display:block;text-align:center;padding:7px;background:transparent;color:#C8771A;border-radius:100px;font-size:12px;font-weight:700;text-decoration:none;border:1.5px solid #C8771A">View →</a>`
+      : `<a href="profile.html?id=${safeMapId}" style="display:block;text-align:center;padding:8px;background:#C8771A;color:#fff;border-radius:100px;font-size:13px;font-weight:700;text-decoration:none">View Profile →</a>`;
     const popupUnclaimedBadge = (l.stub && !l.isClaimed) ? '<div style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:100px;padding:2px 8px;display:inline-block;margin-bottom:6px">UNCLAIMED</div>' : '';
     L.marker([lat, lng], {icon}).addTo(mcg).bindPopup(
-      `<div style="font-family:DM Sans,sans-serif;padding:12px 14px;min-width:200px">${popupUnclaimedBadge}<div style="font-family:Playfair Display,serif;font-size:15px;font-weight:800;color:#2C1810;margin-bottom:4px">${l.name}</div><div style="font-size:12px;color:#7C6B5A;margin-bottom:8px">📍 ${l.area}</div><div style="font-size:20px;font-family:Playfair Display,serif;font-weight:700;color:#C8771A;margin-bottom:10px">${(l.lunchPrice||l.dinnerPrice) ? '&#8377;'+(l.lunchPrice||l.dinnerPrice) : 'Price TBD'}</div>${popupClaimBtn}</div>`,
+      `<div style="font-family:DM Sans,sans-serif;padding:12px 14px;min-width:200px">${popupUnclaimedBadge}<div style="font-family:Playfair Display,serif;font-size:15px;font-weight:800;color:#2C1810;margin-bottom:4px">${hEsc(l.name)}</div><div style="font-size:12px;color:#7C6B5A;margin-bottom:8px">📍 ${hEsc(l.area)}</div><div style="font-size:20px;font-family:Playfair Display,serif;font-weight:700;color:#C8771A;margin-bottom:10px">${(l.lunchPrice||l.dinnerPrice) ? '&#8377;'+(l.lunchPrice||l.dinnerPrice) : 'Price TBD'}</div>${popupClaimBtn}</div>`,
       {maxWidth:240, closeButton:false}
     );
   });
@@ -849,7 +666,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('map-view').style.display  = 'none';
   });
   document.getElementById('view-map').addEventListener('click', () => {
-    window.location.href = 'index.html';
+    document.getElementById('view-map').classList.add('active');
+    document.getElementById('view-list').classList.remove('active');
+    document.getElementById('map-view').style.display = '';
+    document.getElementById('list-view').style.display = 'none';
+    initDiscoverMap();
   });
 
   // Read URL params from home page search or footer links
