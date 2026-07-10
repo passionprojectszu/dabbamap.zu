@@ -234,7 +234,8 @@ function distanceKm(lat1, lng1, lat2, lng2) {
 ══════════════════════════════════════════════════════════ */
 var cloudListings = [];   // populated from Supabase on load + realtime
 function getAllListings() {
-  return [...cloudListings, ...MASTER_LISTINGS];
+  // Exclude cloud listings with no coordinates — same rule as the home map
+  return [...cloudListings.filter(l => l.lat && l.lng), ...MASTER_LISTINGS];
 }
 
 /* ══════════════════════════════════════════════════════════
